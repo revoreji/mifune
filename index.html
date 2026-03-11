@@ -330,7 +330,7 @@ try {
     });
 } catch (e) { console.warn("売上保存失敗:", e.message); }
 try { await deleteDoc(doc(db, "stores/mifune/tables", tableId)); } catch(e) { console.warn("テーブル削除失敗:", e.message); }
-await clearCountdown(tableId);
+await clearCountdown(tableId, true);
 // カスタム席なら会計後に削除
 const customs = getCustomTableNames();
 if (customs.includes(tableId)) {
@@ -826,12 +826,12 @@ async function startCountdownIfNeeded(tableId) {
 }
 
 // 会計時に呼ぶ
-async function clearCountdown(tableId) {
+async function clearCountdown(tableId, skipCloud = false) {
     localStorage.removeItem('nomi_start_ms_' + tableId);
     localStorage.removeItem('nomi_offset_' + tableId);
     localStorage.removeItem('nomi_total_min_' + tableId);
     delete lastAlertedTable[tableId];
-    if (window.cloudSyncNomiClear) await window.cloudSyncNomiClear(tableId);
+    if (!skipCloud && window.cloudSyncNomiClear) await window.cloudSyncNomiClear(tableId);
 }
 
 function getCountdownRemaining(tableId) {
