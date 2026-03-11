@@ -177,30 +177,16 @@ if (data.updatedAt && typeof data.updatedAt.toMillis === 'function') {
     window.deviceClockOffset = Date.now() - data.updatedAt.toMillis();
 }
 
-// 飲み放題カウントダウン同期
-if (data.nomihodaiStart && !docSnap.metadata.hasPendingWrites) {
-    // サーバーから正式な値が来たときだけ更新
-    const startMs = data.nomihodaiStart.toMillis();
-    localStorage.setItem('nomi_start_ms_' + tId, startMs.toString());
-    localStorage.setItem('nomi_total_min_' + tId, (data.nomiTotalMinutes || NOMIHODAI_MINUTES).toString());
-    if (!localStorage.getItem('nomi_offset_' + tId)) {
-        localStorage.setItem('nomi_offset_' + tId, (Date.now() - startMs).toString());
+// 飲み放題カウントダウン同期（メモリのみ）
+if (!docSnap.metadata.hasPendingWrites) {
+    if (data.nomihodaiStart) {
+        window._nomiData[tId] = {
+            startMs: data.nomihodaiStart.toMillis(),
+            totalMinutes: data.nomiTotalMinutes || NOMIHODAI_MINUTES
+        };
+    } else {
+        delete window._nomiData[tId];
     }
-    // iOS対策：データ到着時に即時1回バッジ更新
-    setTimeout(() => {
-        document.querySelectorAll('.countdown-badge[data-table="' + tId + '"]').forEach(el => {
-            const rem = getCountdownRemaining(tId);
-            if (rem === null) { el.style.display = 'none'; return; }
-            el.style.display = '';
-            el.textContent = rem <= 0 ? 'LO！' : '🍺 ' + Math.floor(rem/60) + ':' + String(rem%60).padStart(2,'0');
-            el.className = 'countdown-badge' + (rem <= 0 ? ' danger' : rem <= 600 ? ' danger' : rem <= 1200 ? ' warning' : '');
-        });
-    }, 100);
-} else if (!data.nomihodaiStart && !docSnap.metadata.hasPendingWrites) {
-    // サーバーからnomihodaiStartがnullで来たとき（会計後）だけ削除
-    localStorage.removeItem('nomi_start_ms_' + tId);
-    localStorage.removeItem('nomi_offset_' + tId);
-    localStorage.removeItem('nomi_total_min_' + tId);
 }
 
 // ▼ モバイルオーダー検知・自動キッチン印刷
@@ -331,7 +317,6 @@ try {
 } catch (e) { console.warn("売上保存失敗:", e.message); }
 try { await deleteDoc(doc(db, "stores/mifune/tables", tableId)); } catch(e) { console.warn("テーブル削除失敗:", e.message); }
 await clearCountdown(tableId, true);
-window._paidTables.delete(tableId);
 renderIndex();
 // カスタム席なら会計後に削除
 const customs = getCustomTableNames();
@@ -370,11 +355,8 @@ window.cloudDelete = async (tableId) => { await deleteDoc(doc(db, "stores/mifune
 // 飲み放題開始をFirestoreに書き込み（serverTimestamp使用・updatedAtと同時書き込み）
 window.cloudSyncNomi = async (tableId) => {
     try {
-        // Firestoreの返りを待たず即座にlocalStorageにセット（iOS対策）
-        const nowMs = Date.now();
-        localStorage.setItem('nomi_start_ms_' + tableId, nowMs.toString());
-        localStorage.setItem('nomi_total_min_' + tableId, NOMIHODAI_MINUTES.toString());
-        localStorage.setItem('nomi_offset_' + tableId, '0');
+        // 即座にメモリにセット（iOS対策）
+        window._nomiData[tableId] = { startMs: Date.now(), totalMinutes: NOMIHODAI_MINUTES };
         startCountdownTick();
         await setDoc(doc(db, "stores/mifune/tables", tableId), {
             nomihodaiStart: serverTimestamp(),
@@ -812,7 +794,7 @@ const NOMIHODAI_ENCHO_MINUTES = 30;
 let countdownInterval = null;
 let lastAlertedTable = {};
 window.deviceClockOffset = 0;
-window._paidTables = new Set(); // 会計済みテーブル（バッジ強制非表示用）
+window._nomiData = {}; // 飲み放題データ（メモリ管理）
 window.deviceClockOffset = 0; // Date.now() - サーバー時刻（ms）
 
 // 注文確定時に呼ぶ
@@ -821,7 +803,7 @@ async function startCountdownIfNeeded(tableId) {
     if (!hist.some(i => NOMIHODAI_ITEMS.includes(i.name))) return;
     const enchoCnt = hist.filter(i => i.name === NOMIHODAI_ENCHO).reduce((s, i) => s + i.qty, 0);
     const totalMinutes = NOMIHODAI_MINUTES + enchoCnt * NOMIHODAI_ENCHO_MINUTES;
-    if (localStorage.getItem('nomi_start_ms_' + tableId)) {
+    if (window._nomiData[tableId]) {
         // 延長注文 → 合計時間をFirestoreに更新
         if (window.cloudSyncNomiEncho) await window.cloudSyncNomiEncho(tableId, totalMinutes);
         return;
@@ -831,21 +813,16 @@ async function startCountdownIfNeeded(tableId) {
 
 // 会計時に呼ぶ
 async function clearCountdown(tableId, skipCloud = false) {
-    localStorage.removeItem('nomi_start_ms_' + tableId);
-    localStorage.removeItem('nomi_offset_' + tableId);
-    localStorage.removeItem('nomi_total_min_' + tableId);
+    delete window._nomiData[tableId];
     delete lastAlertedTable[tableId];
     if (!skipCloud && window.cloudSyncNomiClear) await window.cloudSyncNomiClear(tableId);
 }
 
 function getCountdownRemaining(tableId) {
-    const startMs = parseInt(localStorage.getItem('nomi_start_ms_' + tableId));
-    if (!startMs) return null;
-    const offset = parseInt(localStorage.getItem('nomi_offset_' + tableId)) || 0;
-    const totalMinutes = parseInt(localStorage.getItem('nomi_total_min_' + tableId)) || NOMIHODAI_MINUTES;
-    const serverNow = Date.now() - offset;
-    const elapsed = Math.floor((serverNow - startMs) / 1000);
-    return totalMinutes * 60 - elapsed;
+    const d = window._nomiData[tableId];
+    if (!d) return null;
+    const elapsed = Math.floor((Date.now() - d.startMs) / 1000);
+    return d.totalMinutes * 60 - elapsed;
 }
 
 let alarmCtx = null;
@@ -959,7 +936,7 @@ function renderIndex() {
     const total = h.reduce((s, i) => s + Math.floor(i.price*i.qty*(1+i.rate)), 0);
     const isCustom = customs.includes(t);
     const delBtn = isCustom ? `<span onclick="removeCustomTable('${t}',event)" style="font-size:10px;color:#bbb;margin-top:3px;padding:2px 6px;border:1px solid #eee;border-radius:8px;">削除</span>` : '';
-    const rem = window._paidTables.has(t) ? null : getCountdownRemaining(t);
+    const rem = getCountdownRemaining(t);
     const cdBadge = rem !== null
         ? `<span class="countdown-badge${rem<=0?' danger':rem<=600?' danger':rem<=1200?' warning':''}" data-table="${t}">${rem<=0?'LO！':'🍺 '+Math.floor(rem/60)+':'+String(rem%60).padStart(2,'0')}</span>`
         : '';
@@ -1043,7 +1020,6 @@ function showIndex() {
       tablesList.forEach(tId => {
         if (!cloudIds.includes(tId)) {
           localStorage.removeItem('history_'+tId); localStorage.removeItem('guests_'+tId); localStorage.removeItem('checkin_'+tId);
-          localStorage.removeItem('nomi_start_ms_'+tId); localStorage.removeItem('nomi_offset_'+tId); localStorage.removeItem('nomi_total_min_'+tId);
         }
       });
       snapshot.forEach(docSnap => {
@@ -1438,8 +1414,6 @@ document.getElementById('sample-receipt-content').innerHTML = t;
 function closeReceiptChoice() { document.getElementById('overlay-receipt').style.display = 'none'; }
 async function testSend() { if(currentCart.length === 0) return alert("空です"); const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]'); const merged = hist.concat(currentCart); localStorage.setItem('history_'+currentTable, JSON.stringify(merged)); localStorage.removeItem('cart_'+currentTable); currentCart = []; if(window.cloudSync) await window.cloudSync(currentTable); await startCountdownIfNeeded(currentTable); hideAll(); document.getElementById('view-success').style.display = 'flex'; updateFooter(); }
 async function testPay() {
-    window._paidTables.add(currentTable);
-    renderIndex();
     if(window.saveSaleToCloud) await window.saveSaleToCloud(currentTable, currentPaymentMethod);
     showIndex();
 }
@@ -1503,8 +1477,6 @@ function selectPayment(method) {
 
 async function pay(doPrint) {
 closeReceiptChoice();
-window._paidTables.add(currentTable);
-renderIndex();
 const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]'); const g = localStorage.getItem('guests_'+currentTable); const c = localStorage.getItem('checkin_'+currentTable);
 const b = new StarWebPrintBuilder(); let r = b.createInitializationElement(); r += b.createPeripheralElement({channel: 1, pulse: 200});
 if(doPrint) {
