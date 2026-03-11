@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>三船 モバイルオーダー</title>
+<style>
+:root { --primary: #f39c12; --secondary: #fbb03b; --bg: #f8f8f8; --text: #333; --accent: #2ecc71; --dark: #444; }
+* { touch-action: manipulation; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+body { font-family: sans-serif; margin: 0; background: var(--bg); color: var(--text); -webkit-user-select: none; overflow: hidden; height: 100vh; height: 100dvh; }
+header { background: #fff; padding: 0 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee; font-weight: bold; height: 55px; flex-shrink: 0; }
+.screen { display: none; height: 100vh; height: 100dvh; width: 100vw; flex-direction: column; position: absolute; top: 0; left: 0; background: var(--bg); }
+.screen.active { display: flex; }
+
+/* テーブル選択 */
+.table-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 20px; overflow-y: auto; flex: 1; }
+.table-btn { background: #fff; border: 2px solid var(--accent); padding: 20px 5px; text-align: center; border-radius: 12px; cursor: pointer; font-size: 18px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+.table-btn.inactive { border-color: #ddd; color: #bbb; }
+
+/* メニュー */
+.menu-wrap { display: flex; flex: 1; overflow: hidden; }
+.sidebar { width: 90px; background: #f0f0f0; overflow-y: auto; border-right: 1px solid #ddd; flex-shrink: 0; padding-bottom: 100px; }
+.cat { padding: 16px 6px; font-size: 12px; text-align: center; border-bottom: 1px solid #ddd; cursor: pointer; color: #555; line-height: 1.4; }
+.cat.active { background: #fff; color: var(--primary); font-weight: bold; border-left: 5px solid var(--primary); }
+.item-grid { flex: 1; overflow-y: auto; padding: 0; display: flex; flex-direction: column; background: #f4f4f4; padding-bottom: 150px; }
+.item-card { background: #fff; margin-bottom: 8px; padding: 18px 15px; display: flex; align-items: flex-start; gap: 12px; }
+.item-img { width: 90px; height: 90px; object-fit: cover; border-radius: 8px; flex-shrink: 0; margin-top: 2px; }
+.item-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.item-name { font-weight: bold; font-size: 14px; line-height: 1.4; word-break: break-all; }
+.item-price { color: #e67e22; font-weight: bold; font-size: 14px; }
+.qty-ctrl { display: flex; align-items: center; gap: 6px; }
+.btn-circle { width: 32px; height: 32px; border-radius: 50%; border: 1px solid #ccc; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; flex-shrink: 0; }
+.btn-add { background: var(--primary); color: #fff; border: none; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; flex-shrink: 0; cursor: pointer; }
+footer { width: 100%; z-index: 100; box-shadow: 0 -3px 10px rgba(0,0,0,0.1); flex-shrink: 0; }
+.footer-cart { background: var(--secondary); color: #fff; padding: 18px 15px; display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; cursor: pointer; }
+
+/* カート */
+.list-container { flex: 1; overflow-y: auto; background: #fff; padding-bottom: 20px; }
+.list-row { display: flex; justify-content: space-between; padding: 15px 18px; border-bottom: 1px solid #eee; align-items: center; }
+.btn-large { width: 90%; display: block; margin: 10px auto; padding: 20px; border: none; border-radius: 40px; font-size: 20px; font-weight: bold; cursor: pointer; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+/* 完了画面 */
+.done-wrap { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; padding: 30px; text-align: center; }
+.done-icon { font-size: 80px; }
+
+/* お会計確認 */
+.bill-wrap { flex: 1; overflow-y: auto; background: #fff; padding-bottom: 20px; }
+.bill-header { background: var(--dark); color: #fff; padding: 15px 20px; font-size: 13px; display: flex; justify-content: space-around; text-align: center; }
+.bill-row { display: flex; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid #eee; font-size: 15px; }
+.bill-total { padding: 20px; text-align: right; border-top: 2px solid #eee; background: #fff; }
+
+/* ローディング画面 */
+.loading-wrap { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; }
+.spinner { width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- ローディング画面 -->
+<div id="screen-loading" class="screen active">
+  <header><span>🍗 三船 モバイルオーダー</span></header>
+  <div class="loading-wrap">
+    <div class="spinner"></div>
+    <div style="color:#666;">読み込み中...</div>
+  </div>
+</div>
+
+<!-- テーブル選択画面（QRに番号が含まれていない場合） -->
+<div id="screen-table" class="screen">
+  <header><span>🍗 三船 モバイルオーダー</span></header>
+  <p style="text-align:center; padding:20px; color:#666;">席番号を選んでください</p>
+  <div class="table-grid" id="table-grid"></div>
+</div>
+
+<!-- メニュー画面 -->
+<div id="screen-menu" class="screen">
+  <header>
+    <span style="font-size:13px; color:#666;" id="header-table"></span>
+    <span style="font-size:15px;">メニュー</span>
+    <span style="width:60px;"></span>
+  </header>
+  <div class="menu-wrap">
+    <div class="sidebar" id="side-cats"></div>
+    <div class="item-grid" id="item-grid"></div>
+  </div>
+  <footer>
+    <div style="background:#fff; border-top:1px solid #eee; padding:8px 15px; display:flex; gap:8px;">
+      <div class="footer-cart" style="flex:1;" onclick="showCart()">
+        <div>🛒 <span id="cart-count">0</span>点</div>
+        <div>注文を確認 ＞</div>
+      </div>
+      <div style="background:var(--dark); color:#fff; padding:18px 12px; font-weight:bold; font-size:14px; border-radius:8px; cursor:pointer; white-space:nowrap;" onclick="showBill()">💴 お会計</div>
+    </div>
+  </footer>
+</div>
+
+<!-- カート確認画面 -->
+<div id="screen-cart" class="screen">
+  <header>
+    <span style="cursor:pointer; font-size:22px;" onclick="showMenu()">＜</span>
+    <span>注文確認</span>
+    <span style="width:30px;"></span>
+  </header>
+  <div class="list-container" id="cart-list"></div>
+  <div style="background:#fff; border-top:1px solid #eee; padding-bottom:10px;">
+    <div style="padding:15px 20px; font-size:18px; font-weight:bold; text-align:right; color:var(--primary);">
+      合計: ¥<span id="cart-total">0</span>
+    </div>
+    <button class="btn-large" style="background:var(--accent); color:white;" onclick="submitOrder()">この内容で注文する</button>
+    <button class="btn-large" style="background:#eee; color:#666;" onclick="showMenu()">メニューに戻る</button>
+  </div>
+</div>
+
+<!-- 完了画面 -->
+<div id="screen-done" class="screen">
+  <header><span>🍗 三船 モバイルオーダー</span></header>
+  <div class="done-wrap">
+    <div class="done-icon">✅</div>
+    <div style="font-size:24px; font-weight:bold;">ご注文ありがとうございます！</div>
+    <div style="color:#666; font-size:15px;">しばらくお待ちください</div>
+    <button class="btn-large" style="background:var(--primary); color:white; margin-top:20px;" onclick="backToMenu()">続けて注文する</button>
+  </div>
+</div>
+
+<!-- お会計確認画面 -->
+<div id="screen-bill" class="screen">
+  <header>
+    <span style="cursor:pointer; font-size:22px;" onclick="showMenu()">＜</span>
+    <span>💴 お会計確認</span>
+    <span style="width:30px;"></span>
+  </header>
+  <div class="bill-header">
+    <div>件数<br><span id="bill-count" style="font-size:20px; font-weight:bold;">0</span>点</div>
+    <div>税込合計<br><span id="bill-grand" style="font-size:20px; font-weight:bold; color:var(--secondary);">¥0</span></div>
+  </div>
+  <div class="bill-wrap" id="bill-list"></div>
+  <div class="bill-total">
+    <div style="font-size:13px; color:#999; margin-bottom:4px;">10%対象 消費税: ¥<span id="bill-tax10">0</span></div>
+    <div style="font-size:13px; color:#999; margin-bottom:12px;">8%対象 消費税: ¥<span id="bill-tax8">0</span></div>
+    <div style="font-size:14px; color:#666;">税込合計</div>
+    <div style="font-size:36px; font-weight:bold; color:var(--primary);">¥<span id="bill-total">0</span></div>
+    <div style="font-size:12px; color:#999; margin-top:8px;">お会計はスタッフにお声がけください</div>
+  </div>
+</div>
+
+<!-- エラー画面 -->
+<div id="screen-error" class="screen">
+  <header><span>🍗 三船 モバイルオーダー</span></header>
+  <div class="done-wrap">
+    <div style="font-size:60px;">⚠️</div>
+    <div style="font-size:20px; font-weight:bold;" id="error-msg">エラーが発生しました</div>
+    <div style="color:#666; font-size:14px;">スタッフにお声がけください</div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc, arrayUnion, onSnapshot, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDscuD0S3D66lcamtG4T26WLfZH8rjOy28",
+  authDomain: "mifune-ap2.firebaseapp.com",
+  projectId: "mifune-ap2",
+  storageBucket: "mifune-ap2.firebasestorage.app",
+  messagingSenderId: "25505732783",
+  appId: "1:25505732783:web:47278f159ad7a26f279c5a"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+// 🔐 匿名ログイン（自動・バックグラウンド）
+let isAuthReady = false;
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    console.log('匿名ログイン成功:', user.uid);
+    isAuthReady = true;
+    startApp();
+  } else {
+    // ログインしていなければ自動で匿名ログイン
+    signInAnonymously(auth).catch((error) => {
+      console.error('匿名ログインエラー:', error);
+      showError('認証に失敗しました');
+    });
+  }
+});
+
+// 除外カテゴリ
+const EXCLUDE_CATS = ['飲み放題', 'テイクアウト', '無人', 'お通し'];
+const TABLES = ['C-a', 'C-b', 'C-c', '01', '02', '03', '04', '05', '06', '07'];
+
+const rawData = [
+    ["お通し", "お通し", 300],
+    ["もつ串", "美唄焼鳥", 150],
+    ["鳥精肉", "美唄焼鳥", 170],
+    ["飲み放題男性90分", "飲み放題", 2280],
+    ["飲み放題女性90分", "飲み放題", 1980],
+    ["飲み放題延長", "飲み放題", 800],
+    ["手羽焼き(2本)", "焼き物", 400],
+    ["国産豚のロース網焼きステーキ", "焼き物", 600],
+    ["ハーフ豚の網焼きステーキ(1枚)", "焼き物", 700],
+    ["ハーフ豚の炙りチャーシュー", "焼き物", 600],
+    ["自家製つくねのコロコロ焼き(4玉)", "焼き物", 400],
+    ["ささみ串焼き(数量限定 1串)", "焼き物", 250],
+    ["鴨肉の網焼き", "焼き物", 600],
+    ["ピリ辛ソーセージ(2本)", "焼き物", 400],
+    ["ラムソーセージ(2本)", "焼き物", 500],
+    ["うずらの玉子(1串)", "焼き物", 150],
+    ["肉厚しいたけ(2個)", "焼き物", 300],
+    ["プチトマト(1串)", "焼き物", 150],
+    ["ズッキーニ(1串)", "焼き物", 150],
+    ["長なす串焼き(1串)", "焼き物", 300],
+    ["軟白ねぎ(1串)", "焼き物", 300],
+    ["ししとう(2串)", "焼き物", 300],
+    ["オリーブオイルにんにくカップ焼き", "焼き物", 500],
+    ["焼きじゃがバター(2個)", "焼き物", 500],
+    ["焼きじゃがバター(塩辛付き)(2個)", "焼き物", 600],
+    ["いももちバター(4個)", "焼き物", 400],
+    ["ささみ串(自家製塩こうじ漬け)", "焼き物", 300],
+    ["ロース網焼きステーキ(自家製塩こうじ漬け)", "焼き物", 750],
+    ["鳥もつ煮込み", "一品料理", 400],
+    ["特製一口ザンギ", "一品料理", 550],
+    ["手羽ザンギ(3本)", "一品料理", 550],
+    ["若鶏の皮竜田揚げ(おろしポン酢付き)", "一品料理", 550],
+    ["ササミカツ(2枚)", "一品料理", 600],
+    ["国産豚のロースカツ", "一品料理", 700],
+    ["コーンバター・チーズカップ", "一品料理", 500],
+    ["生ハムの軟白ねぎ包み(岩塩付き)", "一品料理", 650],
+    ["塩キャベツ", "一品料理", 350],
+    ["漬物", "一品料理", 350],
+    ["枝豆", "一品料理", 350],
+    ["冷奴", "一品料理", 400],
+    ["山わさび冷奴", "一品料理", 400],
+    ["なめこおろし", "一品料理", 400],
+    ["カニみそとうふ", "一品料理", 400],
+    ["チャンジャ", "一品料理", 400],
+    ["イカの塩辛", "一品料理", 400],
+    ["たこわさび", "一品料理", 400],
+    ["ほたてわさび", "一品料理", 400],
+    ["数の子入り松前漬け", "一品料理", 400],
+    ["クジラのベーコン ねぎ正油あえ", "一品料理", 700],
+    ["自家製パンチェッタとメークインのオリーブオイル・チーズ熱湯風呂", "オリジナル", 700],
+    ["自家製パンチェッタとコーンのオリーブオイル・チーズ熱湯風呂", "オリジナル", 700],
+    ["チャンジャとクリームチーズのタパス(おつまみ料理)", "オリジナル", 700],
+    ["ハーブ豚チャーシューとマッシュルームのアヒージョ", "オリジナル", 700],
+    ["砂肝とマッシュルームのアヒージョ", "オリジナル", 700],
+    ["タコとマッシュルームのアヒージョ", "オリジナル", 700],
+    ["ピリ辛ソーセージとマッシュルームのアヒージョ", "オリジナル", 700],
+    ["バンズ", "オリジナル", 100],
+    ["まぐろ刺し(数量限定)", "刺身", 700],
+    ["とろしめさば", "刺身", 600],
+    ["たこ頭刺し", "刺身", 600],
+    ["馬刺し(赤身)", "刺身", 800],
+    ["馬肉ユッケ", "刺身", 850],
+    ["エイヒレ", "干物", 400],
+    ["こまい一夜干し", "干物", 600],
+    ["ししゃも", "干物", 500],
+    ["鮭とば", "干物", 500],
+    ["するめいか", "干物", 450],
+    ["たらこ焼き", "干物", 450],
+    ["鳥もつ鍋(一人前)", "鍋物", 1400],
+    ["辛鳥もつ鍋(一人前)", "鍋物", 1500],
+    ["鴨鍋(一人前)", "鍋物", 1300],
+    ["湯どうふ(一人前)", "鍋物", 800],
+    ["【追加】単品野菜", "鍋物", 500],
+    ["【追加】単品もつ類", "鍋物", 800],
+    ["【追加】雑炊セット", "鍋物", 350],
+    ["【追加】単品そば", "鍋物", 300],
+    ["冷しトマト", "サラダ", 400],
+    ["オリジナルサラダ", "サラダ", 600],
+    ["ツナサラダ", "サラダ", 700],
+    ["生ハムサラダ", "サラダ", 800],
+    ["もずく酢", "酢の物", 350],
+    ["ピクルスの盛り合わせ", "酢の物", 550],
+    ["美唄名物とりめし", "ご飯物", 400],
+    ["やきとり丼ぶり", "ご飯物", 650],
+    ["もつ煮込み丼ぶり", "ご飯物", 650],
+    ["炙りチャーシュー丼ぶり", "ご飯物", 700],
+    ["三船特製オムライス", "ご飯物", 700],
+    ["山わさび丼ぶり", "ご飯物", 400],
+    ["ライス(小)", "ご飯物", 200],
+    ["ライス(大)", "ご飯物", 300],
+    ["三船名物鳥がらそば", "麺類", 450],
+    ["三船特製ラーメン(正油味のみ)", "麺類", 750],
+    ["三船特製チャーシューメン", "麺類", 900],
+    ["バターコーンラーメン", "麺類", 900],
+    ["もつそば(温)", "麺類", 600],
+    ["もつせいろそば(冷)", "麺類", 600],
+    ["鳥せいろそば(冷)", "麺類", 600],
+    ["かしわそば(温)", "麺類", 600],
+    ["冷むぎ(夏期)", "麺類", 500],
+    ["スープ(玉子)", "スープ", 300],
+    ["スープ(わかめ)", "スープ", 300],
+    ["スーパードライ 〈小〉", "ビール", 500],
+    ["スーパードライ 〈中〉", "ビール", 600],
+    ["スーパードライ 〈大〉", "ビール", 700],
+    ["アサヒ マルエフ 〈中瓶〉", "ビール", 700],
+    ["ラガー 〈中瓶〉", "ビール", 700],
+    ["ホッピー セット〈白・黒〉", "ビール", 600],
+    ["ホッピーの焼酎のみ", "ビール", 300],
+    ["アサヒドライゼロ 〈中瓶〉", "ビール", 500],
+    ["ソラチエース", "ビール", 800],
+    ["ハイボール", "ハイボール", 500],
+    ["コーラハイボール", "ハイボール", 550],
+    ["ジンジャーハイボール", "ハイボール", 550],
+    ["梅酒ロック", "梅酒", 500],
+    ["梅酒ソーダ", "梅酒", 500],
+    ["プレーンサワー", "サワー", 500],
+    ["レモンサワー", "サワー", 500],
+    ["ライムサワー", "サワー", 500],
+    ["カシスサワー", "サワー", 500],
+    ["梅サワー", "サワー", 500],
+    ["グレープフルーツサワー", "サワー", 500],
+    ["ぶどうサワー", "サワー", 500],
+    ["青りんごサワー", "サワー", 500],
+    ["カルピスサワー", "サワー", 500],
+    ["シークァーサーサワー", "サワー", 500],
+    ["ウーロンハイ", "サワー", 500],
+    ["緑茶ハイ", "サワー", 500],
+    ["コーヒー酎ハイ", "サワー", 500],
+    ["生搾りレモンサワー", "サワー", 600],
+    ["生搾りグレープフルーツサワー", "サワー", 600],
+    ["グラスワイン(赤)", "ワイン", 500],
+    ["グラスワイン(白)", "ワイン", 500],
+    ["焼酎甲類(ロック・水割り)", "焼酎", 500],
+    ["㐂六(きろく) 〈宮崎・芋〉", "焼酎", 700],
+    ["山ねこ 〈宮崎・芋〉", "焼酎", 700],
+    ["山せみ 〈宮崎・米〉", "焼酎", 700],
+    ["山猿 〈宮崎・麦〉", "焼酎", 700],
+    ["中々 〈宮崎・麦〉", "焼酎", 700],
+    ["黒霧島 〈宮崎・芋〉", "焼酎", 700],
+    ["海 〈鹿児島・芋〉", "焼酎", 700],
+    ["くじら 〈鹿児島・芋〉", "焼酎", 700],
+    ["よろしく千萬あるべし 〈新潟・米〉", "焼酎", 700],
+    ["ニッカ・ザ・麦焼酎 〈福岡・麦〉", "焼酎", 700],
+    ["金黒 〈福岡・芋〉", "焼酎", 700],
+    ["カシスソーダ", "カクテル", 550],
+    ["カシスウーロン", "カクテル", 550],
+    ["カシスオレンジ", "カクテル", 550],
+    ["カシスグレープフルーツ", "カクテル", 550],
+    ["カンパリオレンジ", "カクテル", 550],
+    ["カンパリソーダ", "カクテル", 550],
+    ["カンパリトニック", "カクテル", 550],
+    ["ジントニック", "カクテル", 550],
+    ["ジンライム", "カクテル", 550],
+    ["ラムコーク", "カクテル", 550],
+    ["ワインクーラー", "カクテル", 550],
+    ["クーニャン", "カクテル", 550],
+    ["ファジーネーブル", "カクテル", 550],
+    ["シャンディガフ", "カクテル", 550],
+    ["レッドアイ", "カクテル", 550],
+    ["ブラッディメアリー", "カクテル", 550],
+    ["スクリュードライバー", "カクテル", 550],
+    ["ブルドック", "カクテル", 550],
+    ["モスコミュール", "カクテル", 550],
+    ["ウーロン茶", "ソフトドリンク", 350],
+    ["ほうじ茶", "ソフトドリンク", 350],
+    ["コーラ", "ソフトドリンク", 350],
+    ["オレンジジュース", "ソフトドリンク", 350],
+    ["グレープフルーツジュース", "ソフトドリンク", 350],
+    ["カルピス", "ソフトドリンク", 350],
+    ["カルピスソーダ", "ソフトドリンク", 350],
+    ["トマトジュース", "ソフトドリンク", 350],
+    ["アイスコーヒー", "ソフトドリンク", 350],
+    ["緑茶", "ソフトドリンク", 350],
+    ["ジンジャーエール", "ソフトドリンク", 350],
+    ["アイスクリーム(バニラ)", "デザート", 350],
+    ["コーラフロート", "デザート", 600],
+    ["コーヒーフロート", "デザート", 600],
+    ["沢の鶴 1合", "日本酒", 400],
+    ["沢の鶴 2合", "日本酒", 600],
+    ["二世古(特別純米新酒しぼり)", "日本酒", 850],
+    ["繁桝(特別純米生々)", "日本酒", 900],
+    ["福司(純米酒)", "日本酒", 850],
+    ["まる田(特別純米)", "日本酒", 900],
+    ["男山(純米生酒)", "日本酒", 900],
+    ["獺祭(純米大吟醸)", "日本酒", 900],
+    ["十一州(吟醸しぼりたて)", "日本酒", 900],
+    ["久保田(清酒)", "日本酒", 850],
+    ["一ノ蔵(本醸造辛口)", "日本酒", 800],
+    ["ばくれん(吟醸超辛口)", "日本酒", 800],
+    ["くどき上手(純米吟醸辛口)", "日本酒", 900],
+    ["北の勝(清酒)", "日本酒", 800],
+    ["越後で候(しぼりたて生原酒)", "日本酒", 900],
+    ["李白(特別純米酒)", "日本酒", 850],
+    ["常山(とびっきり辛口)", "日本酒", 900],
+    ["開運(無濾過純米酒)", "日本酒", 900],
+    ["大和しずく(純米吟醸)", "日本酒", 900],
+    ["越乃寒梅(清酒)", "日本酒", 800],
+    ["八海山(清酒)", "日本酒", 800],
+];
+
+// メニューデータ構築(除外カテゴリを除く)
+const menuData = [];
+rawData.forEach(r => {
+    if (EXCLUDE_CATS.includes(r[1])) return;
+    let c = menuData.find(x => x.cat === r[1]);
+    if (!c) { c = { cat: r[1], items: [] }; menuData.push(c); }
+    c.items.push({ n: r[0], p: r[2] });
+});
+
+let currentTable = '';
+let cart = [];
+let imageMap = {};
+
+// 画像データをFirestoreから取得
+async function loadImageMap() {
+    try {
+        const snap = await getDoc(doc(db, "config", "menuImages"));
+        imageMap = snap.exists() ? (snap.data().images || {}) : {};
+    } catch(e) { imageMap = {}; }
+}
+
+// URLパラメータからテーブル取得
+const urlParams = new URLSearchParams(location.search);
+const tableParam = urlParams.get('table');
+
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+function showError(msg) {
+    document.getElementById('error-msg').innerText = msg || 'エラーが発生しました';
+    showScreen('screen-error');
+}
+
+// アプリ起動（認証完了後）
+function startApp() {
+    if (tableParam && TABLES.includes(tableParam)) {
+        // QRコードにテーブル番号が含まれている場合
+        window.selectTable(tableParam);
+    } else {
+        // テーブル選択画面を表示
+        renderTableSelect();
+    }
+}
+
+// テーブル選択画面
+function renderTableSelect() {
+    const grid = document.getElementById('table-grid');
+    grid.innerHTML = TABLES.map(t => `<div class="table-btn" onclick="selectTable('${t}')">${t}番</div>`).join('');
+    showScreen('screen-table');
+}
+
+window.selectTable = async (tId) => {
+    try {
+        const snap = await getDoc(doc(db, "tables", tId));
+        if (!snap.exists()) {
+            showError(`${tId}番席はまだチェックインされていません。\nスタッフにお声がけください。`);
+            return;
+        }
+        currentTable = tId;
+        cart = [];
+        await loadImageMap();
+        initMenu();
+    } catch(e) { showError(); }
+};
+
+function initMenu() {
+    document.getElementById('header-table').innerText = `${currentTable}番席`;
+    renderSidebar();
+    renderItems(menuData[0]);
+    updateCartCount();
+    showScreen('screen-menu');
+}
+
+function renderSidebar() {
+    const side = document.getElementById('side-cats');
+    side.innerHTML = menuData.map((d, i) => `<div class="cat" onclick="changeCat(this,${i})">${d.cat}</div>`).join('');
+    side.children[0].classList.add('active');
+}
+
+window.changeCat = (el, idx) => {
+    document.querySelectorAll('.cat').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    renderItems(menuData[idx]);
+    document.getElementById('item-grid').scrollTop = 0;
+};
+
+function renderItems(category) {
+    const grid = document.getElementById('item-grid');
+    grid.innerHTML = category.items.map((item, idx) => {
+        const taxInc = Math.floor(item.p * 1.10);
+        const imgUrl = imageMap[item.n];
+        const imgHtml = imgUrl
+            ? `<img src="${imgUrl}" alt="${item.n}" class="item-img" onerror="this.style.display='none'">`
+            : '';
+        return `<div class="item-card">
+            <div class="item-info">
+                <div>
+                    <div class="item-name">${item.n}</div>
+                    <div class="item-price">¥${item.p.toLocaleString()} <small style="font-size:10px;color:#999;">(税込¥${taxInc.toLocaleString()})</small></div>
+                </div>
+                <div class="qty-ctrl">
+                    <div class="btn-circle" onclick="changeQty('mq${idx}',-1)">-</div>
+                    <span id="mq${idx}" style="font-weight:bold;min-width:18px;text-align:center;">1</span>
+                    <div class="btn-circle" onclick="changeQty('mq${idx}',1)">+</div>
+                    <button class="btn-add" onclick="addToCart('${item.n.replace(/'/g,"\\'")}',${item.p},'mq${idx}')">追加</button>
+                </div>
+            </div>
+            ${imgHtml}
+        </div>`;
+    }).join('');
+}
+
+window.changeQty = (id, d) => {
+    const el = document.getElementById(id);
+    let v = parseInt(el.innerText) + d;
+    if (v >= 1) el.innerText = v;
+};
+
+window.addToCart = (name, price, qId) => {
+    const qty = parseInt(document.getElementById(qId).innerText);
+    const exist = cart.find(i => i.name === name);
+    if (exist) exist.qty += qty; else cart.push({ name, price, qty, rate: 0.10 });
+    document.getElementById(qId).innerText = 1;
+    updateCartCount();
+    // 追加フィードバック
+    const btn = event.target;
+    btn.innerText = '✓'; btn.style.background = '#2ecc71';
+    setTimeout(() => { btn.innerText = '追加'; btn.style.background = 'var(--primary)'; }, 800);
+};
+
+function updateCartCount() {
+    const total = cart.reduce((s, i) => s + i.qty, 0);
+    document.getElementById('cart-count').innerText = total;
+}
+
+window.showMenu = () => showScreen('screen-menu');
+
+window.showCart = () => {
+    if (cart.length === 0) { alert('商品を選んでください'); return; }
+    renderCart();
+    showScreen('screen-cart');
+};
+
+function renderCart() {
+    let total = 0;
+    document.getElementById('cart-list').innerHTML = cart.map((item, idx) => {
+        const taxInc = Math.floor(item.price * item.qty * 1.10);
+        total += taxInc;
+        return `<div class="list-row">
+            <div style="flex:1;"><b>${item.name}</b><br><small>税込¥${Math.floor(item.price*1.1).toLocaleString()} x ${item.qty}</small></div>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <div class="btn-circle" onclick="changeCartQty(${idx},-1)">-</div>
+                <span style="font-weight:bold;">${item.qty}</span>
+                <div class="btn-circle" onclick="changeCartQty(${idx},1)">+</div>
+            </div>
+        </div>`;
+    }).join('');
+    document.getElementById('cart-total').innerText = total.toLocaleString();
+}
+
+window.changeCartQty = (idx, d) => {
+    cart[idx].qty += d;
+    if (cart[idx].qty <= 0) cart.splice(idx, 1);
+    updateCartCount();
+    if (cart.length === 0) { showScreen('screen-menu'); return; }
+    renderCart();
+};
+
+window.submitOrder = async () => {
+    if (cart.length === 0) return;
+    try {
+        const tableRef = doc(db, "tables", currentTable);
+        const snap = await getDoc(tableRef);
+        if (!snap.exists()) { showError('席情報が見つかりません'); return; }
+
+        // 既存のmobileOrdersに追記
+        const existing = snap.data().mobileOrders || [];
+        existing.push({
+            items: cart.map(i => ({ name: i.name, price: i.price, qty: i.qty, rate: i.rate })),
+            orderedAt: new Date().toISOString()
+        });
+        await updateDoc(tableRef, { mobileOrders: existing });
+
+        cart = [];
+        updateCartCount();
+        showScreen('screen-done');
+    } catch(e) { console.error(e); showError('注文の送信に失敗しました'); }
+};
+
+window.showBill = async () => {
+    try {
+        const snap = await getDoc(doc(db, "tables", currentTable));
+        if (!snap.exists()) { showError('席情報が見つかりません'); return; }
+        const history = snap.data().history || [];
+        let sub10 = 0, tax10 = 0, sub8 = 0, tax8 = 0;
+        let totalQty = 0;
+        const billHtml = history.map(item => {
+            const linePrice = item.price * item.qty;
+            const lineTax = Math.floor(linePrice * item.rate);
+            const taxInc = linePrice + lineTax;
+            if (item.rate === 0.08) { sub8 += linePrice; tax8 += lineTax; }
+            else { sub10 += linePrice; tax10 += lineTax; }
+            totalQty += item.qty;
+            return `<div class="bill-row">
+                <div style="flex:1;">${item.name}<br><small style="color:#999;">¥${Math.floor(item.price*(1+item.rate)).toLocaleString()} × ${item.qty}</small></div>
+                <div style="font-weight:bold;">¥${taxInc.toLocaleString()}</div>
+            </div>`;
+        }).join('') || '<p style="text-align:center; padding:40px; color:#999;">注文履歴がありません</p>';
+        const grand = sub10 + tax10 + sub8 + tax8;
+        document.getElementById('bill-list').innerHTML = billHtml;
+        document.getElementById('bill-count').innerText = totalQty;
+        document.getElementById('bill-grand').innerText = '¥' + grand.toLocaleString();
+        document.getElementById('bill-total').innerText = grand.toLocaleString();
+        document.getElementById('bill-tax10').innerText = tax10.toLocaleString();
+        document.getElementById('bill-tax8').innerText = tax8.toLocaleString();
+        showScreen('screen-bill');
+    } catch(e) { showError('お会計情報の取得に失敗しました'); }
+};
+
+window.backToMenu = () => {
+    cart = [];
+    updateCartCount();
+    initMenu();
+};
+</script>
+</body>
+</html>

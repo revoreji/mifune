@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>三船 メニュー画像管理</title>
+<style>
+:root { --primary: #f39c12; --accent: #2ecc71; --danger: #e74c3c; --info: #3498db; --dark: #444; }
+* { box-sizing: border-box; touch-action: manipulation; }
+body { font-family: sans-serif; margin: 0; background: #f4f4f4; color: #333; }
+header { background: var(--dark); color: #fff; padding: 0 15px; height: 55px; display: flex; align-items: center; justify-content: space-between; font-weight: bold; font-size: 16px; position: sticky; top: 0; z-index: 100; }
+.login-wrap { max-width: 400px; margin: 80px auto; background: #fff; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; }
+.input { width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; margin-bottom: 12px; -webkit-appearance: none; }
+.btn { width: 100%; padding: 16px; border: none; border-radius: 30px; font-size: 17px; font-weight: bold; cursor: pointer; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-danger { background: var(--danger); color: #fff; }
+
+/* 検索・フィルター */
+.toolbar { background: #fff; padding: 12px 15px; display: flex; gap: 10px; border-bottom: 1px solid #eee; position: sticky; top: 55px; z-index: 90; }
+.search-input { flex: 1; padding: 10px 14px; border: 1px solid #ddd; border-radius: 20px; font-size: 14px; }
+.cat-select { padding: 10px 12px; border: 1px solid #ddd; border-radius: 20px; font-size: 14px; background: #fff; }
+
+/* メニューグリッド */
+.menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; padding: 15px; }
+.menu-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: relative; }
+.card-img { width: 100%; height: 120px; object-fit: cover; background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #bbb; font-size: 13px; cursor: pointer; }
+.card-img img { width: 100%; height: 120px; object-fit: cover; display: block; }
+.card-img.no-image { border: 2px dashed #ddd; }
+.card-body { padding: 10px; }
+.card-name { font-size: 12px; font-weight: bold; line-height: 1.4; margin-bottom: 4px; height: 2.8em; overflow: hidden; }
+.card-price { font-size: 12px; color: #e67e22; font-weight: bold; margin-bottom: 8px; }
+.card-cat { font-size: 10px; background: #f0f0f0; padding: 2px 8px; border-radius: 10px; color: #666; display: inline-block; }
+.btn-upload { width: 100%; margin-top: 8px; padding: 8px; background: var(--info); color: #fff; border: none; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; }
+.btn-remove { width: 100%; margin-top: 4px; padding: 6px; background: #eee; color: #999; border: none; border-radius: 20px; font-size: 11px; cursor: pointer; }
+.has-image .btn-upload { background: var(--accent); }
+
+/* アップロード中 */
+.uploading { position: absolute; top: 0; left: 0; width: 100%; height: 120px; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; }
+.progress { width: 80%; height: 6px; background: rgba(255,255,255,0.3); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+.progress-bar { height: 100%; background: var(--primary); border-radius: 3px; transition: width 0.3s; }
+
+/* 統計バー */
+.stats { background: var(--dark); color: #fff; padding: 10px 15px; font-size: 13px; display: flex; gap: 20px; }
+.stats span { color: var(--primary); font-weight: bold; }
+
+input[type="file"] { display: none; }
+</style>
+</head>
+<body>
+
+<!-- ログイン画面 -->
+<div id="login-screen">
+  <div style="text-align:center; padding-top:40px; font-size:28px;">🍗</div>
+  <div class="login-wrap">
+    <div style="font-size:20px; font-weight:bold; margin-bottom:20px;">三船 管理ログイン</div>
+    <input type="email" id="login-email" class="input" placeholder="メールアドレス">
+    <input type="password" id="login-pass" class="input" placeholder="パスワード">
+    <button class="btn btn-primary" onclick="doLogin()">ログイン</button>
+  </div>
+</div>
+
+<!-- 管理画面 -->
+<div id="admin-screen" style="display:none;">
+  <header>
+    <span>🍗 メニュー画像管理</span>
+    <button onclick="doLogout()" style="background:none; border:1px solid #fff; color:#fff; padding:6px 14px; border-radius:20px; font-size:12px; cursor:pointer;">ログアウト</button>
+  </header>
+  <div class="stats">
+    画像設定済み: <span id="stat-set">0</span> / <span id="stat-total">0</span> 件
+  </div>
+  <div class="toolbar">
+    <input type="text" class="search-input" placeholder="🔍 メニュー名で検索..." oninput="filterMenu()" id="search-input">
+    <select class="cat-select" onchange="filterMenu()" id="cat-filter">
+      <option value="">全カテゴリ</option>
+    </select>
+  </div>
+  <div class="menu-grid" id="menu-grid"></div>
+</div>
+
+<!-- 隠しファイル入力 -->
+<input type="file" id="file-input" accept="image/*" onchange="onFileSelected(event)">
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDscuD0S3D66lcamtG4T26WLfZH8rjOy28",
+  authDomain: "mifune-ap2.firebaseapp.com",
+  projectId: "mifune-ap2",
+  storageBucket: "mifune-ap2.firebasestorage.app",
+  messagingSenderId: "25505732783",
+  appId: "1:25505732783:web:47278f159ad7a26f279c5a"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const CLOUDINARY_CLOUD = 'dvoztrsg5';
+const CLOUDINARY_PRESET = 'mifune_menu';
+
+const rawData = [
+    ["お通し","お通し",300],["もつ串","美唄焼鳥",150],["鳥精肉","美唄焼鳥",170],
+    ["手羽焼き（2本）","焼き物",400],["国産豚のロース網焼きステーキ","焼き物",600],
+    ["ハーフ豚の網焼きステーキ（1枚）","焼き物",700],["ハーフ豚の炙りチャーシュー","焼き物",600],
+    ["自家製つくねのコロコロ焼き（4玉）","焼き物",400],["ささみ串焼き（数量限定 1串）","焼き物",250],
+    ["鴨肉の網焼き","焼き物",600],["ピリ辛ソーセージ（2本）","焼き物",400],
+    ["ラムソーセージ（2本）","焼き物",500],["うずらの玉子（1串）","焼き物",150],
+    ["肉厚しいたけ（2個）","焼き物",300],["プチトマト（1串）","焼き物",150],
+    ["ズッキーニ（1串）","焼き物",150],["長なす串焼き（1串）","焼き物",300],
+    ["軟白ねぎ（1串）","焼き物",300],["ししとう（2串）","焼き物",300],
+    ["オリーブオイルにんにくカップ焼き","焼き物",500],["焼きじゃがバター（2個）","焼き物",500],
+    ["焼きじゃがバター（塩辛付き）（2個）","焼き物",600],["いももちバター（4個）","焼き物",400],
+    ["ささみ串（自家製塩こうじ漬け）","焼き物",300],["ロース網焼きステーキ（自家製塩こうじ漬け）","焼き物",750],
+    ["鳥もつ煮込み","一品料理",400],["特製一口ザンギ","一品料理",550],
+    ["手羽ザンギ(3本)","一品料理",550],["若鶏の皮竜田揚げ(おろしポン酢付き)","一品料理",550],
+    ["ササミカツ(2枚)","一品料理",600],["国産豚のロースカツ","一品料理",700],
+    ["コーンバター・チーズカップ","一品料理",500],["生ハムの軟白ねぎ包み(岩塩付き)","一品料理",650],
+    ["塩キャベツ","一品料理",350],["漬物","一品料理",350],["枝豆","一品料理",350],
+    ["冷奴","一品料理",400],["山わさび冷奴","一品料理",400],["なめこおろし","一品料理",400],
+    ["カニみそとうふ","一品料理",400],["チャンジャ","一品料理",400],["イカの塩辛","一品料理",400],
+    ["たこわさび","一品料理",400],["ほたてわさび","一品料理",400],
+    ["数の子入り松前漬け","一品料理",400],["クジラのベーコン ねぎ正油あえ","一品料理",700],
+    ["自家製パンチェッタとメークインのオリーブオイル・チーズ熱湯風呂","オリジナル",700],
+    ["自家製パンチェッタとコーンのオリーブオイル・チーズ熱湯風呂","オリジナル",700],
+    ["チャンジャとクリームチーズのタパス(おつまみ料理)","オリジナル",700],
+    ["ハーブ豚チャーシューとマッシュルームのアヒージョ","オリジナル",700],
+    ["砂肝とマッシュルームのアヒージョ","オリジナル",700],
+    ["タコとマッシュルームのアヒージョ","オリジナル",700],
+    ["ピリ辛ソーセージとマッシュルームのアヒージョ","オリジナル",700],["バンズ","オリジナル",100],
+    ["まぐろ刺し(数量限定)","刺身",700],["とろしめさば","刺身",600],
+    ["たこ頭刺し","刺身",600],["馬刺し(赤身)","刺身",800],["馬肉ユッケ","刺身",850],
+    ["エイヒレ","干物",400],["こまい一夜干し","干物",600],["ししゃも","干物",500],
+    ["鮭とば","干物",500],["するめいか","干物",450],["たらこ焼き","干物",450],
+    ["鳥もつ鍋(一人前)","鍋物",1400],["辛鳥もつ鍋(一人前)","鍋物",1500],
+    ["鴨鍋(一人前)","鍋物",1300],["湯どうふ(一人前)","鍋物",800],
+    ["【追加】単品野菜","鍋物",500],["【追加】単品もつ類","鍋物",800],
+    ["【追加】雑炊セット","鍋物",350],["【追加】単品そば","鍋物",300],
+    ["冷しトマト","サラダ",400],["オリジナルサラダ","サラダ",600],
+    ["ツナサラダ","サラダ",700],["生ハムサラダ","サラダ",800],
+    ["もずく酢","酢の物",350],["ピクルスの盛り合わせ","酢の物",550],
+    ["美唄名物とりめし","ご飯物",400],["やきとり丼ぶり","ご飯物",650],
+    ["もつ煮込み丼ぶり","ご飯物",650],["炙りチャーシュー丼ぶり","ご飯物",700],
+    ["三船特製オムライス","ご飯物",700],["山わさび丼ぶり","ご飯物",400],
+    ["ライス(小)","ご飯物",200],["ライス(大)","ご飯物",300],
+    ["三船名物鳥がらそば","麺類",450],["三船特製ラーメン(正油味のみ)","麺類",750],
+    ["三船特製チャーシューメン","麺類",900],["バターコーンラーメン","麺類",900],
+    ["もつそば(温)","麺類",600],["もつせいろそば(冷)","麺類",600],
+    ["鳥せいろそば(冷)","麺類",600],["かしわそば(温)","麺類",600],["冷むぎ(夏期)","麺類",500],
+    ["スープ(玉子)","スープ",300],["スープ(わかめ)","スープ",300],
+    ["スーパードライ 〈小〉","ビール",500],["スーパードライ 〈中〉","ビール",600],
+    ["スーパードライ 〈大〉","ビール",700],["アサヒ マルエフ 〈中瓶〉","ビール",700],
+    ["ラガー 〈中瓶〉","ビール",700],["ホッピー セット〈白・黒〉","ビール",600],
+    ["ホッピーの焼酎のみ","ビール",300],["アサヒドライゼロ 〈中瓶〉","ビール",500],
+    ["ソラチエース","ビール",800],["ハイボール","ハイボール",500],
+    ["コーラハイボール","ハイボール",550],["ジンジャーハイボール","ハイボール",550],
+    ["梅酒ロック","梅酒",500],["梅酒ソーダ","梅酒",500],
+    ["プレーンサワー","サワー",500],["レモンサワー","サワー",500],["ライムサワー","サワー",500],
+    ["カシスサワー","サワー",500],["梅サワー","サワー",500],
+    ["グレープフルーツサワー","サワー",500],["ぶどうサワー","サワー",500],
+    ["青りんごサワー","サワー",500],["カルピスサワー","サワー",500],
+    ["シークァーサーサワー","サワー",500],["ウーロンハイ","サワー",500],
+    ["緑茶ハイ","サワー",500],["コーヒー酎ハイ","サワー",500],
+    ["生搾りレモンサワー","サワー",600],["生搾りグレープフルーツサワー","サワー",600],
+    ["グラスワイン（赤）","ワイン",500],["グラスワイン（白）","ワイン",500],
+    ["焼酎甲類（ロック・水割り）","焼酎",500],["㐂六（きろく） 〈宮崎・芋〉","焼酎",700],
+    ["山ねこ 〈宮崎・芋〉","焼酎",700],["山せみ 〈宮崎・米〉","焼酎",700],
+    ["山猿 〈宮崎・麦〉","焼酎",700],["中々 〈宮崎・麦〉","焼酎",700],
+    ["黒霧島 〈宮崎・芋〉","焼酎",700],["海 〈鹿児島・芋〉","焼酎",700],
+    ["くじら 〈鹿児島・芋〉","焼酎",700],["よろしく千萬あるべし 〈新潟・米〉","焼酎",700],
+    ["ニッカ・ザ・麦焼酎 〈福岡・麦〉","焼酎",700],["金黒 〈福岡・芋〉","焼酎",700],
+    ["カシスソーダ","カクテル",550],["カシスウーロン","カクテル",550],
+    ["カシスオレンジ","カクテル",550],["カシスグレープフルーツ","カクテル",550],
+    ["カンパリオレンジ","カクテル",550],["カンパリソーダ","カクテル",550],
+    ["カンパリトニック","カクテル",550],["ジントニック","カクテル",550],
+    ["ジンライム","カクテル",550],["ラムコーク","カクテル",550],
+    ["ワインクーラー","カクテル",550],["クーニャン","カクテル",550],
+    ["ファジーネーブル","カクテル",550],["シャンディガフ","カクテル",550],
+    ["レッドアイ","カクテル",550],["ブラッディメアリー","カクテル",550],
+    ["スクリュードライバー","カクテル",550],["ブルドック","カクテル",550],
+    ["モスコミュール","カクテル",550],
+    ["ウーロン茶","ソフトドリンク",350],["ほうじ茶","ソフトドリンク",350],
+    ["コーラ","ソフトドリンク",350],["オレンジジュース","ソフトドリンク",350],
+    ["グレープフルーツジュース","ソフトドリンク",350],["カルピス","ソフトドリンク",350],
+    ["カルピスソーダ","ソフトドリンク",350],["トマトジュース","ソフトドリンク",350],
+    ["アイスコーヒー","ソフトドリンク",350],["緑茶","ソフトドリンク",350],
+    ["ジンジャーエール","ソフトドリンク",350],
+    ["アイスクリーム（バニラ）","デザート",350],["コーラフロート","デザート",600],["コーヒーフロート","デザート",600],
+    ["沢の鶴 1合","日本酒",400],["沢の鶴 2合","日本酒",600],
+    ["二世古（特別純米新酒しぼり）","日本酒",850],["繁桝（特別純米生々）","日本酒",900],
+    ["福司（純米酒）","日本酒",850],["まる田（特別純米）","日本酒",900],
+    ["男山（純米生酒）","日本酒",900],["獺祭（純米大吟醸）","日本酒",900],
+    ["十一州（吟醸しぼりたて）","日本酒",900],["久保田（清酒）","日本酒",850],
+    ["一ノ蔵（本醸造辛口）","日本酒",800],["ばくれん（吟醸超辛口）","日本酒",800],
+    ["くどき上手（純米吟醸辛口）","日本酒",900],["北の勝（清酒）","日本酒",800],
+    ["越後で候（しぼりたて生原酒）","日本酒",900],["李白（特別純米酒）","日本酒",850],
+    ["常山（とびっきり辛口）","日本酒",900],["開運（無濾過純米酒）","日本酒",900],
+    ["大和しずく（純米吟醸）","日本酒",900],["越乃寒梅（清酒）","日本酒",800],
+    ["八海山（清酒）","日本酒",800],
+];
+
+let imageMap = {}; // { "商品名": "cloudinary_url" }
+let currentUploadKey = '';
+let allItems = [];
+
+// カテゴリ一覧
+const cats = [...new Set(rawData.map(r => r[1]))];
+allItems = rawData.map(r => ({ name: r[0], cat: r[1], price: r[2] }));
+
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('admin-screen').style.display = 'block';
+        await loadImages();
+        initUI();
+    } else {
+        document.getElementById('login-screen').style.display = 'block';
+        document.getElementById('admin-screen').style.display = 'none';
+    }
+});
+
+async function loadImages() {
+    try {
+        const snap = await getDoc(doc(db, "config", "menuImages"));
+        imageMap = snap.exists() ? (snap.data().images || {}) : {};
+    } catch(e) { imageMap = {}; }
+}
+
+async function saveImages() {
+    await setDoc(doc(db, "config", "menuImages"), { images: imageMap });
+}
+
+function initUI() {
+    // カテゴリセレクター
+    const sel = document.getElementById('cat-filter');
+    cats.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c; opt.innerText = c;
+        sel.appendChild(opt);
+    });
+    renderGrid(allItems);
+}
+
+function renderGrid(items) {
+    const grid = document.getElementById('menu-grid');
+    const setCount = items.filter(i => imageMap[i.name]).length;
+    document.getElementById('stat-set').innerText = Object.keys(imageMap).length;
+    document.getElementById('stat-total').innerText = allItems.length;
+
+    grid.innerHTML = items.map(item => {
+        const url = imageMap[item.name];
+        const hasImg = !!url;
+        const imgHtml = hasImg
+            ? `<img src="${url}" alt="${item.name}" onerror="this.parentElement.innerHTML='写真なし'">`
+            : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:12px;">写真なし</div>`;
+        return `<div class="menu-card ${hasImg ? 'has-image' : ''}" id="card-${encodeKey(item.name)}">
+            <div class="card-img ${hasImg ? '' : 'no-image'}" onclick="triggerUpload('${encodeURIComponent(item.name)}')">
+                ${imgHtml}
+            </div>
+            <div class="card-body">
+                <div class="card-name">${item.name}</div>
+                <div class="card-price">¥${item.price.toLocaleString()}</div>
+                <span class="card-cat">${item.cat}</span>
+                <button class="btn-upload" onclick="triggerUpload('${encodeURIComponent(item.name)}')">${hasImg ? '✏️ 変更' : '📷 写真を追加'}</button>
+                ${hasImg ? `<button class="btn-remove" onclick="removeImage('${encodeURIComponent(item.name)}')">🗑️ 削除</button>` : ''}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function encodeKey(name) {
+    return name.replace(/[^a-zA-Z0-9]/g, '_');
+}
+
+window.filterMenu = () => {
+    const q = document.getElementById('search-input').value.toLowerCase();
+    const cat = document.getElementById('cat-filter').value;
+    const filtered = allItems.filter(i =>
+        (!cat || i.cat === cat) &&
+        (!q || i.name.toLowerCase().includes(q))
+    );
+    renderGrid(filtered);
+};
+
+window.triggerUpload = (encodedName) => {
+    currentUploadKey = decodeURIComponent(encodedName);
+    document.getElementById('file-input').click();
+};
+
+window.onFileSelected = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !currentUploadKey) return;
+    e.target.value = '';
+
+    const cardId = 'card-' + encodeKey(currentUploadKey);
+    const card = document.getElementById(cardId);
+    const imgArea = card ? card.querySelector('.card-img') : null;
+
+    // アップロード中表示
+    if (imgArea) {
+        imgArea.innerHTML = `<div class="uploading"><div><div>アップロード中...</div><div class="progress"><div class="progress-bar" id="prog-${encodeKey(currentUploadKey)}" style="width:0%"></div></div></div></div>`;
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_PRESET);
+        formData.append('folder', 'mifune_menu');
+
+        const xhr = new XMLHttpRequest();
+        xhr.upload.onprogress = (ev) => {
+            const pct = Math.round(ev.loaded / ev.total * 100);
+            const bar = document.getElementById('prog-' + encodeKey(currentUploadKey));
+            if (bar) bar.style.width = pct + '%';
+        };
+
+        const url = await new Promise((resolve, reject) => {
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    const res = JSON.parse(xhr.responseText);
+                    resolve(res.secure_url);
+                } else {
+                    console.error('Cloudinary error:', xhr.status, xhr.responseText);
+                    reject(new Error(`Status ${xhr.status}: ${xhr.responseText}`));
+                }
+            };
+            xhr.onerror = (e) => { console.error('XHR error:', e); reject(new Error('Network error')); };
+            xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`);
+            xhr.send(formData);
+        });
+
+        imageMap[currentUploadKey] = url;
+        await saveImages();
+        filterMenu();
+    } catch(err) {
+        alert('アップロードに失敗しました\n\n' + err.message);
+        filterMenu();
+    }
+};
+
+window.removeImage = async (encodedName) => {
+    const name = decodeURIComponent(encodedName);
+    if (!confirm(`「${name}」の写真を削除しますか？`)) return;
+    delete imageMap[name];
+    await saveImages();
+    filterMenu();
+};
+
+window.doLogin = async () => {
+    const email = document.getElementById('login-email').value;
+    const pass = document.getElementById('login-pass').value;
+    try {
+        await signInWithEmailAndPassword(auth, email, pass);
+    } catch(e) { alert('ログイン失敗: パスワードをご確認ください'); }
+};
+
+window.doLogout = () => { signOut(auth); };
+</script>
+</body>
+</html>
