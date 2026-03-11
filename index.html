@@ -368,6 +368,12 @@ window.cloudDelete = async (tableId) => { await deleteDoc(doc(db, "stores/mifune
 // 飲み放題開始をFirestoreに書き込み（serverTimestamp使用・updatedAtと同時書き込み）
 window.cloudSyncNomi = async (tableId) => {
     try {
+        // Firestoreの返りを待たず即座にlocalStorageにセット（iOS対策）
+        const nowMs = Date.now();
+        localStorage.setItem('nomi_start_ms_' + tableId, nowMs.toString());
+        localStorage.setItem('nomi_total_min_' + tableId, NOMIHODAI_MINUTES.toString());
+        localStorage.setItem('nomi_offset_' + tableId, '0');
+        startCountdownTick();
         await setDoc(doc(db, "stores/mifune/tables", tableId), {
             nomihodaiStart: serverTimestamp(),
             nomiTotalMinutes: NOMIHODAI_MINUTES,
