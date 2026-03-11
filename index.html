@@ -1437,7 +1437,12 @@ document.getElementById('sample-receipt-content').innerHTML = t;
 }
 function closeReceiptChoice() { document.getElementById('overlay-receipt').style.display = 'none'; }
 async function testSend() { if(currentCart.length === 0) return alert("空です"); const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]'); const merged = hist.concat(currentCart); localStorage.setItem('history_'+currentTable, JSON.stringify(merged)); localStorage.removeItem('cart_'+currentTable); currentCart = []; if(window.cloudSync) await window.cloudSync(currentTable); await startCountdownIfNeeded(currentTable); hideAll(); document.getElementById('view-success').style.display = 'flex'; updateFooter(); }
-async function testPay() { if(window.saveSaleToCloud) await window.saveSaleToCloud(currentTable, currentPaymentMethod); showIndex(); }
+async function testPay() {
+    window._paidTables.add(currentTable);
+    renderIndex();
+    if(window.saveSaleToCloud) await window.saveSaleToCloud(currentTable, currentPaymentMethod);
+    showIndex();
+}
 
 async function sendToKitchen() {
 if(currentCart.length === 0) return;
