@@ -1494,7 +1494,13 @@ function selectPayment(method) {
 }
 
 async function pay(doPrint) {
-closeReceiptChoice(); const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]'); const g = localStorage.getItem('guests_'+currentTable); const c = localStorage.getItem('checkin_'+currentTable);
+closeReceiptChoice();
+// 飲み放題バッジを即時消去
+localStorage.removeItem('nomi_start_ms_'+currentTable);
+localStorage.removeItem('nomi_offset_'+currentTable);
+localStorage.removeItem('nomi_total_min_'+currentTable);
+delete lastAlertedTable[currentTable];
+const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]'); const g = localStorage.getItem('guests_'+currentTable); const c = localStorage.getItem('checkin_'+currentTable);
 const b = new StarWebPrintBuilder(); let r = b.createInitializationElement(); r += b.createPeripheralElement({channel: 1, pulse: 200});
 if(doPrint) {
 let sub8 = 0, tax8 = 0, sub10 = 0, tax10 = 0;
