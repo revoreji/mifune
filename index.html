@@ -164,6 +164,7 @@ const cloudIds = snapshot.docs.map(d => d.id);
 tablesList.forEach(tId => {
 if(!cloudIds.includes(tId)) {
 localStorage.removeItem('history_'+tId); localStorage.removeItem('guests_'+tId); localStorage.removeItem('checkin_'+tId);
+delete window._nomiData[tId];
 }
 });
 snapshot.forEach((docSnap) => {
