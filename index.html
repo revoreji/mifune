@@ -331,6 +331,7 @@ try {
 } catch (e) { console.warn("売上保存失敗:", e.message); }
 try { await deleteDoc(doc(db, "stores/mifune/tables", tableId)); } catch(e) { console.warn("テーブル削除失敗:", e.message); }
 await clearCountdown(tableId, true);
+window._paidTables.delete(tableId);
 renderIndex();
 // カスタム席なら会計後に削除
 const customs = getCustomTableNames();
@@ -810,6 +811,8 @@ const NOMIHODAI_MINUTES = 85;
 const NOMIHODAI_ENCHO_MINUTES = 30;
 let countdownInterval = null;
 let lastAlertedTable = {};
+window.deviceClockOffset = 0;
+window._paidTables = new Set(); // 会計済みテーブル（バッジ強制非表示用）
 window.deviceClockOffset = 0; // Date.now() - サーバー時刻（ms）
 
 // 注文確定時に呼ぶ
@@ -956,7 +959,7 @@ function renderIndex() {
     const total = h.reduce((s, i) => s + Math.floor(i.price*i.qty*(1+i.rate)), 0);
     const isCustom = customs.includes(t);
     const delBtn = isCustom ? `<span onclick="removeCustomTable('${t}',event)" style="font-size:10px;color:#bbb;margin-top:3px;padding:2px 6px;border:1px solid #eee;border-radius:8px;">削除</span>` : '';
-    const rem = getCountdownRemaining(t);
+    const rem = window._paidTables.has(t) ? null : getCountdownRemaining(t);
     const cdBadge = rem !== null
         ? `<span class="countdown-badge${rem<=0?' danger':rem<=600?' danger':rem<=1200?' warning':''}" data-table="${t}">${rem<=0?'LO！':'🍺 '+Math.floor(rem/60)+':'+String(rem%60).padStart(2,'0')}</span>`
         : '';
@@ -1495,11 +1498,8 @@ function selectPayment(method) {
 
 async function pay(doPrint) {
 closeReceiptChoice();
-// 飲み放題バッジを即時消去
-localStorage.removeItem('nomi_start_ms_'+currentTable);
-localStorage.removeItem('nomi_offset_'+currentTable);
-localStorage.removeItem('nomi_total_min_'+currentTable);
-delete lastAlertedTable[currentTable];
+window._paidTables.add(currentTable);
+renderIndex();
 const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]'); const g = localStorage.getItem('guests_'+currentTable); const c = localStorage.getItem('checkin_'+currentTable);
 const b = new StarWebPrintBuilder(); let r = b.createInitializationElement(); r += b.createPeripheralElement({channel: 1, pulse: 200});
 if(doPrint) {
