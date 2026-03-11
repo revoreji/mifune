@@ -1040,6 +1040,7 @@ function showIndex() {
       tablesList.forEach(tId => {
         if (!cloudIds.includes(tId)) {
           localStorage.removeItem('history_'+tId); localStorage.removeItem('guests_'+tId); localStorage.removeItem('checkin_'+tId);
+          localStorage.removeItem('nomi_start_ms_'+tId); localStorage.removeItem('nomi_offset_'+tId); localStorage.removeItem('nomi_total_min_'+tId);
         }
       });
       snapshot.forEach(docSnap => {
