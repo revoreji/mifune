@@ -185,6 +185,7 @@ if (data.nomihodaiStart) {
     if (!localStorage.getItem('nomi_offset_' + tId)) {
         localStorage.setItem('nomi_offset_' + tId, (Date.now() - startMs).toString());
     }
+    startCountdownTick(); // iOS対策：タイマーを確実に再起動
 } else {
     localStorage.removeItem('nomi_start_ms_' + tId);
     localStorage.removeItem('nomi_offset_' + tId);
@@ -1613,6 +1614,9 @@ document.addEventListener('DOMContentLoaded', () => {
 // ▲▲▲ 領収書機能追加 ▲▲▲
 
 window.onload = () => { renderIndex(); startCountdownTick(); };
+// iOS対策：画面復帰時にタイマーを再起動
+document.addEventListener('visibilitychange', () => { if (!document.hidden) startCountdownTick(); });
+window.addEventListener('pageshow', () => startCountdownTick());
 
 // 画面を開いた瞬間にも期限切れチェック
 document.addEventListener('visibilitychange', () => {
