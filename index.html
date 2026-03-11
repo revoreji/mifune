@@ -177,15 +177,16 @@ if (data.updatedAt && typeof data.updatedAt.toMillis === 'function') {
     window.deviceClockOffset = Date.now() - data.updatedAt.toMillis();
 }
 
-// 飲み放題カウントダウン同期（ローカル書き込み中はスキップ）
+// 飲み放題カウントダウン同期
 if (data.nomihodaiStart && !docSnap.metadata.hasPendingWrites) {
+    // サーバーから正式な値が来たときだけ更新
     const startMs = data.nomihodaiStart.toMillis();
     localStorage.setItem('nomi_start_ms_' + tId, startMs.toString());
     localStorage.setItem('nomi_total_min_' + tId, (data.nomiTotalMinutes || NOMIHODAI_MINUTES).toString());
     if (!localStorage.getItem('nomi_offset_' + tId)) {
         localStorage.setItem('nomi_offset_' + tId, (Date.now() - startMs).toString());
     }
-    // iOS対策：データ到着時に即時1回バッジ更新（タイマーは触らない）
+    // iOS対策：データ到着時に即時1回バッジ更新
     setTimeout(() => {
         document.querySelectorAll('.countdown-badge[data-table="' + tId + '"]').forEach(el => {
             const rem = getCountdownRemaining(tId);
@@ -195,7 +196,8 @@ if (data.nomihodaiStart && !docSnap.metadata.hasPendingWrites) {
             el.className = 'countdown-badge' + (rem <= 0 ? ' danger' : rem <= 600 ? ' danger' : rem <= 1200 ? ' warning' : '');
         });
     }, 100);
-} else {
+} else if (!data.nomihodaiStart && !docSnap.metadata.hasPendingWrites) {
+    // サーバーからnomihodaiStartがnullで来たとき（会計後）だけ削除
     localStorage.removeItem('nomi_start_ms_' + tId);
     localStorage.removeItem('nomi_offset_' + tId);
     localStorage.removeItem('nomi_total_min_' + tId);
