@@ -331,6 +331,7 @@ try {
 } catch (e) { console.warn("売上保存失敗:", e.message); }
 try { await deleteDoc(doc(db, "stores/mifune/tables", tableId)); } catch(e) { console.warn("テーブル削除失敗:", e.message); }
 await clearCountdown(tableId, true);
+renderIndex();
 // カスタム席なら会計後に削除
 const customs = getCustomTableNames();
 if (customs.includes(tableId)) {
