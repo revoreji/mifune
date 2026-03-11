@@ -177,8 +177,8 @@ if (data.updatedAt && typeof data.updatedAt.toMillis === 'function') {
     window.deviceClockOffset = Date.now() - data.updatedAt.toMillis();
 }
 
-// 飲み放題カウントダウン同期
-if (data.nomihodaiStart) {
+// 飲み放題カウントダウン同期（ローカル書き込み中はスキップ）
+if (data.nomihodaiStart && !docSnap.metadata.hasPendingWrites) {
     const startMs = data.nomihodaiStart.toMillis();
     localStorage.setItem('nomi_start_ms_' + tId, startMs.toString());
     localStorage.setItem('nomi_total_min_' + tId, (data.nomiTotalMinutes || NOMIHODAI_MINUTES).toString());
