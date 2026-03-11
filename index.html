@@ -185,7 +185,16 @@ if (data.nomihodaiStart) {
     if (!localStorage.getItem('nomi_offset_' + tId)) {
         localStorage.setItem('nomi_offset_' + tId, (Date.now() - startMs).toString());
     }
-    if (!countdownInterval) startCountdownTick(); // iOS対策：タイマーが止まっている時だけ再起動
+    // iOS対策：データ到着時に即時1回バッジ更新（タイマーは触らない）
+    setTimeout(() => {
+        document.querySelectorAll('.countdown-badge[data-table="' + tId + '"]').forEach(el => {
+            const rem = getCountdownRemaining(tId);
+            if (rem === null) { el.style.display = 'none'; return; }
+            el.style.display = '';
+            el.textContent = rem <= 0 ? 'LO！' : '🍺 ' + Math.floor(rem/60) + ':' + String(rem%60).padStart(2,'0');
+            el.className = 'countdown-badge' + (rem <= 0 ? ' danger' : rem <= 600 ? ' danger' : rem <= 1200 ? ' warning' : '');
+        });
+    }, 100);
 } else {
     localStorage.removeItem('nomi_start_ms_' + tId);
     localStorage.removeItem('nomi_offset_' + tId);
