@@ -1350,7 +1350,7 @@ async function sendToKitchen() {
 if(currentCart.length === 0) return;
 // Firebase経由でキッチン印刷（モバイルオーダーと同方式）
 try {
-    const tableRef = window._doc(window.db, "tables", currentTable);
+    const tableRef = window._doc(window.db, "stores/mifune/tables", currentTable);
     await window._setDoc(tableRef, { handyOrders: window._arrayUnion({ items: currentCart, sentAt: Date.now() }) }, { merge: true });
     // autoKitchenPrintがhistory更新・cloudSync・カート削除を行うので、ここではカートのみクリア
     localStorage.removeItem('cart_'+currentTable); currentCart = [];
