@@ -241,7 +241,7 @@ updatedAt: Timestamp.now()
 };
 
 // ▼▼▼ モバイルオーダー自動キッチン印刷 ▼▼▼
-function autoKitchenPrint(tableId, mobileOrders, tag) { tag = tag || 'M';
+async function autoKitchenPrint(tableId, mobileOrders, tag) { tag = tag || 'M';
     const hist = JSON.parse(localStorage.getItem('history_' + tableId) || '[]');
     mobileOrders.forEach(order => {
         order.items.forEach(item => {
@@ -260,6 +260,7 @@ function autoKitchenPrint(tableId, mobileOrders, tag) { tag = tag || 'M';
     });
     localStorage.setItem('history_' + tableId, JSON.stringify(hist));
     window.cloudSync(tableId);
+    await startCountdownIfNeeded(tableId);
 }
 // ▲▲▲ モバイルオーダー自動キッチン印刷 ▲▲▲
 
