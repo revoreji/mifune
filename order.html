@@ -160,12 +160,12 @@ import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gsta
 import { getFirestore, doc, getDoc, updateDoc, arrayUnion, onSnapshot, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDscuD0S3D66lcamtG4T26WLfZH8rjOy28",
-  authDomain: "mifune-ap2.firebaseapp.com",
-  projectId: "mifune-ap2",
-  storageBucket: "mifune-ap2.firebasestorage.app",
-  messagingSenderId: "25505732783",
-  appId: "1:25505732783:web:47278f159ad7a26f279c5a"
+  apiKey: "AIzaSyD_m3-1_fHNBNNhDRt6ZWXsilptcrvXCM",
+  authDomain: "revoreji.firebaseapp.com",
+  projectId: "revoreji",
+  storageBucket: "revoreji.firebasestorage.app",
+  messagingSenderId: "91184668244",
+  appId: "1:91184668244:web:22e34995fe0f69d1e9d7c1"
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -448,7 +448,7 @@ function renderTableSelect() {
 
 window.selectTable = async (tId) => {
     try {
-        const snap = await getDoc(doc(db, "tables", tId));
+        const snap = await getDoc(doc(db, "stores/mifune/tables", tId));
         if (!snap.exists()) {
             showError(`${tId}番席はまだチェックインされていません。\nスタッフにお声がけください。`);
             return;
@@ -566,7 +566,7 @@ window.changeCartQty = (idx, d) => {
 window.submitOrder = async () => {
     if (cart.length === 0) return;
     try {
-        const tableRef = doc(db, "tables", currentTable);
+        const tableRef = doc(db, "stores/mifune/tables", currentTable);
         const snap = await getDoc(tableRef);
         if (!snap.exists()) { showError('席情報が見つかりません'); return; }
 
@@ -586,7 +586,7 @@ window.submitOrder = async () => {
 
 window.showBill = async () => {
     try {
-        const snap = await getDoc(doc(db, "tables", currentTable));
+        const snap = await getDoc(doc(db, "stores/mifune/tables", currentTable));
         if (!snap.exists()) { showError('席情報が見つかりません'); return; }
         const history = snap.data().history || [];
         let sub10 = 0, tax10 = 0, sub8 = 0, tax8 = 0;
