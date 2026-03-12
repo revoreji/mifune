@@ -222,13 +222,13 @@ onAuthStateChanged(auth, async (user) => {
 
 async function loadImages() {
     try {
-        const snap = await getDoc(doc(db, "config", "menuImages"));
+        const snap = await getDoc(doc(db, "stores/mifune/config", "menuImages"));
         imageMap = snap.exists() ? (snap.data().images || {}) : {};
     } catch(e) { imageMap = {}; }
 }
 
 async function saveImages() {
-    await setDoc(doc(db, "config", "menuImages"), { images: imageMap });
+    await setDoc(doc(db, "stores/mifune/config", "menuImages"), { images: imageMap });
 }
 
 function initUI() {
