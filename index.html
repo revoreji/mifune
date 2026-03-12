@@ -1354,6 +1354,7 @@ try {
     await window._setDoc(tableRef, { handyOrders: window._arrayUnion({ items: currentCart, sentAt: Date.now() }) }, { merge: true });
     // autoKitchenPrintがhistory更新・cloudSync・カート削除を行うので、ここではカートのみクリア
     localStorage.removeItem('cart_'+currentTable); currentCart = [];
+    await startCountdownIfNeeded(currentTable);
     hideAll(); document.getElementById('view-success').style.display = 'flex'; updateFooter();
 } catch(e) {
     console.warn('Firebase送信失敗:', e.message);
