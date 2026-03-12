@@ -1352,6 +1352,9 @@ if(currentCart.length === 0) return;
 try {
     const tableRef = window._doc(window.db, "stores/mifune/tables", currentTable);
     await window._setDoc(tableRef, { handyOrders: window._arrayUnion({ items: currentCart, sentAt: Date.now() }) }, { merge: true });
+    const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]');
+    const merged = hist.concat(currentCart);
+    localStorage.setItem('history_'+currentTable, JSON.stringify(merged));
     // autoKitchenPrintがhistory更新・cloudSync・カート削除を行うので、ここではカートのみクリア
     localStorage.removeItem('cart_'+currentTable); currentCart = [];
     await startCountdownIfNeeded(currentTable);
