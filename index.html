@@ -110,7 +110,7 @@ appId: "1:91184668244:web:22e34995fe0f69d1e9d7c1"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-window.db = db; window._doc = doc; window._setDoc = setDoc; window._arrayUnion = arrayUnion;
+window.db = db; window._doc = doc; window._setDoc = setDoc; window._arrayUnion = arrayUnion; window._getDocs = getDocs; window._collection = collection;
 
 window.currentUser = null;
 window.isEditing = false;
@@ -945,7 +945,7 @@ function showIndex() {
   document.getElementById('view-index').style.display = 'flex';
   if (wasEditing) {
     // カート・履歴から戻ったとき最新データを強制取得
-    getDocs(collection(db, "stores/mifune/tables")).then(snapshot => {
+    window._getDocs(window._collection(window.db, "stores/mifune/tables")).then(snapshot => {
       const tablesList = ['C-a', 'C-b', 'C-c', '01', '02', '03', '04', '05', '06', '07', 'テイクアウト', '無人'];
       const cloudIds = snapshot.docs.map(d => d.id);
       tablesList.forEach(tId => {
