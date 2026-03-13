@@ -141,26 +141,6 @@ window.logoutOwner = () => {
 
 function startTablesListener() {
   return onSnapshot(collection(db, "stores/mifune/tables"), (snapshot) => {
-// ▼ オーダー検知はisEditingに関係なく常に処理
-snapshot.forEach((docSnap) => {
-const tId = docSnap.id; const data = docSnap.data();
-// ▼ モバイルオーダー検知・自動キッチン印刷
-const mobileOrders = data.mobileOrders || [];
-if (mobileOrders.length > 0) {
-    setDoc(doc(db, "stores/mifune/tables", tId), { mobileOrders: [] }, { merge: true }).then(async () => {
-        await autoKitchenPrint(tId, mobileOrders, 'M');
-    });
-}
-// ▼ ハンディオーダー検知・自動キッチン印刷
-const handyOrders = data.handyOrders || [];
-if (handyOrders.length > 0) {
-    setDoc(doc(db, "stores/mifune/tables", tId), { handyOrders: [] }, { merge: true }).then(async () => {
-        await autoKitchenPrint(tId, handyOrders, 'H');
-    });
-}
-// ▲ オーダー検知
-});
-
 if(window.isEditing) return;
 const tablesList = ['C-a', 'C-b', 'C-c', '01', '02', '03', '04', '05', '06', '07', 'テイクアウト', '無人'];
 const cloudIds = snapshot.docs.map(d => d.id);
@@ -192,6 +172,22 @@ if (!docSnap.metadata.hasPendingWrites) {
         delete window._nomiData[tId];
     }
 }
+
+// ▼ モバイルオーダー検知・自動キッチン印刷
+const mobileOrders = data.mobileOrders || [];
+if (mobileOrders.length > 0) {
+    setDoc(doc(db, "stores/mifune/tables", tId), { mobileOrders: [] }, { merge: true }).then(async () => {
+        await autoKitchenPrint(tId, mobileOrders, 'M');
+    });
+}
+// ▼ ハンディオーダー検知・自動キッチン印刷
+const handyOrders = data.handyOrders || [];
+if (handyOrders.length > 0) {
+    setDoc(doc(db, "stores/mifune/tables", tId), { handyOrders: [] }, { merge: true }).then(async () => {
+        await autoKitchenPrint(tId, handyOrders, 'H');
+    });
+}
+// ▲ オーダー検知
 
 });
 renderIndex(); updateFooter();
@@ -446,13 +442,13 @@ window.cloudSyncNomiClear = async (tableId) => {
         <input id="cash-received" type="number" placeholder="0" oninput="calcChange()" style="flex:1; min-width:0; padding:6px 8px; border:2px solid var(--primary); border-radius:8px; font-size:16px; text-align:right; font-weight:bold; box-sizing:border-box;">
         <span style="font-size:13px; color:#555; white-space:nowrap;">円</span>
     </div>
-    <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;" id="quick-cash-btns"></div>
-    <div style="background:#f8f8f8; border-radius:10px; padding:8px 12px; display:flex; align-items:center; justify-content:space-between;">
-        <div style="font-size:12px; color:#999;">お釣り</div>
-        <div id="change-amount" style="font-size:28px; font-weight:bold; color:var(--accent);">-</div>
+    <div style="background:#f8f8f8; border-radius:10px; padding:8px 16px; display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+        <div style="font-size:13px; color:#999;">お釣り</div>
+        <div id="change-amount" style="font-size:32px; font-weight:bold; color:var(--accent);">-</div>
     </div>
+    <div style="display:flex; flex-wrap:wrap; gap:6px;" id="quick-cash-btns"></div>
 </div>
-</div><button class="btn-large" style="background:var(--info); color:white; padding:12px; margin:5px auto;" onclick="testPay()">【テスト】会計完了</button><button class="btn-large" style="background:var(--accent);color:white; padding:12px; margin:5px auto;" onclick="openReceiptChoice()">本番会計</button><button class="btn-large" style="background:#8e44ad; color:white; padding:12px; margin:5px auto;" onclick="openRyoshuusho()">📄 領収書発行</button></div>
+</div><button class="btn-large" style="background:var(--accent);color:white; padding:12px; margin:5px auto;" onclick="openReceiptChoice()">本番会計</button><button class="btn-large" style="background:#8e44ad; color:white; padding:12px; margin:5px auto;" onclick="openRyoshuusho()">📄 領収書発行</button></div>
 <div id="overlay-receipt" class="overlay"><div class="modal">
 <div id="receipt-preview-area" style="display:none;"><div class="modal-title">印刷プレビュー</div><div id="sample-receipt-content" class="receipt-sample"></div></div>
 <div class="modal-title" id="receipt-modal-main-title">お支払い方法</div>
