@@ -176,15 +176,15 @@ if (!docSnap.metadata.hasPendingWrites) {
 // ▼ モバイルオーダー検知・自動キッチン印刷
 const mobileOrders = data.mobileOrders || [];
 if (mobileOrders.length > 0) {
-    setDoc(doc(db, "stores/mifune/tables", tId), { mobileOrders: [] }, { merge: true }).then(() => {
-        autoKitchenPrint(tId, mobileOrders, 'M');
+    setDoc(doc(db, "stores/mifune/tables", tId), { mobileOrders: [] }, { merge: true }).then(async () => {
+        await autoKitchenPrint(tId, mobileOrders, 'M');
     });
 }
 // ▼ ハンディオーダー検知・自動キッチン印刷
 const handyOrders = data.handyOrders || [];
 if (handyOrders.length > 0) {
-    setDoc(doc(db, "stores/mifune/tables", tId), { handyOrders: [] }, { merge: true }).then(() => {
-        autoKitchenPrint(tId, handyOrders, 'H');
+    setDoc(doc(db, "stores/mifune/tables", tId), { handyOrders: [] }, { merge: true }).then(async () => {
+        await autoKitchenPrint(tId, handyOrders, 'H');
     });
 }
 // ▲ オーダー検知
