@@ -987,10 +987,13 @@ function confirmAddTable() {
 function removeCustomTable(tId, e) {
   e.stopPropagation();
   const hist = JSON.parse(localStorage.getItem('history_'+tId) || '[]');
-  if(hist.length > 0) return alert('注文中の席は削除できません');
-  if(!confirm(`「${tId}」を削除しますか？`)) return;
+  if (hist.length > 0) {
+    if (!confirm(`「${tId}」には注文データがあります。\n注文データごと削除しますか？`)) return;
+  } else {
+    if (!confirm(`「${tId}」を削除しますか？`)) return;
+  }
   saveCustomTableNames(getCustomTableNames().filter(n => n !== tId));
-  localStorage.removeItem('history_'+tId); localStorage.removeItem('guests_'+tId); localStorage.removeItem('checkin_'+tId);
+  ['history_','cart_','guests_','checkin_'].forEach(k => localStorage.removeItem(k+tId));
   renderIndex();
 }
 function showSaleDetail(s) {
