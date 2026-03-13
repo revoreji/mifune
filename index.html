@@ -89,6 +89,49 @@ footer { width: 100%; display: flex; flex-direction: column; z-index: 100; box-s
 .modal { background: #fff; width: 90%; max-width: 340px; border-radius: 20px; padding: 20px; text-align: center; position: relative; max-height: 90dvh; overflow-y: auto; }
 .receipt-sample { background: #fff; padding: 15px; color: #000; font-family: monospace; text-align: left; font-size: 11px; border: 1px dashed #ccc; width: 100%; }
 .receipt-hr { border-top: 1px dashed #000; margin: 5px 0; }
+
+/* ── お会計 新UI ── */
+.co-body { display:flex; flex:1; overflow:hidden; }
+.co-left { display:none; }
+.co-panel-label { padding:10px 16px; font-size:11px; font-weight:bold; letter-spacing:0.1em; color:#999; border-bottom:1px solid #eee; background:#f8f8f8; flex-shrink:0; }
+.co-items { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.co-item-row { display:flex; align-items:center; gap:10px; padding:9px 16px; border-bottom:1px solid #f4f4f4; font-size:13px; }
+.co-item-qty { background:#f0f0f0; color:#e67e22; font-weight:bold; font-size:12px; padding:3px 7px; border-radius:5px; flex-shrink:0; }
+.co-item-name { flex:1; font-weight:bold; }
+.co-item-price { font-size:13px; font-weight:bold; text-align:right; min-width:72px; }
+.co-total-area { padding:12px 16px; border-top:2px solid #eee; background:#fff; flex-shrink:0; }
+.co-total-row { display:flex; justify-content:space-between; font-size:13px; color:#888; padding:3px 0; }
+.co-total-row.co-grand { font-size:22px; font-weight:bold; color:#333; border-top:1px solid #eee; margin-top:6px; padding-top:8px; }
+.co-grand span:last-child { color:var(--primary); }
+.co-right { display:flex; flex-direction:column; flex:1; min-width:0; padding:12px; gap:8px; overflow-y:auto; -webkit-overflow-scrolling:touch; background:#fafafa; box-sizing:border-box; }
+.co-section-label { font-size:11px; font-weight:bold; letter-spacing:0.1em; color:#aaa; }
+.co-pay-methods { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.co-pay-btn { padding:14px 8px; border:2px solid #ddd; border-radius:10px; background:#fff; color:#999; font-size:13px; font-weight:bold; cursor:pointer; line-height:1.6; transition:all 0.15s; }
+.co-pay-btn.cop-active { border-color:var(--primary); background:#fff8ee; color:var(--primary); }
+.co-pay-btn:active { transform:scale(0.96); }
+.co-amount-box { flex:1; background:#fff; border:1px solid #eee; border-radius:10px; padding:10px 12px; }
+.co-amount-label { font-size:11px; font-weight:bold; color:#bbb; margin-bottom:4px; }
+.co-amount-val { font-size:22px; font-weight:bold; font-family:monospace; text-align:right; }
+.co-amount-val.amber { color:var(--primary); }
+.co-amount-val.green { color:var(--accent); }
+.co-amount-val.red   { color:var(--danger); }
+.co-presets { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+.co-preset-btn { padding:8px 4px; border:1px solid #ddd; border-radius:7px; background:#fff; font-size:12px; font-weight:bold; color:var(--info); cursor:pointer; text-align:center; }
+.co-preset-btn:active { background:#e8f4ff; }
+.co-numpad { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; width:220px; flex-shrink:0; box-sizing:border-box; }
+.co-receipt-col { display:flex; flex-direction:column; gap:6px; flex:1; }
+.co-receipt-col .co-r-btn { flex:1; font-size:13px; font-weight:bold; display:flex; align-items:center; justify-content:center; }
+.co-num { padding:12px 0; border:1px solid #ddd; border-radius:9px; background:#fff; font-size:22px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; }
+.co-num:active { transform:scale(0.91); background:#f0f0f0; }
+.co-num-zero { grid-column:span 2; }
+.co-num-del { background:#fff0ee; color:var(--danger); border-color:#f5ccc9; font-size:16px; }
+.co-num-del:active { background:var(--danger); color:#fff; }
+.co-receipt-row { display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-top:1px solid #eee; flex-shrink:0; }
+.co-r-btn { padding:7px 12px; border:1px solid #ddd; border-radius:7px; background:#fff; color:#999; font-size:13px; font-weight:bold; cursor:pointer; }
+.co-r-btn.co-r-active { border-color:var(--primary); background:#fff8ee; color:var(--primary); }
+.co-confirm-btn { width:100%; padding:16px; border:none; border-radius:14px; background:var(--accent); color:#fff; font-size:17px; font-weight:bold; cursor:pointer; flex-shrink:0; box-shadow:0 4px 10px rgba(46,204,113,0.3); letter-spacing:0.05em; }
+.co-confirm-btn:disabled { background:#ccc; box-shadow:none; cursor:not-allowed; }
+.co-confirm-btn:active:not(:disabled) { transform:scale(0.98); }
 </style>
 </head>
 <body>
@@ -433,35 +476,79 @@ window.cloudSyncNomiClear = async (tableId) => {
 </div>
 <div id="view-cart" class="view"><header><span class="back-btn" onclick="exitEditing()">＜</span>カート確認</header><div class="list-container" id="cart-items-list"></div><div style="background:#fff; border-top:1px solid #eee; padding-bottom:10px;"><button class="btn-large" style="background:var(--info); color:white;" onclick="testSend()">送信(同期のみ)</button><button class="btn-large" style="background:var(--primary);color:white;" onclick="sendToKitchen()">本番送信</button></div></div>
 <div id="view-history" class="view"><header><span class="back-btn" onclick="exitEditing()">＜</span>修正</header><div class="list-container" id="history-items-list"></div><div class="summary-area" id="history-summary"></div><div style="background:#fff; border-top:1px solid #ddd; padding-bottom:10px;"><button class="btn-large" style="background:var(--accent); color:white;" onclick="confirmHistoryChange()">保存して同期</button><button class="btn-large" style="background:var(--secondary); color:white;" onclick="showCheckout()">お会計確定へ</button></div></div>
-<div id="view-checkout" class="view"><header><span class="back-btn" onclick="showOrderHistory()">＜</span>会計確定</header><div style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; display:flex; flex-direction:column; align-items:center; gap:16px; padding:20px 20px 120px;"><div style="padding:30px 20px; background:#fff; border-radius:15px; text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.1); width:85%;"><div id="checkout-final-total" style="font-size:40px; font-weight:bold; color:var(--primary);">¥0</div><div id="checkout-final-info" style="color:#666; font-size:12px;"></div></div><div style="width:85%;"><div style="font-size:13px; color:#666; margin-bottom:8px; text-align:center;">お支払い方法</div><div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;"><button id="co-pay-btn-cash"    onclick="selectPayment('現金')"    style="padding:12px; border:2px solid var(--primary); border-radius:10px; background:var(--primary); color:#fff; font-weight:bold; font-size:14px; cursor:pointer;">💴 現金</button><button id="co-pay-btn-card"    onclick="selectPayment('クレジット')" style="padding:12px; border:2px solid #ddd; border-radius:10px; background:#fff; color:#333; font-weight:bold; font-size:14px; cursor:pointer;">💳 クレジット</button><button id="co-pay-btn-qr"      onclick="selectPayment('QR決済')"   style="padding:12px; border:2px solid #ddd; border-radius:10px; background:#fff; color:#333; font-weight:bold; font-size:14px; cursor:pointer;">📱 QR決済</button><button id="co-pay-btn-ic"      onclick="selectPayment('電子マネー')" style="padding:12px; border:2px solid #ddd; border-radius:10px; background:#fff; color:#333; font-weight:bold; font-size:14px; cursor:pointer;">🔖 電子マネー</button></div></div>
-<!-- 釣銭計算（現金選択時のみ表示） -->
-<div id="change-calc-area" style="width:85%; background:#fff; border-radius:15px; padding:16px; box-shadow:0 2px 8px rgba(0,0,0,0.08); box-sizing:border-box;">
-    <div style="font-size:13px; color:#666; margin-bottom:10px; text-align:center;">釣銭計算</div>
-    <div style="display:flex; gap:8px; align-items:center; margin-bottom:10px;">
-        <span style="font-size:13px; color:#555; white-space:nowrap;">お預かり</span>
-        <input id="cash-received" type="number" placeholder="0" oninput="calcChange()" style="flex:1; min-width:0; padding:6px 8px; border:2px solid var(--primary); border-radius:8px; font-size:16px; text-align:right; font-weight:bold; box-sizing:border-box;">
-        <span style="font-size:13px; color:#555; white-space:nowrap;">円</span>
+<div id="view-checkout" class="view">
+  <header>
+    <div class="header-left">
+      <span class="back-btn" onclick="showOrderHistory()">＜</span>
+      <span id="co-table-label" style="font-weight:bold;"></span>
     </div>
-    <div style="background:#f8f8f8; border-radius:10px; padding:8px 16px; display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-        <div style="font-size:13px; color:#999;">お釣り</div>
-        <div id="change-amount" style="font-size:32px; font-weight:bold; color:var(--accent);">-</div>
+    <span id="co-info-label" style="font-size:12px; color:#888;"></span>
+  </header>
+  <div class="co-body">
+    <div class="co-left">
+      <div class="co-panel-label">注文明細</div>
+      <div class="co-items" id="co-items-list"></div>
+      <div class="co-total-area">
+        <div class="co-total-row"><span>小計</span><span id="co-subtotal-l">¥0</span></div>
+        <div class="co-total-row"><span>消費税</span><span id="co-tax-l">¥0</span></div>
+        <div class="co-total-row co-grand"><span>合　計</span><span id="co-grand-total-l">¥0</span></div>
+      </div>
     </div>
-    <div style="display:flex; flex-wrap:wrap; gap:6px;" id="quick-cash-btns"></div>
+    <div class="co-right">
+      <!-- 合計金額バナー -->
+      <div style="background:#fff; border-radius:14px; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 8px rgba(0,0,0,0.06); flex-shrink:0;">
+        <div style="font-size:13px; color:#999; font-weight:bold;">税込合計</div>
+        <div id="co-grand-total" style="font-size:32px; font-weight:bold; color:var(--primary); font-family:monospace;">¥0</div>
+      </div>
+      <div class="co-section-label">支払方法</div>
+      <div class="co-pay-methods">
+        <button id="cop-cash"   class="co-pay-btn cop-active" onclick="selectPayment('現金')">💴<br>現　金</button>
+        <button id="cop-card"   class="co-pay-btn"            onclick="selectPayment('クレジット')">💳<br>クレジット</button>
+        <button id="cop-qr"     class="co-pay-btn"            onclick="selectPayment('QR決済')">📱<br>QR決済</button>
+        <button id="cop-ic"     class="co-pay-btn"            onclick="selectPayment('電子マネー')">🔖<br>電子マネー</button>
+      </div>
+      <div id="co-cash-panel" style="display:flex; flex-direction:column; gap:10px;">
+        <div style="display:flex; gap:10px; margin-bottom:10px;">
+          <div class="co-amount-box">
+            <div class="co-amount-label">お預かり</div>
+            <div class="co-amount-val amber" id="co-received-val">¥ ―</div>
+          </div>
+          <div class="co-amount-box">
+            <div class="co-amount-label">お　釣　り</div>
+            <div class="co-amount-val green" id="co-change-val">¥ ―</div>
+          </div>
+        </div>
+        <div class="co-presets" id="co-presets"></div>
+        <div style="display:flex; gap:10px; align-items:stretch;">
+          <div class="co-numpad">
+            <button class="co-num" onclick="coNum('7')">7</button>
+            <button class="co-num" onclick="coNum('8')">8</button>
+            <button class="co-num" onclick="coNum('9')">9</button>
+            <button class="co-num" onclick="coNum('4')">4</button>
+            <button class="co-num" onclick="coNum('5')">5</button>
+            <button class="co-num" onclick="coNum('6')">6</button>
+            <button class="co-num" onclick="coNum('1')">1</button>
+            <button class="co-num" onclick="coNum('2')">2</button>
+            <button class="co-num" onclick="coNum('3')">3</button>
+            <button class="co-num co-num-zero" onclick="coNum('0')">0</button>
+            <button class="co-num co-num-del"  onclick="coDel()">⌫</button>
+          </div>
+          <div class="co-receipt-col">
+            <button id="co-r-none"    class="co-r-btn"             onclick="setCoReceipt('none')">不要</button>
+            <button id="co-r-receipt" class="co-r-btn co-r-active" onclick="setCoReceipt('receipt')">レシート</button>
+            <button id="co-r-ryoshu"  class="co-r-btn"             onclick="setCoReceipt('ryoshu')">領収書</button>
+          </div>
+        </div>
+      </div>
+      <div id="co-noncash-panel" style="display:none; flex:1; align-items:center; justify-content:center; flex-direction:column; gap:10px; color:#999; text-align:center; font-size:14px;">
+        <div id="co-noncash-icon" style="font-size:40px;"></div>
+        <div id="co-noncash-msg"></div>
+      </div>
+
+      <button class="co-confirm-btn" id="co-confirm-btn" onclick="payCo()">会計を確定する</button>
+    </div>
+  </div>
 </div>
-</div><button class="btn-large" style="background:var(--accent);color:white; padding:12px; margin:5px auto;" onclick="openReceiptChoice()">本番会計</button><button class="btn-large" style="background:#8e44ad; color:white; padding:12px; margin:5px auto;" onclick="openRyoshuusho()">📄 領収書発行</button></div>
-<div id="overlay-receipt" class="overlay"><div class="modal">
-<div id="receipt-preview-area" style="display:none;"><div class="modal-title">印刷プレビュー</div><div id="sample-receipt-content" class="receipt-sample"></div></div>
-<div class="modal-title" id="receipt-modal-main-title">お支払い方法</div>
-<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
-    <button id="pay-btn-cash"    onclick="selectPayment('現金')"    style="padding:16px; border:2px solid var(--primary); border-radius:12px; background:var(--primary); color:#fff; font-weight:bold; font-size:15px; cursor:pointer;">💴 現金</button>
-    <button id="pay-btn-card"    onclick="selectPayment('クレジット')" style="padding:16px; border:2px solid #ddd; border-radius:12px; background:#fff; color:#333; font-weight:bold; font-size:15px; cursor:pointer;">💳 クレジット</button>
-    <button id="pay-btn-qr"      onclick="selectPayment('QR決済')"   style="padding:16px; border:2px solid #ddd; border-radius:12px; background:#fff; color:#333; font-weight:bold; font-size:15px; cursor:pointer;">📱 QR決済</button>
-    <button id="pay-btn-ic"      onclick="selectPayment('電子マネー')" style="padding:16px; border:2px solid #ddd; border-radius:12px; background:#fff; color:#333; font-weight:bold; font-size:15px; cursor:pointer;">🔖 電子マネー</button>
-</div>
-<button class="btn-large" style="background:var(--primary); color:white;" onclick="pay(true)">印刷して完了</button>
-<button class="btn-large" style="background:var(--gray); color:white;" onclick="pay(false)">印刷せずに完了</button>
-<div style="margin-top:15px; color:var(--info); font-size:12px; cursor:pointer;" onclick="closeReceiptChoice()">キャンセル</div>
-</div></div>
 <div id="view-success" class="view" style="text-align:center; justify-content:center;"><h2>送信完了</h2><button class="btn-large" style="background:var(--primary);color:white;" onclick="showMenu()">戻る</button></div>
 
 <!-- ▼▼▼ 領収書機能追加 ▼▼▼ -->
@@ -1330,17 +1417,34 @@ function renderHistoryUI() { const hist = JSON.parse(localStorage.getItem('histo
 async function confirmHistoryChange() { if(window.cloudSync) await window.cloudSync(currentTable); alert("同期完了"); }
 function exitEditing() { window.isEditing = false; showMenu(); }
 function showOrderHistory() { window.isEditing = true; hideAll(); document.getElementById('view-history').style.display = 'flex'; renderHistoryUI(); }
-function showCheckout() { const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]'); const total = hist.reduce((s, i) => s + Math.floor(i.price*i.qty*(1+i.rate)), 0); document.getElementById('checkout-final-total').innerText = "¥" + total.toLocaleString(); document.getElementById('checkout-final-info').innerText = `入店 ${localStorage.getItem('checkin_'+currentTable)} / 客 ${localStorage.getItem('guests_'+currentTable)}名`; hideAll(); document.getElementById('view-checkout').style.display = 'flex'; selectPayment('現金'); buildQuickCashBtns(total); }
-function updateFooter() { document.getElementById('cart-count').innerText = currentCart.reduce((s, i) => s + i.qty, 0); const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]'); const total = hist.reduce((s, i) => s + Math.floor(i.price*i.qty*(1+i.rate)), 0); document.getElementById('display-current-total').innerText = "税込合計: ¥" + total.toLocaleString(); }
-function openReceiptChoice() { if (isTestMode) { document.getElementById('receipt-preview-area').style.display = 'block'; renderReceiptSample(); } document.getElementById('overlay-receipt').style.display = 'flex'; }
-function renderReceiptSample() {
-const h = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]'); const g = localStorage.getItem('guests_'+currentTable) || 0; const c = localStorage.getItem('checkin_'+currentTable) || "--:--"; let sub = 0, tx = 0;
-let t = `<div class="text-center text-bold">美唄焼鳥三船 東札幌店</div><div class="text-center">札幌市白石区東札幌2条3丁目9-2</div><div class="receipt-hr"></div><div>日時: ${new Date().toLocaleString()}</div><div>席: ${currentTable} 客: ${g}名 入店: ${c}</div><div class="receipt-hr"></div>`;
-h.forEach(i => { const l = i.price*i.qty; sub += l; tx += Math.floor(l * i.rate); t += `<div>${i.name}</div><div style="display:flex; justify-content:space-between;"><span>&nbsp;${i.qty}点 x ¥${i.price.toLocaleString()}</span><span>¥${l.toLocaleString()}</span></div>`; });
-t += `<div class="receipt-hr"></div><div class="text-right text-bold">税込合計: ¥${(sub+tx).toLocaleString()}</div><div class="receipt-hr"></div><div class="text-center">[登録番号] T4430001061003</div>`;
-document.getElementById('sample-receipt-content').innerHTML = t;
+let coReceivedStr = '';
+let coReceiptMode = 'receipt';
+function showCheckout() {
+  const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]');
+  const g    = localStorage.getItem('guests_'+currentTable) || 0;
+  const c    = localStorage.getItem('checkin_'+currentTable) || '--:--';
+  document.getElementById('co-table-label').textContent = currentTable + '番席';
+  document.getElementById('co-info-label').textContent  = `入店 ${c} / ${g}名`;
+  let sub = 0, tax = 0;
+  document.getElementById('co-items-list').innerHTML = hist.map(i => {
+    const lp = i.price * i.qty, lt = Math.floor(lp * i.rate);
+    sub += lp; tax += lt;
+    return `<div class="co-item-row"><div class="co-item-qty">${i.qty}</div><div class="co-item-name">${i.name}</div><div class="co-item-price">¥${(lp+lt).toLocaleString()}</div></div>`;
+  }).join('') || '<p style="text-align:center;padding:30px;color:#bbb;">注文なし</p>';
+  document.getElementById('co-grand-total').textContent = '¥' + (sub+tax).toLocaleString();
+  const total = sub + tax;
+  document.getElementById('co-presets').innerHTML = [1000,2000,5000,10000].map(v =>
+    `<button class="co-preset-btn" onclick="coSetPreset(${v})">¥${v.toLocaleString()}</button>`
+  ).join('');
+  coReceivedStr = ''; coReceiptMode = 'receipt';
+  setCoReceipt('receipt');
+  selectPayment('現金');
+  hideAll(); document.getElementById('view-checkout').style.display = 'flex';
 }
-function closeReceiptChoice() { document.getElementById('overlay-receipt').style.display = 'none'; }
+function updateFooter() { document.getElementById('cart-count').innerText = currentCart.reduce((s, i) => s + i.qty, 0); const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]'); const total = hist.reduce((s, i) => s + Math.floor(i.price*i.qty*(1+i.rate)), 0); document.getElementById('display-current-total').innerText = "税込合計: ¥" + total.toLocaleString(); }
+function openReceiptChoice() { payCo(); }
+function renderReceiptSample() {}
+function closeReceiptChoice() {}
 async function testSend() { if(currentCart.length === 0) return alert("空です"); const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]'); const merged = hist.concat(currentCart); localStorage.setItem('history_'+currentTable, JSON.stringify(merged)); localStorage.removeItem('cart_'+currentTable); currentCart = []; if(window.cloudSync) await window.cloudSync(currentTable); await startCountdownIfNeeded(currentTable); hideAll(); document.getElementById('view-success').style.display = 'flex'; updateFooter(); }
 async function testPay() {
     if(window.saveSaleToCloud) await window.saveSaleToCloud(currentTable, currentPaymentMethod);
@@ -1378,71 +1482,85 @@ try {
 }
 }
 
-function calcChange() {
-    const total = parseInt(document.getElementById('checkout-final-total').innerText.replace(/[¥,]/g, '')) || 0;
-    const received = parseInt(document.getElementById('cash-received').value) || 0;
-    const change = received - total;
-    const el = document.getElementById('change-amount');
-    if (received === 0) { el.innerText = '-'; el.style.color = 'var(--accent)'; }
-    else if (change < 0) { el.innerText = `¥${Math.abs(change).toLocaleString()} 不足`; el.style.color = 'red'; }
-    else { el.innerText = `¥${change.toLocaleString()}`; el.style.color = 'var(--accent)'; }
-}
-
-function buildQuickCashBtns(total) {
-    const presets = [1000, 2000, 5000, 10000];
-    document.getElementById('quick-cash-btns').innerHTML = presets.map(v =>
-        `<button onclick="document.getElementById('cash-received').value=${v}; calcChange();" style="flex:1; padding:10px 0; border:1px solid #ddd; border-radius:8px; background:#f8f8f8; font-size:13px; font-weight:bold; cursor:pointer; color:var(--info);">¥${v.toLocaleString()}</button>`
-    ).join('');
-}
+function calcChange() {}
+function buildQuickCashBtns() {}
 
 let currentPaymentMethod = '現金';
 function selectPayment(method) {
-    currentPaymentMethod = method;
-    const map = { '現金': 'cash', 'クレジット': 'card', 'QR決済': 'qr', '電子マネー': 'ic' };
-    ['cash','card','qr','ic'].forEach(k => {
-        ['pay-btn-', 'co-pay-btn-'].forEach(prefix => {
-            const btn = document.getElementById(prefix + k);
-            if (!btn) return;
-            const isSelected = map[method] === k;
-            btn.style.background = isSelected ? 'var(--primary)' : '#fff';
-            btn.style.color = isSelected ? '#fff' : '#333';
-            btn.style.borderColor = isSelected ? 'var(--primary)' : '#ddd';
-        });
-    });
-    // 釣銭計算エリアは現金のみ表示
-    const calcArea = document.getElementById('change-calc-area');
-    if (calcArea) {
-        calcArea.style.display = method === '現金' ? 'block' : 'none';
-        if (method === '現金') {
-            document.getElementById('cash-received').value = '';
-            document.getElementById('change-amount').innerText = '-';
-        }
-    }
+  currentPaymentMethod = method;
+  const map = { '現金':'cash', 'クレジット':'card', 'QR決済':'qr', '電子マネー':'ic' };
+  const icons = { 'クレジット':'💳', 'QR決済':'📱', '電子マネー':'🔖' };
+  const msgs  = { 'クレジット':'端末にカードを通してください', 'QR決済':'QRコードを読み取ってください', '電子マネー':'端末にかざしてください' };
+  const idMap = { cash:'cop-cash', card:'cop-card', qr:'cop-qr', ic:'cop-ic' };
+  Object.keys(idMap).forEach(k => {
+    const el = document.getElementById(idMap[k]); if (!el) return;
+    el.classList.toggle('cop-active', map[method] === k);
+  });
+  const isCash = method === '現金';
+  const cashPanel    = document.getElementById('co-cash-panel');
+  const noncashPanel = document.getElementById('co-noncash-panel');
+  if (cashPanel)    cashPanel.style.display    = isCash ? 'flex' : 'none';
+  if (cashPanel && isCash) cashPanel.style.flexDirection = 'column';
+  if (noncashPanel) noncashPanel.style.display = isCash ? 'none' : 'flex';
+  if (!isCash && noncashPanel) {
+    document.getElementById('co-noncash-icon').textContent = icons[method] || '💳';
+    document.getElementById('co-noncash-msg').textContent  = msgs[method]  || '';
+  }
+  coReceivedStr = '';
+  _coUpdateDisplay();
 }
-
-async function pay(doPrint) {
-closeReceiptChoice();
-const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]');
-const g = localStorage.getItem('guests_'+currentTable);
-const c = localStorage.getItem('checkin_'+currentTable);
-if(window.saveSaleToCloud) await window.saveSaleToCloud(currentTable, currentPaymentMethod);
-if(doPrint) {
-    const cashReceived = currentPaymentMethod === '現金'
-        ? parseInt(document.getElementById('cash-received').value) || 0
-        : 0;
+function coNum(v) { if (coReceivedStr.length >= 7) return; coReceivedStr += v; _coUpdateDisplay(); }
+function coDel()  { coReceivedStr = coReceivedStr.slice(0,-1); _coUpdateDisplay(); }
+function coSetPreset(v) { coReceivedStr = String(v); _coUpdateDisplay(); }
+function _coUpdateDisplay() {
+  const hist     = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]');
+  const total    = hist.reduce((s,i) => s + Math.floor(i.price*i.qty*(1+i.rate)), 0);
+  const received = parseInt(coReceivedStr || '0');
+  const change   = received - total;
+  const recvEl   = document.getElementById('co-received-val');
+  const changeEl = document.getElementById('co-change-val');
+  const btn      = document.getElementById('co-confirm-btn');
+  if (!recvEl) return;
+  recvEl.textContent = coReceivedStr ? '¥'+received.toLocaleString() : '¥ ―';
+  if (coReceivedStr && received >= total) {
+    changeEl.textContent = '¥'+change.toLocaleString(); changeEl.className = 'co-amount-val green';
+    btn.disabled = false; btn.textContent = '会計を確定する';
+  } else if (coReceivedStr && received < total) {
+    const diff = total - received;
+    changeEl.textContent = '－¥'+diff.toLocaleString()+' 不足'; changeEl.className = 'co-amount-val red';
+    btn.disabled = true; btn.textContent = '¥'+diff.toLocaleString()+' 不足';
+  } else {
+    changeEl.textContent = '¥ ―'; changeEl.className = 'co-amount-val green';
+    btn.disabled = currentPaymentMethod === '現金';
+    btn.textContent = currentPaymentMethod === '現金' ? '金額を入力してください' : '会計を確定する';
+  }
+}
+function setCoReceipt(mode) {
+  coReceiptMode = mode;
+  ['none','receipt','ryoshu'].forEach(k => {
+    const el = document.getElementById('co-r-'+k); if (el) el.classList.toggle('co-r-active', k===mode);
+  });
+}
+async function payCo() {
+  const doRyoshu = coReceiptMode === 'ryoshu';
+  const doPrint  = coReceiptMode === 'receipt';
+  const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]');
+  const g    = localStorage.getItem('guests_'+currentTable);
+  const c    = localStorage.getItem('checkin_'+currentTable);
+  if (window.saveSaleToCloud) await window.saveSaleToCloud(currentTable, currentPaymentMethod);
+  if (doRyoshu) { openRyoshuusho(); return; }
+  if (doPrint) {
     await window.queuePrint({
-        type: 'receipt',
-        tableNo: currentTable,
-        guests: g,
-        checkinTime: c,
-        items: hist.map(i => ({ name: i.name, qty: i.qty, price: i.price, rate: i.rate })),
-        paymentMethod: currentPaymentMethod,
-        cashReceived: cashReceived,
-        orderTime: new Date().toLocaleString('ja-JP')
+      type: 'receipt', tableNo: currentTable, guests: g, checkinTime: c,
+      items: hist.map(i => ({ name:i.name, qty:i.qty, price:i.price, rate:i.rate })),
+      paymentMethod: currentPaymentMethod,
+      cashReceived: currentPaymentMethod === '現金' ? parseInt(coReceivedStr||'0') : 0,
+      orderTime: new Date().toLocaleString('ja-JP')
     });
+  }
+  showIndex();
 }
-showIndex();
-}
+async function pay(doPrint) { await payCo(); }
 
 // ▼▼▼ 領収書機能追加 ▼▼▼
 
