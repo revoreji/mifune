@@ -1447,9 +1447,14 @@ function closeRyoshuusho() {
 
 function getRyoshuushoTotal() {
     const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]');
-    let sub = 0, tax = 0;
-    hist.forEach(i => { sub += i.price * i.qty; tax += Math.floor(i.price * i.qty * i.rate); });
-    return { sub, tax, total: sub + tax };
+    let sub = 0, tax = 0, sub10 = 0, tax10 = 0, sub8 = 0, tax8 = 0;
+    hist.forEach(i => {
+        const s = i.price * i.qty;
+        const t = Math.floor(s * i.rate);
+        sub += s; tax += t;
+        if (i.rate === 0.08) { sub8 += s; tax8 += t; } else { sub10 += s; tax10 += t; }
+    });
+    return { sub, tax, sub10, tax10, sub8, tax8, total: sub + tax };
 }
 
 function updateRyoshuushoPreview() {
@@ -1473,10 +1478,10 @@ function updateRyoshuushoPreview() {
 async function printRyoshuusho() {
     const atena = document.getElementById('ryoshuusho-atena').value || '上様';
     const tadashi = document.getElementById('ryoshuusho-tadashi').value || 'お食事代として';
-    const { sub, tax } = getRyoshuushoTotal();
     const now = new Date();
     const dateStr = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
-    await window.queuePrint({ type: 'ryoshuusho', atena, tadashi, sub, tax, dateStr });
+    const { sub, tax, sub10, tax10, sub8, tax8 } = getRyoshuushoTotal();
+    await window.queuePrint({ type: 'ryoshuusho', atena, tadashi, sub, tax, sub10, tax10, sub8, tax8, dateStr });
     closeRyoshuusho(); alert("領収書を印刷しました");
 }
 
