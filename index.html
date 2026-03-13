@@ -1349,16 +1349,28 @@ async function testPay() {
 
 async function sendToKitchen() {
 if(currentCart.length === 0) return;
-// Firebase経由でキッチン印刷（モバイルオーダーと同方式）
 try {
-    const tableRef = window._doc(window.db, "stores/mifune/tables", currentTable);
-    await window._setDoc(tableRef, { handyOrders: window._arrayUnion({ items: currentCart, sentAt: Date.now() }) }, { merge: true });
+    // 1. printQueueに直接書き込み（CloudPRNT用）
+    for (const item of currentCart) {
+        await window.queuePrint({
+            type: 'kitchen',
+            tableId: currentTable,
+            tag: 'H',
+            itemName: item.name,
+            itemQty: item.qty
+        });
+    }
+    // 2. 履歴に追加・cloudSync
     const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]');
-    const merged = hist.concat(currentCart);
-    localStorage.setItem('history_'+currentTable, JSON.stringify(merged));
-    // autoKitchenPrintがhistory更新・cloudSync・カート削除を行うので、ここではカートのみクリア
-    localStorage.removeItem('cart_'+currentTable); currentCart = [];
+    currentCart.forEach(item => {
+        const exist = hist.find(h => h.name === item.name);
+        if (exist) exist.qty += item.qty;
+        else hist.push(item);
+    });
+    localStorage.setItem('history_'+currentTable, JSON.stringify(hist));
+    window.cloudSync(currentTable);
     await startCountdownIfNeeded(currentTable);
+    localStorage.removeItem('cart_'+currentTable); currentCart = [];
     hideAll(); document.getElementById('view-success').style.display = 'flex'; updateFooter();
 } catch(e) {
     console.warn('Firebase送信失敗:', e.message);
