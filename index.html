@@ -249,6 +249,12 @@ onSnapshot(doc(db, 'stores/mifune/_system', 'config'), (snap) => {
     const current = JSON.stringify(getCustomTableNames());
     const incoming = JSON.stringify(data.customTables);
     if (current !== incoming) {
+      // 削除されたテーブルのlocalStorageをクリア
+      const currentArr = JSON.parse(current);
+      const incomingArr = JSON.parse(incoming);
+      currentArr.filter(t => !incomingArr.includes(t)).forEach(tId => {
+        ['history_','cart_','guests_','checkin_'].forEach(k => localStorage.removeItem(k+tId));
+      });
       localStorage.setItem('customTables', incoming);
       renderIndex();
     }
@@ -332,6 +338,8 @@ const customs = getCustomTableNames();
 if (customs.includes(tableId)) {
   saveCustomTableNames(customs.filter(n => n !== tableId));
 }
+// 全席: localStorageのデータをクリア（再利用時に残らないように）
+['history_','cart_','guests_','checkin_'].forEach(k => localStorage.removeItem(k + tableId));
 };
 
 window.getSalesData = async (mode) => {
@@ -408,6 +416,12 @@ window.cloudSyncNomiClear = async (tableId) => {
     <div style="display:flex;gap:8px;">
       <button onclick="savePrinterSettings()" style="flex:1;padding:12px;background:#4caf50;color:#fff;border:none;border-radius:8px;font-size:15px;cursor:pointer;">保存</button>
       <button onclick="document.getElementById('overlay-printer-settings').style.display='none'" style="flex:1;padding:12px;background:#eee;color:#333;border:none;border-radius:8px;font-size:15px;cursor:pointer;">キャンセル</button>
+    </div>
+      <label style="font-size:13px;font-weight:bold;color:#333;">🗑 席データの強制クリア</label>
+      <div style="font-size:12px;color:#aaa;margin:6px 0 10px;">席名を入力して、全デバイスのlocalStorageを削除します</div>
+      <input id="force-clear-table-name" type="text" placeholder="席名（例: パルカス）"
+        style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:15px;margin-bottom:8px;box-sizing:border-box;">
+      <button onclick="forceClearTableData()" style="width:100%;padding:10px;background:#e74c3c;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;">この席のデータを全デバイスで削除</button>
     </div>
   </div>
 </div>
@@ -1016,7 +1030,21 @@ function showSaleDetail(s) {
 function openPrinterSettings() {
   document.getElementById('owner-current-pass-input').value = '';
   document.getElementById('owner-pass-input').value = '';
+  document.getElementById('force-clear-table-name').value = '';
   document.getElementById('overlay-printer-settings').style.display = 'flex';
+}
+async function forceClearTableData() {
+  const tId = document.getElementById('force-clear-table-name').value.trim();
+  if (!tId) return alert('席名を入力してください');
+  if (!confirm(`「${tId}」のデータを全デバイスで削除します。\nFirestoreのカスタム席リストからも除外します。よろしいですか？`)) return;
+  // このデバイスのlocalStorageをクリア
+  ['history_','cart_','guests_','checkin_'].forEach(k => localStorage.removeItem(k+tId));
+  // カスタム席リストからも削除（Firestore経由で他デバイスも自動クリア）
+  const updated = getCustomTableNames().filter(n => n !== tId);
+  saveCustomTableNames(updated);
+  document.getElementById('force-clear-table-name').value = '';
+  alert(`「${tId}」を削除しました。他のデバイスは次回接続時に自動クリアされます。`);
+  renderIndex();
 }
 function savePrinterSettings() {
   const pass = document.getElementById('owner-pass-input').value.trim();
