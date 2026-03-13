@@ -1558,7 +1558,7 @@ function _coUpdateDisplay() {
     btn.disabled = false; btn.textContent = '会計を確定する';
   } else if (coReceivedStr && received < total) {
     const diff = total - received;
-    changeEl.textContent = '－¥'+diff.toLocaleString()+' 不足'; changeEl.className = 'co-amount-val red';
+    changeEl.textContent = '－¥'+diff.toLocaleString(); changeEl.className = 'co-amount-val red';
     btn.disabled = true; btn.textContent = '¥'+diff.toLocaleString()+' 不足';
   } else {
     changeEl.textContent = '¥ ―'; changeEl.className = 'co-amount-val green';
