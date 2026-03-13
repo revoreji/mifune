@@ -141,6 +141,26 @@ window.logoutOwner = () => {
 
 function startTablesListener() {
   return onSnapshot(collection(db, "stores/mifune/tables"), (snapshot) => {
+// ▼ オーダー検知はisEditingに関係なく常に処理
+snapshot.forEach((docSnap) => {
+const tId = docSnap.id; const data = docSnap.data();
+// ▼ モバイルオーダー検知・自動キッチン印刷
+const mobileOrders = data.mobileOrders || [];
+if (mobileOrders.length > 0) {
+    setDoc(doc(db, "stores/mifune/tables", tId), { mobileOrders: [] }, { merge: true }).then(async () => {
+        await autoKitchenPrint(tId, mobileOrders, 'M');
+    });
+}
+// ▼ ハンディオーダー検知・自動キッチン印刷
+const handyOrders = data.handyOrders || [];
+if (handyOrders.length > 0) {
+    setDoc(doc(db, "stores/mifune/tables", tId), { handyOrders: [] }, { merge: true }).then(async () => {
+        await autoKitchenPrint(tId, handyOrders, 'H');
+    });
+}
+// ▲ オーダー検知
+});
+
 if(window.isEditing) return;
 const tablesList = ['C-a', 'C-b', 'C-c', '01', '02', '03', '04', '05', '06', '07', 'テイクアウト', '無人'];
 const cloudIds = snapshot.docs.map(d => d.id);
@@ -172,22 +192,6 @@ if (!docSnap.metadata.hasPendingWrites) {
         delete window._nomiData[tId];
     }
 }
-
-// ▼ モバイルオーダー検知・自動キッチン印刷
-const mobileOrders = data.mobileOrders || [];
-if (mobileOrders.length > 0) {
-    setDoc(doc(db, "stores/mifune/tables", tId), { mobileOrders: [] }, { merge: true }).then(async () => {
-        await autoKitchenPrint(tId, mobileOrders, 'M');
-    });
-}
-// ▼ ハンディオーダー検知・自動キッチン印刷
-const handyOrders = data.handyOrders || [];
-if (handyOrders.length > 0) {
-    setDoc(doc(db, "stores/mifune/tables", tId), { handyOrders: [] }, { merge: true }).then(async () => {
-        await autoKitchenPrint(tId, handyOrders, 'H');
-    });
-}
-// ▲ オーダー検知
 
 });
 renderIndex(); updateFooter();
