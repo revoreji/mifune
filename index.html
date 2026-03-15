@@ -278,6 +278,27 @@ window.queuePrint = async function(jobData) {
 };
 // ▲▲▲ CloudPRNT印刷キュー ▲▲▲
 
+// ▼▼▼ 伝票印刷 ▼▼▼
+window.printDenpyo = async function() {
+    const tableId = currentTable;
+    const hist = JSON.parse(localStorage.getItem('history_' + tableId) || '[]');
+    if (hist.length === 0) { alert('注文がありません'); return; }
+    const guests = parseInt(localStorage.getItem('guests_' + tableId)) || 0;
+    const checkin = localStorage.getItem('checkin_' + tableId) || '--:--';
+    const total = hist.reduce((s, i) => s + i.price * i.qty, 0);
+    await window.queuePrint({
+        type: 'denpyo',
+        tableId,
+        tableNo: tableId,
+        guests,
+        checkinTime: checkin,
+        items: hist.map(i => ({ name: i.name, price: i.price, qty: i.qty })),
+        total
+    });
+    alert('伝票を送信しました');
+};
+// ▲▲▲ 伝票印刷 ▲▲▲
+
 window.cloudSync = async (tableId) => {
 try {
 await setDoc(doc(db, "stores/mifune/tables", tableId), {
@@ -484,7 +505,7 @@ window.cloudSyncNomiClear = async (tableId) => {
 </div>
 </div>
 <div id="view-cart" class="view"><header><span class="back-btn" onclick="exitEditing()">＜</span>カート確認</header><div class="list-container" id="cart-items-list"></div><div style="background:#fff; border-top:1px solid #eee; padding-bottom:10px;"><button class="btn-large" style="background:var(--info); color:white;" onclick="testSend()">送信(同期のみ)</button><button class="btn-large" style="background:var(--primary);color:white;" onclick="sendToKitchen()">本番送信</button></div></div>
-<div id="view-history" class="view"><header><span class="back-btn" onclick="exitEditing()">＜</span>修正</header><div class="list-container" id="history-items-list"></div><div class="summary-area" id="history-summary"></div><div style="background:#fff; border-top:1px solid #ddd; padding-bottom:10px;"><button class="btn-large" style="background:var(--accent); color:white;" onclick="confirmHistoryChange()">保存して同期</button><button class="btn-large" style="background:var(--secondary); color:white;" onclick="showCheckout()">お会計確定へ</button></div></div>
+<div id="view-history" class="view"><header><span class="back-btn" onclick="exitEditing()">＜</span>修正</header><div class="list-container" id="history-items-list"></div><div class="summary-area" id="history-summary"></div><div style="background:#fff; border-top:1px solid #ddd; padding-bottom:10px;"><button class="btn-large" style="background:#2196F3; color:white;" onclick="printDenpyo()">伝票を発行する</button><button class="btn-large" style="background:var(--secondary); color:white;" onclick="showCheckout()">お会計確定へ</button></div></div>
 <div id="view-checkout" class="view">
   <header>
     <div class="header-left">
