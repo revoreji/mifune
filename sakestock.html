@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日本酒在庫 - 美唄焼鳥三船</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f1117; color: #e8e0d0; font-family: 'Helvetica Neue', sans-serif; min-height: 100vh; }
+
+  .header {
+    background: #141420; border-bottom: 1px solid #2a2a3a;
+    padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header h1 { font-size: 16px; font-weight: 700; color: #f0ead8; }
+  .header-sub { font-size: 10px; color: #555; letter-spacing: 3px; margin-top: 2px; }
+  .back-btn { background: none; border: 1px solid #2a2a3a; color: #888; padding: 6px 12px; border-radius: 4px; font-size: 12px; text-decoration: none; display: inline-block; }
+
+  .container { padding: 16px; max-width: 600px; margin: 0 auto; }
+
+  .summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+  .sum-card { background: #141420; border: 1px solid #2a2a3a; border-radius: 6px; padding: 12px; text-align: center; }
+  .sum-num { font-size: 26px; font-weight: 800; line-height: 1; }
+  .sum-num.ok { color: #8aaa8a; }
+  .sum-num.warn { color: #d4a843; }
+  .sum-num.out { color: #ff6b6b; }
+  .sum-label { font-size: 10px; color: #555; letter-spacing: 1px; margin-top: 4px; }
+
+  .line-panel { background: #141420; border: 1px solid #2a2a3a; border-radius: 8px; padding: 14px; margin-bottom: 20px; }
+  .line-title { font-size: 11px; color: #666; margin-bottom: 8px; letter-spacing: 2px; }
+  .line-row { display: flex; gap: 8px; }
+  .line-input { flex: 1; background: #0f1117; border: 1px solid #2a2a3a; color: #e8e0d0; padding: 9px 10px; border-radius: 4px; font-size: 12px; font-family: inherit; }
+  .line-input:focus { outline: none; border-color: #00B900; }
+  .line-btn { padding: 9px 14px; background: #00B900; color: #fff; border: none; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .line-note { font-size: 10px; color: #444; margin-top: 6px; }
+
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .section-title { font-size: 11px; letter-spacing: 3px; color: #666; }
+  .alert-count { font-size: 11px; background: #2a1500; border: 1px solid #5a3a00; color: #d4a843; padding: 3px 8px; border-radius: 10px; }
+
+  /* 在庫カード */
+  .stock-list { margin-bottom: 20px; }
+  .stock-card {
+    background: #141420; border: 1px solid #2a2a3a; border-radius: 8px;
+    padding: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 14px;
+    transition: border-color 0.2s;
+  }
+  .stock-card.warn { border-color: #5a3a00; background: #161208; }
+  .stock-card.out  { border-color: #5a2020; background: #140e0e; }
+
+  .sake-label { flex: 1; }
+  .sake-name { font-size: 14px; font-weight: 600; color: #f0ead8; margin-bottom: 3px; }
+  .sake-rule { font-size: 11px; color: #555; }
+
+  /* 残量バー */
+  .bar-wrap { flex: 0 0 80px; }
+  .bar-bg { height: 8px; background: #2a2a3a; border-radius: 4px; overflow: hidden; margin-bottom: 4px; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease, background 0.4s; }
+  .bar-fill.ok   { background: #8aaa8a; }
+  .bar-fill.warn { background: #d4a843; }
+  .bar-fill.out  { background: #ff6b6b; }
+  .bar-label { font-size: 10px; text-align: center; color: #555; }
+
+  /* 残杯数表示 */
+  .cups-display { text-align: right; flex: 0 0 56px; }
+  .cups-num { font-size: 28px; font-weight: 800; line-height: 1; }
+  .cups-num.ok   { color: #8aaa8a; }
+  .cups-num.warn { color: #d4a843; }
+  .cups-num.out  { color: #ff6b6b; }
+  .cups-unit { font-size: 11px; color: #555; }
+  .cups-badge { font-size: 9px; background: #2a1500; border: 1px solid #5a3a00; color: #d4a843; padding: 2px 5px; border-radius: 3px; margin-top: 4px; display: inline-block; }
+  .cups-badge.out { background: #2a1010; border-color: #5a2020; color: #ff6b6b; }
+
+  /* 在庫設定パネル */
+  .setup-panel { background: #141420; border: 1px solid #2a2a3a; border-radius: 8px; overflow: hidden; margin-bottom: 20px; }
+  .setup-row { display: flex; align-items: center; padding: 11px 14px; border-bottom: 1px solid #1a1a2a; gap: 10px; }
+  .setup-row:last-child { border-bottom: none; }
+  .setup-name { flex: 1; font-size: 13px; color: #e8e0d0; }
+  .setup-input { width: 60px; background: #0f1117; border: 1px solid #2a2a3a; color: #e8e0d0; padding: 7px 8px; border-radius: 4px; font-size: 15px; text-align: center; font-family: inherit; }
+  .setup-input:focus { outline: none; border-color: #d4a843; }
+  .setup-unit { font-size: 11px; color: #555; }
+
+  .btn { width: 100%; padding: 13px; border: none; border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; letter-spacing: 1px; margin-bottom: 10px; transition: background 0.2s; }
+  .btn-primary { background: #d4a843; color: #0f1117; }
+  .btn-primary:hover { background: #e0b850; }
+  .btn-outline { background: transparent; border: 1px solid #2a2a3a; color: #888; }
+  .btn-outline:hover { border-color: #888; color: #e8e0d0; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 2px; background: #141420; border-radius: 6px; padding: 4px; margin-bottom: 20px; }
+  .tab { flex: 1; padding: 9px; text-align: center; font-size: 13px; cursor: pointer; border-radius: 4px; color: #555; border: none; background: none; font-family: inherit; transition: all 0.2s; }
+  .tab.active { background: #2a2a3a; color: #e8e0d0; font-weight: 600; }
+
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(60px);
+    padding: 12px 20px; border-radius: 6px; font-size: 13px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4); transition: transform 0.3s ease;
+    white-space: nowrap; z-index: 999; color: #fff;
+    background: #1a1a2a;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.line-toast { background: #00B900; }
+  .toast.warn-toast { background: #5a3a00; border: 1px solid #d4a843; }
+
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; } }
+  .fade-in { animation: fadeIn 0.3s ease; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-sub">美唄焼鳥三船</div>
+    <h1>日本酒在庫</h1>
+  </div>
+  <a href="index.html" class="back-btn">← POS</a>
+</div>
+
+<div class="container">
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('status')">📊 在庫状況</button>
+    <button class="tab" onclick="switchTab('setup')">⚙️ 初期設定</button>
+  </div>
+
+  <!-- STATUS TAB -->
+  <div id="tab-status">
+    <div class="summary" id="summary"></div>
+
+    <div class="line-panel">
+      <div class="line-title">LINE通知設定</div>
+      <div class="line-row">
+        <input class="line-input" id="lineToken" placeholder="LINE Notify トークン" oninput="saveToken()">
+        <button class="line-btn" onclick="sendLineTest()">テスト</button>
+      </div>
+      <div class="line-note">残り2杯以下になると自動でLINEに通知します</div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">在庫状況</div>
+      <div class="alert-count" id="alertCount" style="display:none"></div>
+    </div>
+
+    <div class="stock-list" id="stockList"></div>
+
+    <button class="btn btn-outline" onclick="switchTab('setup')">⚙️ 本数を更新する</button>
+  </div>
+
+  <!-- SETUP TAB -->
+  <div id="tab-setup" style="display:none">
+    <div class="section-header">
+      <div class="section-title">開封本数を設定</div>
+    </div>
+    <div style="font-size:12px; color:#555; margin-bottom:12px;">営業開始時に開封している本数を入力してください（1本=10杯）</div>
+    <div class="setup-panel" id="setupPanel"></div>
+    <button class="btn btn-primary" onclick="saveSetup()">💾 保存して反映</button>
+    <button class="btn btn-outline" onclick="switchTab('status')">キャンセル</button>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script>
+// ── 設定 ──────────────────────────────
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyD_mz3-1_fHWNBNWDRt6ZWXmi1ptcrvXCM",
+  authDomain: "revoreji.firebaseapp.com",
+  projectId: "revoreji",
+};
+const STORE_ID   = "mifune";
+const CUPS_PER_BOTTLE = 10;  // 一升瓶 = 10杯
+const WARN_CUPS  = 2;        // 残り2杯以下で警告
+
+// 日本酒メニュー（POSメニュー名と一致させる）
+const SAKE_MENU = [
+  "二世古（特別純米新酒しぼり）",
+  "繁桝（特別純米生々）",
+  "福司（純米酒）",
+  "まる田（特別純米）",
+  "男山（純米生酒）",
+  "獺祭（純米大吟醸）",
+  "十一州（吟醸しぼりたて）",
+  "久保田（清酒）",
+  "一ノ蔵（本醸造辛口）",
+  "ばくれん（吟醸超辛口）",
+  "くどき上手（純米吟醸辛口）",
+  "北の勝（清酒）",
+  "越後で候（しぼりたて生原酒）",
+  "李白（特別純米酒）",
+  "常山（とびっきり辛口）",
+  "開運（無濾過純米酒）",
+  "大和しずく（純米吟醸）",
+  "越乃寒梅（清酒）",
+  "八海山（清酒）",
+];
+
+// ── Firebase ──────────────────────────
+firebase.initializeApp(FIREBASE_CONFIG);
+const db = firebase.firestore();
+const sakeRef  = () => db.collection("stores").doc(STORE_ID).collection("sake_stock");
+const salesRef = () => db.collection("stores").doc(STORE_ID).collection("sales");
+
+// ── ローカル状態 ──────────────────────
+// { name: string, cups: number }[]
+let stockData = {};
+let lineToken  = localStorage.getItem("mifune_line_token") || "";
+let notifiedItems = new Set(); // 通知済みアイテム（重複防止）
+
+// ── 初期化 ────────────────────────────
+window.onload = async () => {
+  // LINEトークン復元
+  const tokenInput = document.getElementById("lineToken");
+  if (lineToken) tokenInput.value = lineToken;
+
+  // Firestoreから在庫読み込み
+  await loadStock();
+  renderStatus();
+  renderSetup();
+
+  // 売上リアルタイム監視（当日分）
+  watchSales();
+};
+
+async function loadStock() {
+  const snap = await sakeRef().get();
+  snap.forEach(doc => {
+    stockData[doc.id] = doc.data().cups ?? 0;
+  });
+  // 未登録の銘柄は0で初期化
+  SAKE_MENU.forEach(name => {
+    if (stockData[name] === undefined) stockData[name] = 0;
+  });
+}
+
+// ── 売上監視 ─────────────────────────
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+let watchedSaleIds = new Set();
+
+function watchSales() {
+  // 当日0時のタイムスタンプ
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  salesRef()
+    .where("timestamp", ">=", todayStart)
+    .onSnapshot(snap => {
+      snap.docChanges().forEach(change => {
+        if (change.type === "added" && !watchedSaleIds.has(change.doc.id)) {
+          watchedSaleIds.add(change.doc.id);
+          const sale = change.doc.data();
+          processSale(sale);
+        }
+      });
+    });
+}
+
+function processSale(sale) {
+  // sale.items = [{ name, qty, category }, ...]
+  const items = sale.items || [];
+  items.forEach(item => {
+    if (SAKE_MENU.includes(item.name)) {
+      const qty = item.qty || 1;
+      stockData[item.name] = Math.max(0, (stockData[item.name] || 0) - qty);
+      saveStockItem(item.name);
+      checkAlert(item.name);
+    }
+  });
+  renderStatus();
+}
+
+async function saveStockItem(name) {
+  await sakeRef().doc(name).set({ cups: stockData[name] }, { merge: true });
+}
+
+// ── アラート ──────────────────────────
+function checkAlert(name) {
+  const cups = stockData[name];
+  if (cups <= WARN_CUPS && !notifiedItems.has(name)) {
+    notifiedItems.add(name);
+    const msg = cups === 0
+      ? `🚨 在庫切れ\n\n【${name}】\n残り0杯になりました。\n今すぐ発注してください。`
+      : `⚠️ 残り少ない\n\n【${name}】\n残り${cups}杯になりました。\n（残り${WARN_CUPS}杯以下で通知）`;
+    sendLine(msg);
+    showToast(`📱 LINE通知: ${name}`, "warn-toast");
+  }
+  // 補充されたらリセット
+  if (cups > WARN_CUPS) {
+    notifiedItems.delete(name);
+  }
+}
+
+// ── LINE通知 ──────────────────────────
+async function sendLine(msg) {
+  if (!lineToken) return;
+  try {
+    await fetch("https://notify-api.line.me/api/notify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Authorization": `Bearer ${lineToken}`,
+      },
+      body: `message=${encodeURIComponent(msg)}`,
+    });
+  } catch(e) {
+    console.error("LINE通知エラー", e);
+  }
+}
+
+async function sendLineTest() {
+  const alerts = SAKE_MENU.filter(n => stockData[n] <= WARN_CUPS);
+  const msg = alerts.length > 0
+    ? `📋 在庫確認\n\n要注意銘柄：\n` + alerts.map(n => `・${n}：残り${stockData[n]}杯`).join("\n")
+    : `✅ 在庫確認\n\n全銘柄に問題ありません。`;
+  await sendLine(msg);
+  showToast("📱 LINEにテスト送信しました", "line-toast");
+}
+
+function saveToken() {
+  lineToken = document.getElementById("lineToken").value;
+  localStorage.setItem("mifune_line_token", lineToken);
+}
+
+// ── 描画：在庫状況 ────────────────────
+function renderStatus() {
+  let okCount = 0, warnCount = 0, outCount = 0;
+
+  const html = SAKE_MENU.map(name => {
+    const cups  = stockData[name] ?? 0;
+    const total = CUPS_PER_BOTTLE;
+    const pct   = Math.min(100, Math.round((cups / total) * 100));
+    let status  = "ok";
+    if (cups === 0)           { status = "out"; outCount++; }
+    else if (cups <= WARN_CUPS) { status = "warn"; warnCount++; }
+    else                       { okCount++; }
+
+    const badge = status === "out"
+      ? `<div class="cups-badge out">在庫切れ</div>`
+      : status === "warn"
+        ? `<div class="cups-badge">残り少ない</div>`
+        : "";
+
+    return `
+      <div class="stock-card ${status} fade-in">
+        <div class="sake-label">
+          <div class="sake-name">${name}</div>
+          <div class="sake-rule">一升瓶 / 残り${WARN_CUPS}杯以下で通知</div>
+        </div>
+        <div class="bar-wrap">
+          <div class="bar-bg"><div class="bar-fill ${status}" style="width:${pct}%"></div></div>
+          <div class="bar-label">${pct}%</div>
+        </div>
+        <div class="cups-display">
+          <div class="cups-num ${status}">${cups}</div>
+          <div class="cups-unit">杯</div>
+          ${badge}
+        </div>
+      </div>`;
+  }).join("");
+
+  document.getElementById("stockList").innerHTML = html;
+
+  // Summary
+  document.getElementById("summary").innerHTML = `
+    <div class="sum-card"><div class="sum-num ok">${okCount}</div><div class="sum-label">在庫あり</div></div>
+    <div class="sum-card"><div class="sum-num warn">${warnCount}</div><div class="sum-label">残り少ない</div></div>
+    <div class="sum-card"><div class="sum-num out">${outCount}</div><div class="sum-label">在庫切れ</div></div>
+  `;
+
+  // アラートバッジ
+  const alertEl = document.getElementById("alertCount");
+  if (warnCount + outCount > 0) {
+    alertEl.textContent = `⚠ ${warnCount + outCount}件`;
+    alertEl.style.display = "inline-block";
+  } else {
+    alertEl.style.display = "none";
+  }
+}
+
+// ── 描画：初期設定 ────────────────────
+function renderSetup() {
+  const html = SAKE_MENU.map(name => {
+    const bottles = Math.ceil((stockData[name] ?? 0) / CUPS_PER_BOTTLE);
+    return `
+      <div class="setup-row">
+        <div class="setup-name">${name}</div>
+        <input class="setup-input" type="number" min="0" max="20"
+          id="setup_${name}" value="${bottles}" placeholder="0">
+        <div class="setup-unit">本</div>
+      </div>`;
+  }).join("");
+  document.getElementById("setupPanel").innerHTML = html;
+}
+
+async function saveSetup() {
+  const batch = db.batch();
+  SAKE_MENU.forEach(name => {
+    const inputEl = document.getElementById(`setup_${name}`);
+    const bottles = parseInt(inputEl?.value) || 0;
+    const cups    = bottles * CUPS_PER_BOTTLE;
+    stockData[name] = cups;
+    batch.set(sakeRef().doc(name), { cups }, { merge: true });
+    // 補充したので通知リセット
+    if (cups > WARN_CUPS) notifiedItems.delete(name);
+  });
+  await batch.commit();
+  renderStatus();
+  switchTab("status");
+  showToast("✅ 在庫を更新しました");
+}
+
+// ── タブ切り替え ──────────────────────
+function switchTab(t) {
+  document.getElementById("tab-status").style.display = t === "status" ? "block" : "none";
+  document.getElementById("tab-setup").style.display  = t === "setup"  ? "block" : "none";
+  document.querySelectorAll(".tab").forEach((el, i) => {
+    el.classList.toggle("active", (i === 0 && t === "status") || (i === 1 && t === "setup"));
+  });
+  if (t === "setup") renderSetup();
+}
+
+// ── Toast ─────────────────────────────
+let toastTimer;
+function showToast(msg, cls = "") {
+  const t = document.getElementById("toast");
+  t.className = `toast ${cls}`;
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
+}
+</script>
+</body>
+</html>
