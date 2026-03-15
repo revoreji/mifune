@@ -103,6 +103,11 @@
   .toast.line-toast { background: #00B900; }
   .toast.warn-toast { background: #5a3a00; border: 1px solid #d4a843; }
 
+  .ctrl-row { display: flex; gap: 6px; margin-top: 8px; }
+  .ctrl-btn { flex: 1; padding: 6px 0; border: 1px solid #2a2a3a; background: #0f1117; color: #888; border-radius: 4px; font-size: 16px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .ctrl-btn.minus:active, .ctrl-btn.minus:hover { background: #2a1010; border-color: #ff6b6b; color: #ff6b6b; }
+  .ctrl-btn.plus:active,  .ctrl-btn.plus:hover  { background: #0a1a0a; border-color: #8aaa8a; color: #8aaa8a; }
+
   @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; } }
   .fade-in { animation: fadeIn 0.3s ease; }
 </style>
@@ -213,17 +218,24 @@ let notifiedItems = new Set(); // 通知済みアイテム（重複防止）
 
 // ── 初期化 ────────────────────────────
 window.onload = async () => {
-  // LINEトークン復元
   const tokenInput = document.getElementById("lineToken");
   if (lineToken) tokenInput.value = lineToken;
 
-  // Firestoreから在庫読み込み
-  await loadStock();
+  // まず静的メニューで即描画
+  SAKE_MENU.forEach(name => { stockData[name] = 0; });
   renderStatus();
   renderSetup();
 
-  // 売上リアルタイム監視（当日分）
-  watchSales();
+  // Firestoreから在庫読み込み
+  try {
+    await loadStock();
+    renderStatus();
+    renderSetup();
+    watchSales();
+  } catch(e) {
+    console.error("Firestore接続エラー:", e);
+    showToast("⚠ " + e.message);
+  }
 };
 
 async function loadStock() {
@@ -235,6 +247,15 @@ async function loadStock() {
   SAKE_MENU.forEach(name => {
     if (stockData[name] === undefined) stockData[name] = 0;
   });
+}
+
+// ── 手動±操作 ───────────────────────
+async function changeCups(idx, delta) {
+  const name = SAKE_MENU[idx];
+  stockData[name] = Math.max(0, (stockData[name] ?? 0) + delta);
+  await saveStockItem(name);
+  checkAlert(name);
+  renderStatus();
 }
 
 // ── 売上監視 ─────────────────────────
@@ -347,11 +368,16 @@ function renderStatus() {
         ? `<div class="cups-badge">残り少ない</div>`
         : "";
 
+    const idx = SAKE_MENU.indexOf(name);
     return `
       <div class="stock-card ${status} fade-in">
         <div class="sake-label">
           <div class="sake-name">${name}</div>
           <div class="sake-rule">一升瓶 / 残り${WARN_CUPS}杯以下で通知</div>
+          <div class="ctrl-row">
+            <button class="ctrl-btn minus" onclick="changeCups(${idx}, -1)">－</button>
+            <button class="ctrl-btn plus"  onclick="changeCups(${idx}, +1)">＋</button>
+          </div>
         </div>
         <div class="bar-wrap">
           <div class="bar-bg"><div class="bar-fill ${status}" style="width:${pct}%"></div></div>
