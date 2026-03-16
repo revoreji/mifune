@@ -583,7 +583,7 @@ window.cloudSyncNomiClear = async (tableId) => {
 
 <!-- ▼▼▼ 領収書機能追加 ▼▼▼ -->
 <!-- 領収書モーダル -->
-<div id="overlay-ryoshuusho" class="overlay">
+<div id="overlay-ryoshuusho" class="overlay" style="display:none;">
   <div class="modal">
     <div style="font-weight:bold; font-size:18px; margin-bottom:15px;">📄 領収書発行</div>
     <div style="text-align:left; margin-bottom:10px; font-size:13px; color:#666;">宛名（空白で「上様」）</div>
@@ -591,7 +591,7 @@ window.cloudSyncNomiClear = async (tableId) => {
     <div style="text-align:left; margin-bottom:10px; font-size:13px; color:#666;">但し書き</div>
     <input type="text" id="ryoshuusho-tadashi" placeholder="お食事代として" style="width:100%; padding:12px 15px; border:2px solid #ddd; border-radius:12px; font-size:16px; margin-bottom:20px; box-sizing:border-box; -webkit-appearance:none;">
     <div id="ryoshuusho-preview" class="receipt-sample" style="margin-bottom:15px; font-size:12px;"></div>
-    <button class="btn-large" style="background:var(--primary); color:white; margin-bottom:8px;" onclick="printRyoshuusho()">印刷する</button>
+    <button class="btn-large" style="background:var(--primary); color:white; margin-bottom:8px;" onclick="alert(typeof window.printRyoshuusho + ' / ' + typeof window.queuePrint)">印刷する</button>
     <button class="btn-large" style="background:var(--gray); color:white;" onclick="closeRyoshuusho()">閉じる</button>
   </div>
 </div>
@@ -1593,16 +1593,30 @@ async function payCo() {
   const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]');
   const g    = localStorage.getItem('guests_'+currentTable);
   const c    = localStorage.getItem('checkin_'+currentTable);
-  if (window.saveSaleToCloud) await window.saveSaleToCloud(currentTable, currentPaymentMethod);
-  if (doRyoshu) { openRyoshuusho(); return; }
+  // 領収書用に合計を先に計算（saveSaleToCloudでhistoryが消えるため）
+  let _sub = 0, _tax = 0, _sub10 = 0, _tax10 = 0, _sub8 = 0, _tax8 = 0;
+  hist.forEach(i => {
+    const s = i.price * i.qty;
+    const t = Math.floor(s * i.rate);
+    _sub += s; _tax += t;
+    if (i.rate === 0.08) { _sub8 += s; _tax8 += t; } else { _sub10 += s; _tax10 += t; }
+  });
+  try {
+    if (window.saveSaleToCloud) await window.saveSaleToCloud(currentTable, currentPaymentMethod);
+  } catch(e) { console.warn('saveSaleToCloud失敗:', e); }
+  if (doRyoshu) { openRyoshuusho(_sub, _tax, _sub10, _tax10, _sub8, _tax8); return; }
   if (doPrint) {
-    await window.queuePrint({
-      type: 'receipt', tableNo: currentTable, guests: g, checkinTime: c,
-      items: hist.map(i => ({ name:i.name, qty:i.qty, price:i.price, rate:i.rate })),
-      paymentMethod: currentPaymentMethod,
-      cashReceived: currentPaymentMethod === '現金' ? parseInt(coReceivedStr||'0') : 0,
-      orderTime: new Date().toLocaleString('ja-JP')
-    });
+    if (typeof window.queuePrint === 'function') {
+      try {
+        await window.queuePrint({
+          type: 'receipt', tableNo: currentTable, guests: g, checkinTime: c,
+          items: hist.map(i => ({ name:i.name, qty:i.qty, price:i.price, rate:i.rate })),
+          paymentMethod: currentPaymentMethod,
+          cashReceived: currentPaymentMethod === '現金' ? parseInt(coReceivedStr||'0') : 0,
+          orderTime: new Date().toLocaleString('ja-JP')
+        });
+      } catch(e) { console.warn('queuePrint失敗:', e); }
+    }
   }
   showIndex();
 }
@@ -1610,18 +1624,29 @@ async function pay(doPrint) { await payCo(); }
 
 // ▼▼▼ 領収書機能追加 ▼▼▼
 
-function openRyoshuusho() {
+window.openRyoshuusho = function(sub, tax, sub10, tax10, sub8, tax8) {
     document.getElementById('ryoshuusho-atena').value = '';
     document.getElementById('ryoshuusho-tadashi').value = 'お食事代として';
+    // 引数があれば保存（会計後呼び出し時はhistoryが消えているため）
+    if (sub !== undefined) {
+        window._ryoshuTotal = { sub, tax, sub10, tax10, sub8, tax8 };
+    } else {
+        window._ryoshuTotal = null;
+    }
     updateRyoshuushoPreview();
     document.getElementById('overlay-ryoshuusho').style.display = 'flex';
 }
 
-function closeRyoshuusho() {
+window.closeRyoshuusho = function() {
     document.getElementById('overlay-ryoshuusho').style.display = 'none';
 }
 
-function getRyoshuushoTotal() {
+window.getRyoshuushoTotal = function() {
+    // 会計後呼び出し時は保存済み合計を使用
+    if (window._ryoshuTotal) {
+        const { sub, tax, sub10, tax10, sub8, tax8 } = window._ryoshuTotal;
+        return { sub, tax, sub10, tax10, sub8, tax8, total: sub + tax };
+    }
     const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]');
     let sub = 0, tax = 0, sub10 = 0, tax10 = 0, sub8 = 0, tax8 = 0;
     hist.forEach(i => {
@@ -1633,7 +1658,7 @@ function getRyoshuushoTotal() {
     return { sub, tax, sub10, tax10, sub8, tax8, total: sub + tax };
 }
 
-function updateRyoshuushoPreview() {
+window.updateRyoshuushoPreview = function() {
     const atena = document.getElementById('ryoshuusho-atena').value || '上様';
     const tadashi = document.getElementById('ryoshuusho-tadashi').value || 'お食事代として';
     const { sub, tax, total } = getRyoshuushoTotal();
@@ -1651,14 +1676,23 @@ function updateRyoshuushoPreview() {
         `<div style="font-size:11px; text-align:right; margin-top:6px;">美唄焼鳥三船 東札幌店<br>登録番号 T4430001061003</div>`;
 }
 
-async function printRyoshuusho() {
-    const atena = document.getElementById('ryoshuusho-atena').value || '上様';
-    const tadashi = document.getElementById('ryoshuusho-tadashi').value || 'お食事代として';
-    const now = new Date();
-    const dateStr = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
-    const { sub, tax, sub10, tax10, sub8, tax8 } = getRyoshuushoTotal();
-    await window.queuePrint({ type: 'ryoshuusho', atena, tadashi, sub, tax, sub10, tax10, sub8, tax8, dateStr });
-    closeRyoshuusho(); alert("領収書を印刷しました");
+window.printRyoshuusho = async function() {
+    if (typeof window.queuePrint !== 'function') {
+        alert('初期化中です。少し待ってから再度押してください。');
+        return;
+    }
+    try {
+        const atena = document.getElementById('ryoshuusho-atena').value || '上様';
+        const tadashi = document.getElementById('ryoshuusho-tadashi').value || 'お食事代として';
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
+        const { sub, tax, sub10, tax10, sub8, tax8 } = getRyoshuushoTotal();
+        await window.queuePrint({ type: 'ryoshuusho', atena, tadashi, sub, tax, sub10, tax10, sub8, tax8, dateStr });
+        closeRyoshuusho(); alert("領収書を印刷しました"); showIndex();
+    } catch(e) {
+        console.error('printRyoshuushoエラー:', e);
+        alert('印刷に失敗しました: ' + e.message);
+    }
 }
 
 // 宛名・但し書き変更時にプレビュー更新
