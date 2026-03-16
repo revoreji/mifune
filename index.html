@@ -456,6 +456,37 @@ window.printRyoshuusho = async function() {
 };
 // ▲ 領収書印刷
 
+// ▼ 独立領収書発行
+window.openStandaloneRyoshuusho = function() {
+    document.getElementById('sa-atena').value = '';
+    document.getElementById('sa-amount').value = '';
+    document.getElementById('sa-tadashi').value = '';
+    document.getElementById('overlay-standalone-ryoshu').style.display = 'flex';
+};
+
+window.printStandaloneRyoshu = async function() {
+    const atena = document.getElementById('sa-atena').value || '上様';
+    const tadashi = document.getElementById('sa-tadashi').value || 'お食事代として';
+    const total = parseInt(document.getElementById('sa-amount').value) || 0;
+    if (total <= 0) { alert('金額を入力してください'); return; }
+    const sub10 = Math.round(total / 1.1);
+    const tax10 = total - sub10;
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
+    try {
+        await addDoc(collection(db, 'stores/mifune/printQueue'), {
+            type: 'ryoshuusho', atena, tadashi,
+            sub: sub10, tax: tax10, sub10, tax10, sub8: 0, tax8: 0,
+            dateStr, status: 'pending', createdAt: serverTimestamp()
+        });
+        document.getElementById('overlay-standalone-ryoshu').style.display = 'none';
+        alert('領収書を印刷しました');
+    } catch(e) {
+        alert('印刷に失敗しました: ' + e.message);
+    }
+};
+// ▲ 独立領収書発行
+
 </script>
 
 <div id="overlay-printer-settings" class="overlay" style="display:none;">
@@ -489,7 +520,7 @@ window.printRyoshuusho = async function() {
   </div>
 </div>
 
-<div id="view-index" class="view active"><header><div class="admin-btn" id="admin-btn-label" onclick="checkAdminAuth()">売上管理</div><span>三船 席選択</span><div style="display:flex;gap:4px;"><div class="reload-btn" onclick="openPrinterSettings()" title="プリンター設定">⚙</div><div class="reload-btn" onclick="location.reload()">↻</div></div></header><div class="grid-tables" id="table-grid"></div></div>
+<div id="view-index" class="view active"><header><div class="admin-btn" id="admin-btn-label" onclick="checkAdminAuth()">売上管理</div><span>三船 席選択</span><div style="display:flex;gap:4px;"><div class="reload-btn" onclick="window.openStandaloneRyoshuusho()" title="領収書発行" style="font-size:16px;">📄</div><div class="reload-btn" onclick="openPrinterSettings()" title="プリンター設定">⚙</div><div class="reload-btn" onclick="location.reload()">↻</div></div></header><div class="grid-tables" id="table-grid"></div></div>
 
 <div id="view-login" class="view">
 <header><div class="header-left"><span class="back-btn" onclick="showIndex()">＜</span><span>認証</span></div></header>
@@ -631,6 +662,23 @@ window.printRyoshuusho = async function() {
   </div>
 </div>
 <!-- ▲▲▲ 領収書機能追加 ▲▲▲ -->
+
+<!-- ▼ 独立領収書発行モーダル -->
+<div id="overlay-standalone-ryoshu" class="overlay" style="display:none;">
+  <div class="modal" style="max-height:90dvh;overflow-y:auto;">
+    <div style="font-weight:bold; font-size:18px; margin-bottom:15px;">📄 領収書発行</div>
+    <div style="text-align:left; margin-bottom:6px; font-size:13px; color:#666;">宛名（空白で「上様」）</div>
+    <input type="text" id="sa-atena" placeholder="上様" style="width:100%; padding:10px; border:2px solid #ddd; border-radius:10px; font-size:16px; margin-bottom:10px; box-sizing:border-box;">
+    <div style="text-align:left; margin-bottom:6px; font-size:13px; color:#666;">金額（税込）</div>
+    <input type="number" id="sa-amount" placeholder="0" oninput="window.saUpdatePreview()" style="width:100%; padding:10px; border:2px solid var(--primary); border-radius:10px; font-size:20px; font-weight:bold; margin-bottom:10px; box-sizing:border-box; text-align:right;">
+    <div style="text-align:left; margin-bottom:6px; font-size:13px; color:#666;">但し書き</div>
+    <input type="text" id="sa-tadashi" placeholder="お食事代として" style="width:100%; padding:10px; border:2px solid #ddd; border-radius:10px; font-size:16px; margin-bottom:15px; box-sizing:border-box;">
+    <button class="btn-large" style="background:var(--primary); color:white; margin-bottom:8px;" onclick="window.printStandaloneRyoshu()">印刷する</button>
+    <button class="btn-large" style="background:var(--gray); color:white;" onclick="document.getElementById('overlay-standalone-ryoshu').style.display='none'">閉じる</button>
+  </div>
+</div>
+<!-- ▲ 独立領収書発行モーダル -->
+
 
 <script>
 // --- 商品データ (ご提示リスト完全反映) ---
