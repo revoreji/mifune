@@ -591,7 +591,7 @@ window.cloudSyncNomiClear = async (tableId) => {
     <div style="text-align:left; margin-bottom:10px; font-size:13px; color:#666;">但し書き</div>
     <input type="text" id="ryoshuusho-tadashi" placeholder="お食事代として" style="width:100%; padding:12px 15px; border:2px solid #ddd; border-radius:12px; font-size:16px; margin-bottom:20px; box-sizing:border-box; -webkit-appearance:none;">
     <div id="ryoshuusho-preview" class="receipt-sample" style="margin-bottom:15px; font-size:12px;"></div>
-    <button class="btn-large" style="background:var(--primary); color:white; margin-bottom:8px;" onclick="alert(typeof window.printRyoshuusho + ' / ' + typeof window.queuePrint)">印刷する</button>
+    <button class="btn-large" style="background:var(--primary); color:white; margin-bottom:8px;" onclick="printRyoshuusho()">印刷する</button>
     <button class="btn-large" style="background:var(--gray); color:white;" onclick="closeRyoshuusho()">閉じる</button>
   </div>
 </div>
@@ -1677,6 +1677,8 @@ window.updateRyoshuushoPreview = function() {
 }
 
 window.printRyoshuusho = async function() {
+    console.log('printRyoshuusho called');
+    alert('printRyoshuusho called');
     if (typeof window.queuePrint !== 'function') {
         alert('初期化中です。少し待ってから再度押してください。');
         return;
