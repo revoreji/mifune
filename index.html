@@ -1677,20 +1677,16 @@ window.updateRyoshuushoPreview = function() {
 }
 
 window.printRyoshuusho = async function() {
-    console.log('printRyoshuusho called');
-    alert('printRyoshuusho called');
-    if (typeof window.queuePrint !== 'function') {
-        alert('初期化中です。少し待ってから再度押してください。');
-        return;
-    }
     try {
         const atena = document.getElementById('ryoshuusho-atena').value || '上様';
         const tadashi = document.getElementById('ryoshuusho-tadashi').value || 'お食事代として';
         const now = new Date();
         const dateStr = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
-        const { sub, tax, sub10, tax10, sub8, tax8 } = getRyoshuushoTotal();
+        const { sub, tax, sub10, tax10, sub8, tax8 } = window.getRyoshuushoTotal();
         await window.queuePrint({ type: 'ryoshuusho', atena, tadashi, sub, tax, sub10, tax10, sub8, tax8, dateStr });
-        closeRyoshuusho(); alert("領収書を印刷しました"); showIndex();
+        window.closeRyoshuusho();
+        alert("領収書を印刷しました");
+        showIndex();
     } catch(e) {
         console.error('printRyoshuushoエラー:', e);
         alert('印刷に失敗しました: ' + e.message);
