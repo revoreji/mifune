@@ -448,7 +448,7 @@ window.printRyoshuusho = async function() {
         });
         document.getElementById('overlay-ryoshuusho').style.display = 'none';
         alert("領収書を印刷しました");
-        if(window.showCheckout) showCheckout();
+        // モーダルを閉じるだけ・会計画面はそのまま
     } catch(e) {
         console.error('printRyoshuushoエラー:', e);
         alert('印刷に失敗しました: ' + e.message);
@@ -1628,18 +1628,20 @@ async function payCo() {
   const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]');
   const g    = localStorage.getItem('guests_'+currentTable);
   const c    = localStorage.getItem('checkin_'+currentTable);
-  // 領収書用に合計を先に計算（saveSaleToCloudでhistoryが消えるため）
-  let _sub = 0, _tax = 0, _sub10 = 0, _tax10 = 0, _sub8 = 0, _tax8 = 0;
-  hist.forEach(i => {
-    const s = i.price * i.qty;
-    const t = Math.floor(s * i.rate);
-    _sub += s; _tax += t;
-    if (i.rate === 0.08) { _sub8 += s; _tax8 += t; } else { _sub10 += s; _tax10 += t; }
-  });
+  // 領収書の場合はsaveSaleToCloudを呼ばず印刷だけ
+  if (doRyoshu) {
+    let _sub=0,_tax=0,_sub10=0,_tax10=0,_sub8=0,_tax8=0;
+    hist.forEach(i => {
+      const s=i.price*i.qty, t=Math.floor(s*i.rate);
+      _sub+=s; _tax+=t;
+      if(i.rate===0.08){_sub8+=s;_tax8+=t;}else{_sub10+=s;_tax10+=t;}
+    });
+    window.openRyoshuusho(_sub,_tax,_sub10,_tax10,_sub8,_tax8);
+    return;
+  }
   try {
     if (window.saveSaleToCloud) await window.saveSaleToCloud(currentTable, currentPaymentMethod);
   } catch(e) { console.warn('saveSaleToCloud失敗:', e); }
-  if (doRyoshu) { openRyoshuusho(_sub, _tax, _sub10, _tax10, _sub8, _tax8); return; }
   if (doPrint) {
     if (typeof window.queuePrint === 'function') {
       try {
