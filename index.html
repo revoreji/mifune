@@ -614,9 +614,8 @@ window.printStandaloneRyoshu = async function() {
             <div class="co-amount-val green" id="co-change-val">¥ ―</div>
           </div>
         </div>
-        <div class="co-presets" id="co-presets"></div>
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          <div class="co-numpad">
+        <div style="display:flex; gap:8px; align-items:stretch;">
+          <div class="co-numpad" style="flex:1;">
             <button class="co-num" onclick="coNum('7')">7</button>
             <button class="co-num" onclick="coNum('8')">8</button>
             <button class="co-num" onclick="coNum('9')">9</button>
@@ -628,6 +627,12 @@ window.printStandaloneRyoshu = async function() {
             <button class="co-num" onclick="coNum('3')">3</button>
             <button class="co-num co-num-zero" onclick="coNum('0')">0</button>
             <button class="co-num co-num-del"  onclick="coDel()">⌫</button>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px; width:144px; flex-shrink:0;">
+            <button class="co-num" style="flex:1; font-size:14px; font-weight:bold;" onclick="coSetPreset(1000)">¥1,000</button>
+            <button class="co-num" style="flex:1; font-size:14px; font-weight:bold;" onclick="coSetPreset(2000)">¥2,000</button>
+            <button class="co-num" style="flex:1; font-size:14px; font-weight:bold;" onclick="coSetPreset(5000)">¥5,000</button>
+            <button class="co-num" style="flex:1; font-size:14px; font-weight:bold;" onclick="coSetPreset(10000)">¥10,000</button>
           </div>
         </div>
       </div>
@@ -1639,7 +1644,8 @@ function showCheckout() {
   }).join('') || '<p style="text-align:center;padding:30px;color:#bbb;">注文なし</p>';
   document.getElementById('co-grand-total').textContent = '¥' + (sub+tax).toLocaleString();
   const total = sub + tax;
-  document.getElementById('co-presets').innerHTML = [1000,2000,5000,10000].map(v =>
+  // presets now rendered as static HTML
+  if(false) [1000,2000,5000,10000].map(v =>
     `<button class="co-preset-btn" onclick="coSetPreset(${v})">¥${v.toLocaleString()}</button>`
   ).join('');
   coReceivedStr = ''; coReceiptMode = 'receipt';
