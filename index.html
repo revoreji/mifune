@@ -537,7 +537,7 @@ window.printStandaloneRyoshu = async function() {
 <div id="admin-summary-area" style="padding:15px; background:var(--dark); color:#fff; display:flex; justify-content:space-around; text-align:center; font-size:13px;"><div>件数<br><span id="sum-count" style="font-size:20px; font-weight:bold;">0</span></div><div>客数<br><span id="sum-guests" style="font-size:20px; font-weight:bold;">0</span></div><div>合計<br>¥<span id="sum-total" style="font-size:20px; font-weight:bold;">0</span></div></div>
 <div id="sales-type-summary-area" style="background:#444; color:#fff; padding:10px 15px; font-size:12px; display:none; flex-wrap:wrap; gap:8px; justify-content:center;"></div>
 <div id="payment-summary-area" style="background:#555; color:#fff; padding:10px 15px; font-size:12px; display:flex; flex-wrap:wrap; gap:8px; justify-content:center;"></div>
-<div class="report-btns"><button class="btn-report" onclick="printReport('day')">日計印刷</button><button class="btn-report" onclick="printReport('month')" style="background:var(--accent);">月計印刷</button><button class="btn-report" onclick="exportCSV()" style="background:#8e44ad;">CSV出力</button><button class="btn-report" onclick="exportYayoiCSV()" style="background:#27ae60;">弥生出力</button></div>
+<div class="report-btns"><button class="btn-report" onclick="printReport('day')">日計印刷</button><button class="btn-report" onclick="printReport('month')" style="background:var(--accent);">月計印刷</button></div>
 <div class="list-container" id="sales-list" style="background:#f4f4f4; padding:5px 0;"></div>
 </div>
 
@@ -629,16 +629,18 @@ window.printStandaloneRyoshu = async function() {
             <button class="co-num co-num-zero" onclick="coNum('0')">0</button>
             <button class="co-num co-num-del"  onclick="coDel()">⌫</button>
           </div>
-          <div class="co-receipt-col">
-            <button id="co-r-none"    class="co-r-btn"             onclick="setCoReceipt('none')">不要</button>
-            <button id="co-r-receipt" class="co-r-btn co-r-active" onclick="setCoReceipt('receipt')">レシート</button>
-            <button id="co-r-ryoshu"  class="co-r-btn"             onclick="setCoReceipt('ryoshu')">領収書</button>
-          </div>
         </div>
       </div>
       <div id="co-noncash-panel" style="display:none; flex:1; align-items:center; justify-content:center; flex-direction:column; gap:10px; color:#999; text-align:center; font-size:14px;">
         <div id="co-noncash-icon" style="font-size:40px;"></div>
         <div id="co-noncash-msg"></div>
+      </div>
+
+      <!-- レシート選択：支払方法に関わらず常時表示 -->
+      <div style="display:flex; gap:8px; padding:4px 0;">
+        <button id="co-r-none"    class="co-r-btn"             onclick="setCoReceipt('none')"    style="flex:1; padding:12px 0; font-size:14px; font-weight:bold; border:2px solid #ddd; border-radius:10px; background:#fff; color:#666; cursor:pointer;">不要</button>
+        <button id="co-r-receipt" class="co-r-btn co-r-active" onclick="setCoReceipt('receipt')" style="flex:1; padding:12px 0; font-size:14px; font-weight:bold; border:2px solid #ddd; border-radius:10px; background:#fff; color:#666; cursor:pointer;">レシート</button>
+        <button id="co-r-ryoshu"  class="co-r-btn"             onclick="setCoReceipt('ryoshu')"  style="flex:1; padding:12px 0; font-size:14px; font-weight:bold; border:2px solid #ddd; border-radius:10px; background:#fff; color:#666; cursor:pointer;">領収書</button>
       </div>
 
       <button class="co-confirm-btn" id="co-confirm-btn" onclick="payCo()">会計を確定する</button>
@@ -1376,12 +1378,11 @@ async function exportCSV() {
     }).sort((a, b) => a.timestamp - b.timestamp);
     if (sales.length === 0) return alert("データなし");
 
-    const header = '日時,席,客数,入店,退店,税込合計,支払方法';
+    const header = '日時,席,客数,入店,退店,税込合計';
     const rows = sales.map(s => {
         const d = s.timestamp.toDate();
         const dateStr = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${s.checkout}`;
-        const pm = s.paymentMethod || '現金';
-        return `${dateStr},${s.tableId},${s.guests}名,${s.checkin},${s.checkout},${s.total},${pm}`;
+        return `${dateStr},${s.tableId},${s.guests}名,${s.checkin},${s.checkout},${s.total}`;
     });
     const csv = '\uFEFF' + header + '\n' + rows.join('\n'); // BOM付きでExcel対応
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -1389,113 +1390,6 @@ async function exportCSV() {
     const a = document.createElement('a');
     a.href = url;
     a.download = `三船売上_${selY}年${selM}月.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-}
-
-async function exportYayoiCSV() {
-    // 対象月を選択
-    const now = new Date();
-    const options = [];
-    for (let i = -11; i <= 0; i++) {
-        const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-        const label = `${d.getFullYear()}年${d.getMonth()+1}月`;
-        options.push({ key, label });
-    }
-    const chosen = await showPickerModal('弥生出力 - 対象月を選択', options.reverse());
-    if (!chosen) return;
-    const [selY, selM] = chosen.split('-').map(Number);
-    const allSales = await window.getSalesData('dow');
-    const sales = allSales.filter(s => {
-        const d = s.timestamp.toDate();
-        return d.getFullYear() === selY && d.getMonth()+1 === selM;
-    }).sort((a, b) => a.timestamp - b.timestamp);
-    if (sales.length === 0) return alert("データなし");
-
-    // 支払方法 → 借方科目・補助科目マッピング
-    const debitMap = {
-        '現金':     { 科目: '現金',   補助: '' },
-        'クレジット': { 科目: '売掛金', 補助: 'クレジット' },
-        'QR決済':   { 科目: '売掛金', 補助: 'QR決済' },
-        '電子マネー': { 科目: '売掛金', 補助: '電子マネー' },
-    };
-
-    // 弥生インポート形式ヘッダー
-    const yayoiHeader = '！弥生インポートファイル' + ','.repeat(19);
-    const columnHeader = [
-        '取引日付', '借方科目', '借方補助', '借方税区分', '借方金額',
-        '貸方科目', '貸方補助', '貸方税区分', '貸方金額',
-        '摘要', '番号', 'タグ', 'メモ', '付箋１', '付箋２', '生成元'
-    ].map(v => `"${v}"`).join(',');
-
-    const makeRow = (dateStr, debit, taxKbn, amount, summary) => [
-        dateStr,
-        debit.科目,
-        debit.補助,
-        '対象外',
-        amount,
-        '売上高',
-        '',
-        taxKbn,
-        amount,
-        summary,
-        '', '', '', '', '', ''
-    ].map(v => `"${v}"`).join(',');
-
-    const rows = [];
-    sales.forEach(s => {
-        const d = s.timestamp.toDate();
-        const dateStr = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
-        const pm = s.paymentMethod || '現金';
-        const debit = debitMap[pm] || debitMap['現金'];
-        const tableLabel = ['テイクアウト','無人'].includes(s.tableId) ? s.tableId : `${s.tableId}番テーブル`;
-
-        // items配列から税率別に集計
-        let total10 = 0, total8 = 0;
-        if (s.items && s.items.length > 0) {
-            s.items.forEach(item => {
-                const lp = item.price * item.qty;
-                const lt = Math.floor(lp * item.rate);
-                const taxIncl = lp + lt;
-                if (item.rate === 0.08) {
-                    total8 += taxIncl;
-                } else {
-                    total10 += taxIncl;
-                }
-            });
-        } else {
-            // itemsがない場合はテーブルIDで推定
-            if (s.tableId === 'テイクアウト' || s.tableId === '無人') {
-                total8 = s.total;
-            } else {
-                total10 = s.total;
-            }
-        }
-
-        // 10%分の行
-        if (total10 > 0) {
-            const summary = `三船売上(10%) ${pm} ${tableLabel}`;
-            rows.push(makeRow(dateStr, debit, '課税売上10%', total10, summary));
-        }
-        // 8%分の行
-        if (total8 > 0) {
-            const summary = `三船売上(8%軽減) ${pm} ${tableLabel}`;
-            rows.push(makeRow(dateStr, debit, '課税売上8%(軽減)', total8, summary));
-        }
-        // どちらもゼロ（非課税など）のフォールバック
-        if (total10 === 0 && total8 === 0 && s.total > 0) {
-            const summary = `三船売上 ${pm} ${tableLabel}`;
-            rows.push(makeRow(dateStr, debit, '課税売上10%', s.total, summary));
-        }
-    });
-
-    const csv = '\uFEFF' + yayoiHeader + '\n' + columnHeader + '\n' + rows.join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `三船_弥生仕訳_${selY}年${selM}月.csv`;
     a.click();
     URL.revokeObjectURL(url);
 }
