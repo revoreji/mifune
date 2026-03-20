@@ -28,7 +28,7 @@ function _toSJISBytes(str) {
 
 </script>
 <style>
-:root { --primary: #f39c12; --secondary: #fbb03b; --bg: #f8f8f8; --text: #333; --accent: #2ecc71; --gray: #999; --danger: #e74c3c; --info: #3498db; --dark: #444; }
+:root { --primary: #f39c12; --secondary: #f39c12; --bg: #f8f8f8; --text: #333; --accent: #2ecc71; --gray: #999; --danger: #e74c3c; --info: #3498db; --dark: #444; }
 * { touch-action: manipulation; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
 body { font-family: sans-serif; margin: 0; background: var(--bg); color: var(--text); -webkit-user-select: none; overflow: hidden; height: 100vh; height: 100dvh; }
 header { background: #fff; padding: 0 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee; font-weight: bold; height: 55px; flex-shrink: 0; }
@@ -65,7 +65,7 @@ header { background: #fff; padding: 0 15px; display: flex; align-items: center; 
 .btn-circle { width: 38px; height: 38px; border-radius: 50%; border: 1px solid #ccc; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; }
 .btn-add { background: var(--primary); color: #fff; border: none; padding: 12px 0; border-radius: 25px; font-size: 15px; font-weight: bold; flex: 1; margin-left: 10px; box-shadow: 0 3px 6px rgba(243,156,18,0.3); }
 footer { width: 100%; display: flex; flex-direction: column; z-index: 100; box-shadow: 0 -3px 10px rgba(0,0,0,0.1); flex-shrink: 0; }
-.footer-history { background: var(--dark); color: #fff; padding: 20px 15px; display: flex; justify-content: space-between; font-size: 14px; cursor: pointer; }
+.footer-history { background: #2196F3; color: #fff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: bold; cursor: pointer; letter-spacing: 0.03em; border: 1px solid #90caf9; }
 .footer-cart { background: var(--secondary); color: #fff; padding: 18px 15px; display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; cursor: pointer; }
 .list-container { flex: 1; overflow-y: auto; background: #fff; -webkit-overflow-scrolling: touch; padding-bottom: 100px; }
 .list-row { display: flex; justify-content: space-between; padding: 18px; border-bottom: 1px solid #eee; align-items: center; }
@@ -545,7 +545,7 @@ window.printStandaloneRyoshu = async function() {
 <div id="view-menu" class="view">
 <header><span class="back-btn" onclick="showIndex()">×</span><span id="display-table-id"></span>番席 (<span id="display-guest-count"></span>名)<span style="margin-left:auto; font-size:11px; color:#666;">入店: <span id="display-checkin-time"></span></span></header>
 <div class="menu-container"><div class="sidebar" id="side-cats"></div><div class="item-grid" id="display-items"></div></div>
-<footer><div class="footer-history" onclick="showOrderHistory()"><span>注文済合計</span><span id="display-current-total">¥0</span></div><div style="display:flex; gap:0;"><div class="footer-cart" style="flex:1;" onclick="showCart()"><div>🛒 <span id="cart-count">0</span>点</div><div>注文を確認 ＞</div></div><div style="background:#8e44ad; color:#fff; padding:18px 14px; font-weight:bold; font-size:13px; cursor:pointer; white-space:nowrap;" onclick="openCustomItem()">＋カスタム</div></div></footer>
+<footer><div class="footer-history" onclick="showOrderHistory()"><span>💴 お会計へ進む</span><span style="display:flex; align-items:center; gap:8px;"><span id="display-current-total">¥0</span><span style="font-size:20px;">›</span></span></div><div style="display:flex; gap:0;"><div class="footer-cart" style="flex:1;" onclick="showCart()"><div>🛒 <span id="cart-count">0</span>点</div><div>注文を確認 ＞</div></div><div style="background:#8e44ad; color:#fff; padding:18px 14px; font-weight:bold; font-size:13px; cursor:pointer; white-space:nowrap;" onclick="openCustomItem()">＋カスタム</div></div></footer>
 </div>
 
 <!-- カスタム商品モーダル -->
