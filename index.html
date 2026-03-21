@@ -378,26 +378,7 @@ snap.forEach(d => {
 return res.sort((a,b) => b.timestamp - a.timestamp);
 };
 
-window.refundSaleDoc = async (id, total, paymentMethod) => {
-  if(!confirm(`¥${Number(total).toLocaleString()} を返金しますか？\n元の売上データは残り、返金レコードが追加されます。`)) return;
-  try {
-    await addDoc(collection(db, "stores/mifune/sales"), {
-      tableId: '返金',
-      guests: 0,
-      checkin: '--:--',
-      checkout: new Date().getHours().toString().padStart(2,'0') + ':' + new Date().getMinutes().toString().padStart(2,'0'),
-      items: [],
-      subtotal: -total,
-      tax: 0,
-      total: -total,
-      paymentMethod: paymentMethod || '現金',
-      refundOf: id,
-      timestamp: Timestamp.now()
-    });
-    await new Promise(r => setTimeout(r, 500));
-    window.showAdmin('day');
-  } catch(e) { alert('返金処理に失敗しました: ' + e.message); }
-};
+window.deleteSaleDoc = async (id) => { if(confirm("消去しますか？")) { await deleteDoc(doc(db, "stores/mifune/sales", id)); await new Promise(r => setTimeout(r, 500)); window.showAdmin('day'); } };
 window.deleteDaySales = async (label) => {
     const entry = Object.values(window._dayDeleteMap || {}).find(x => x.label === label);
     if (!entry) return alert("データが見つかりません");
@@ -1266,9 +1247,7 @@ async function showAdmin(mode) {
                     if (item.name && item.name.includes('もつ串')) motsuCount += item.qty;
                     if (item.name && item.name.includes('鳥精肉')) toriCount += item.qty;
                 });
-                return s.refundOf
-                  ? `<div class="sale-card" style="border-left:4px solid #e74c3c;"><div class="sale-time-row"><span class="sale-time" style="color:#e74c3c;">↩返金</span><span class="sale-time">${s.checkout}</span></div><div class="sale-detail-info" style="color:#e74c3c;">返金処理</div><div class="sale-total-line"><span class="sale-price-big" style="color:#e74c3c;">-¥${Math.abs(s.total).toLocaleString()}</span></div></div>`
-                  : `<div class="sale-card" onclick="showSaleDetail(${JSON.stringify(s).replace(/"/g,'&quot;')})" style="cursor:pointer;"><div class="sale-time-row"><span class="sale-time">${s.checkout}</span><span class="sale-table-badge">${s.tableId}番</span></div><div class="sale-detail-info">客: ${s.guests}名 / 入店: ${s.checkin} / ${s.paymentMethod || '現金'}</div><div class="sale-total-line"><span class="sale-price-big">¥${s.total.toLocaleString()}</span><button class="btn-del-sale" onclick="event.stopPropagation();refundSaleDoc('${s.id}',${s.total},'${s.paymentMethod||'現金'}')">返金</button></div></div>`;
+                return `<div class="sale-card" onclick="showSaleDetail(${JSON.stringify(s).replace(/"/g,'&quot;')})" style="cursor:pointer;"><div class="sale-time-row"><span class="sale-time">${s.checkout}</span><span class="sale-table-badge">${s.tableId}番</span></div><div class="sale-detail-info">客: ${s.guests}名 / 入店: ${s.checkin} / ${s.paymentMethod || '現金'}</div><div class="sale-total-line"><span class="sale-price-big">¥${s.total.toLocaleString()}</span><button class="btn-del-sale" onclick="event.stopPropagation();deleteSaleDoc('${s.id}')">削除</button></div></div>`;
             }).join('') || '<p style="text-align:center; padding:50px;">本日データなし</p>';
             const countBar = `<div style="background:#fff3cd; border:1px solid #ffc107; border-radius:10px; padding:12px 16px; margin:10px 0; display:flex; gap:20px; justify-content:center; font-weight:bold; font-size:15px;"><span>🍢 もつ串: ${motsuCount}串</span><span>🐔 鳥精肉: ${toriCount}串</span></div>`;
             list.innerHTML = countBar + cards;
