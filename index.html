@@ -1485,11 +1485,15 @@ async function printReport(mode) {
         if (sales.length === 0) return alert("データなし");
         let total = 0, guests = 0, motsuCount = 0, toriCount = 0;
         const dayMap = {};
+        const itemMap = {};
         sales.forEach(s => {
             total += s.total; guests += s.guests;
             (s.items || []).forEach(item => {
                 if (item.name && item.name.includes('もつ串')) motsuCount += item.qty;
                 if (item.name && item.name.includes('鳥精肉')) toriCount += item.qty;
+                if (!itemMap[item.name]) itemMap[item.name] = { qty: 0, amount: 0 };
+                itemMap[item.name].qty += item.qty;
+                itemMap[item.name].amount += Math.floor(item.price * item.qty * (1 + (item.rate || 0.10)));
             });
             const d = s.timestamp.toDate();
             const key = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
@@ -1500,11 +1504,15 @@ async function printReport(mode) {
         const dailyBreakdown = Object.entries(dayMap)
             .sort((a,b) => a[0].localeCompare(b[0]))
             .map(([,s]) => ({ label: s.label, count: s.c, guests: s.g, total: s.t }));
+        const itemList = Object.entries(itemMap)
+            .sort((a, b) => b[1].qty - a[1].qty)
+            .map(([name, d]) => ({ name, qty: d.qty, amount: d.amount }));
         await window.queuePrint({
             type: 'report-month',
             yearMonth: `${selY}年${selM}月`,
             total, guests, count: sales.length,
-            motsuCount, toriCount, dailyBreakdown
+            motsuCount, toriCount, dailyBreakdown,
+            items: itemList
         });
         alert("印刷しました");
     } else {
@@ -1522,20 +1530,28 @@ async function printReport(mode) {
         const sales = allSales.filter(s => s.timestamp.toDate().toDateString() === chosen);
         if (sales.length === 0) return alert("データなし");
         let total = 0, guests = 0, motsuCount = 0, toriCount = 0;
+        const itemMap = {};
         sales.forEach(s => {
             total += s.total; guests += s.guests;
             (s.items || []).forEach(item => {
                 if (item.name && item.name.includes('もつ串')) motsuCount += item.qty;
                 if (item.name && item.name.includes('鳥精肉')) toriCount += item.qty;
+                if (!itemMap[item.name]) itemMap[item.name] = { qty: 0, amount: 0 };
+                itemMap[item.name].qty += item.qty;
+                itemMap[item.name].amount += Math.floor(item.price * item.qty * (1 + (item.rate || 0.10)));
             });
         });
+        const itemList = Object.entries(itemMap)
+            .sort((a, b) => b[1].qty - a[1].qty)
+            .map(([name, d]) => ({ name, qty: d.qty, amount: d.amount }));
         const targetDate = new Date(chosen);
         const dow = ['日','月','火','水','木','金','土'][targetDate.getDay()];
         const dateLabel = `${targetDate.getFullYear()}/${String(targetDate.getMonth()+1).padStart(2,'0')}/${String(targetDate.getDate()).padStart(2,'0')}（${dow}）`;
         await window.queuePrint({
             type: 'report-day',
             dateLabel, total, guests,
-            count: sales.length, motsuCount, toriCount
+            count: sales.length, motsuCount, toriCount,
+            items: itemList
         });
         alert("印刷しました");
     }
