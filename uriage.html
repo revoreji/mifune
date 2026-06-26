@@ -81,6 +81,20 @@ header {
 .month-sum .lbl { font-size: 12px; opacity: 0.7; }
 .month-sum .val { font-size: 22px; font-weight: 700; margin-top: 2px; }
 
+/* 支払方法別内訳（月合計） */
+.month-pay { margin: 8px 16px 4px; display: flex; flex-wrap: wrap; gap: 8px; }
+.paychip { flex: 1; min-width: 140px; background: var(--card); border: 1px solid var(--line);
+  border-radius: 12px; padding: 11px 14px; display: flex; justify-content: space-between; align-items: center; }
+.paychip .pc-lbl { font-size: 13px; color: var(--sub); }
+.paychip .pc-val { font-size: 16px; font-weight: 700; }
+
+/* 各日の支払方法別内訳（開いたときだけ表示） */
+.day-pay { display: none; padding: 10px 16px; background: var(--accent-soft); border-top: 1px solid var(--line);
+  flex-wrap: wrap; gap: 6px 16px; font-size: 12px; }
+.daycard.open .day-pay { display: flex; }
+.day-pay span { color: #9a6a2e; }
+.day-pay b { color: var(--ink); font-weight: 700; margin-left: 4px; }
+
 /* 日カード */
 .daylist { padding: 8px 16px 0; }
 .daycard { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
@@ -161,6 +175,8 @@ header {
     <div><div class="lbl">売上</div><div class="val" id="sum-total">¥0</div></div>
   </div>
 
+  <div id="month-pay" class="month-pay"></div>
+
   <div id="daylist" class="daylist">
     <div class="loading">読み込み中…</div>
   </div>
@@ -238,20 +254,37 @@ window.renderMonth = function() {
 
   // 月サマリー
   let mCount = monthSales.length, mGuests = 0, mTotal = 0;
-  monthSales.forEach(s => { mGuests += (s.guests||0); mTotal += (s.total||0); });
+  const mPay = {};
+  monthSales.forEach(s => {
+    mGuests += (s.guests||0); mTotal += (s.total||0);
+    const pm = s.paymentMethod || '現金';
+    mPay[pm] = (mPay[pm] || 0) + (s.total||0);
+  });
   document.getElementById('sum-count').textContent = mCount;
   document.getElementById('sum-guests').textContent = mGuests;
   document.getElementById('sum-total').textContent = yen(mTotal);
+
+  // 月の支払方法別内訳（データにある種別のみ・現金→クレジット→QR→電子マネーの順）
+  const payOrder = ['現金','クレジット','QR決済','電子マネー'];
+  const mPayKeys = Object.keys(mPay).sort((a,b) => {
+    const ia = payOrder.indexOf(a), ib = payOrder.indexOf(b);
+    return (ia<0?99:ia) - (ib<0?99:ib);
+  });
+  document.getElementById('month-pay').innerHTML = mPayKeys.map(k =>
+    `<div class="paychip"><span class="pc-lbl">${esc(k)}</span><span class="pc-val">${yen(mPay[k])}</span></div>`
+  ).join('');
 
   // 日別グループ
   const dayMap = {};
   monthSales.forEach(s => {
     const d = s.timestamp.toDate();
     const key = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
-    if (!dayMap[key]) dayMap[key] = { date: key, dow: DOW[d.getDay()], ts: d.getTime(), sales: [], total: 0, guests: 0 };
+    if (!dayMap[key]) dayMap[key] = { date: key, dow: DOW[d.getDay()], ts: d.getTime(), sales: [], total: 0, guests: 0, pay: {} };
     dayMap[key].sales.push(s);
     dayMap[key].total += (s.total||0);
     dayMap[key].guests += (s.guests||0);
+    const pm = s.paymentMethod || '現金';
+    dayMap[key].pay[pm] = (dayMap[key].pay[pm] || 0) + (s.total||0);
   });
   const days = Object.values(dayMap).sort((a,b) => b.ts - a.ts);
 
@@ -287,6 +320,14 @@ window.renderMonth = function() {
         </div>`;
     }).join('');
 
+    // その日の支払方法別内訳
+    const payOrder2 = ['現金','クレジット','QR決済','電子マネー'];
+    const dPayKeys = Object.keys(day.pay).sort((a,b) => {
+      const ia = payOrder2.indexOf(a), ib = payOrder2.indexOf(b);
+      return (ia<0?99:ia) - (ib<0?99:ib);
+    });
+    const dayPayHtml = dPayKeys.map(k => `<span>${esc(k)}<b>${yen(day.pay[k])}</b></span>`).join('');
+
     return `
       <div class="daycard">
         <div class="dayhead" onclick="toggleDay(this)">
@@ -299,6 +340,7 @@ window.renderMonth = function() {
             <span class="chev"></span>
           </div>
         </div>
+        <div class="day-pay">${dayPayHtml}</div>
         <div class="salelist">${rows}</div>
       </div>`;
   }).join('');
