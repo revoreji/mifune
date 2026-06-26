@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>三船 売上管理</title>
+
+<script>
+// ▼▼▼ 自動キャッシュクリア（バージョン管理式・安全） ▼▼▼
+(function(){
+  var APP_VERSION = '2026-06-25-uriage-01';
+  try {
+    var saved = localStorage.getItem('__uriageVersion');
+    if (saved !== APP_VERSION) {
+      localStorage.setItem('__uriageVersion', APP_VERSION);
+      if (window.caches && caches.keys) {
+        caches.keys().then(function(names){ names.forEach(function(n){ caches.delete(n); }); }).catch(function(){});
+      }
+      if (!sessionStorage.getItem('__reloadedUriage_' + APP_VERSION)) {
+        sessionStorage.setItem('__reloadedUriage_' + APP_VERSION, '1');
+        location.reload();
+      }
+    }
+  } catch(e) {}
+})();
+// ▲▲▲ 自動キャッシュクリア ▲▲▲
+</script>
+
+<style>
+:root {
+  --bg: #f4f5f7;
+  --card: #ffffff;
+  --ink: #2b2b2b;
+  --sub: #8a8f99;
+  --line: #e8eaed;
+  --accent: #e8821a;      /* 三船オレンジ */
+  --accent-soft: #fff4e8;
+  --blue: #3a7bd5;
+  --danger: #d64545;
+  --danger-soft: #fdeeee;
+  --green: #2e9e6b;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  line-height: 1.5; padding-bottom: 60px;
+}
+
+/* ヘッダー */
+header {
+  background: var(--card); border-bottom: 1px solid var(--line);
+  padding: 14px 18px; display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 50;
+}
+.h-title { font-size: 17px; font-weight: 700; letter-spacing: 0.02em; }
+.h-title small { color: var(--sub); font-weight: 500; font-size: 12px; margin-left: 8px; }
+.reload { border: 1px solid var(--line); background: #fff; color: var(--accent);
+  border-radius: 8px; padding: 7px 14px; font-size: 13px; font-weight: 700; cursor: pointer; }
+
+/* ログイン */
+.login-wrap { max-width: 360px; margin: 80px auto; padding: 0 20px; text-align: center; }
+.login-wrap h2 { font-size: 18px; margin-bottom: 24px; }
+.login-wrap input { width: 100%; padding: 16px; font-size: 18px; border: 2px solid var(--line);
+  border-radius: 12px; margin-bottom: 16px; text-align: center; }
+.login-wrap button { width: 100%; padding: 15px; font-size: 16px; font-weight: 700; color: #fff;
+  background: var(--accent); border: none; border-radius: 12px; cursor: pointer; }
+
+/* 月セレクタ */
+.toolbar { padding: 14px 16px 4px; display: flex; align-items: center; gap: 10px; }
+.toolbar label { font-size: 13px; color: var(--sub); }
+.toolbar select { flex: 1; padding: 10px 12px; font-size: 15px; border: 1px solid var(--line);
+  border-radius: 10px; background: #fff; }
+
+/* 月サマリー */
+.month-sum { margin: 8px 16px 4px; background: var(--ink); color: #fff; border-radius: 14px;
+  padding: 16px; display: flex; justify-content: space-around; text-align: center; }
+.month-sum .lbl { font-size: 12px; opacity: 0.7; }
+.month-sum .val { font-size: 22px; font-weight: 700; margin-top: 2px; }
+
+/* 日カード */
+.daylist { padding: 8px 16px 0; }
+.daycard { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  margin-bottom: 12px; overflow: hidden; }
+.dayhead { padding: 15px 16px; display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; user-select: none; }
+.dayhead:active { background: #fafafa; }
+.dayhead .d-date { font-size: 16px; font-weight: 700; }
+.dayhead .d-meta { font-size: 12px; color: var(--sub); margin-top: 3px; }
+.dayhead .d-right { display: flex; align-items: center; gap: 12px; }
+.dayhead .d-total { font-size: 19px; font-weight: 700; color: var(--accent); }
+.chev { width: 10px; height: 10px; border-right: 2px solid var(--sub); border-bottom: 2px solid var(--sub);
+  transform: rotate(45deg); transition: transform 0.2s; flex-shrink: 0; }
+.daycard.open .chev { transform: rotate(-135deg); }
+
+/* 会計リスト（展開部） */
+.salelist { display: none; border-top: 1px solid var(--line); background: #fbfbfc; }
+.daycard.open .salelist { display: block; }
+.salerow { padding: 13px 16px; border-bottom: 1px solid var(--line); }
+.salerow:last-child { border-bottom: none; }
+.sr-top { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+.sr-left { display: flex; align-items: baseline; gap: 10px; }
+.sr-time { font-size: 15px; font-weight: 700; }
+.sr-table { font-size: 12px; color: var(--sub); background: #eef0f3; padding: 2px 8px; border-radius: 6px; }
+.sr-pay { font-size: 11px; color: var(--sub); }
+.sr-right { display: flex; align-items: center; gap: 12px; }
+.sr-total { font-size: 16px; font-weight: 700; }
+.sr-del { background: var(--danger-soft); color: var(--danger); border: none; border-radius: 8px;
+  padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.sr-del:active { background: var(--danger); color: #fff; }
+
+/* 明細（会計の中身） */
+.detail { display: none; margin-top: 11px; padding: 11px 12px; background: #fff;
+  border: 1px solid var(--line); border-radius: 10px; }
+.salerow.open .detail { display: block; }
+.det-item { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
+.det-item .di-name { color: var(--ink); }
+.det-item .di-qty { color: var(--sub); margin: 0 8px 0 6px; }
+.det-item .di-amt { font-weight: 600; white-space: nowrap; }
+.det-sum { display: flex; justify-content: space-between; font-size: 13px; padding-top: 8px;
+  margin-top: 6px; border-top: 1px dashed var(--line); color: var(--sub); }
+.det-meta { font-size: 11px; color: var(--sub); margin-bottom: 8px; }
+
+.empty { text-align: center; color: var(--sub); padding: 60px 20px; font-size: 14px; }
+.loading { text-align: center; color: var(--sub); padding: 60px 20px; font-size: 14px; }
+
+/* トースト */
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: var(--ink); color: #fff; padding: 12px 22px; border-radius: 999px;
+  font-size: 14px; font-weight: 600; opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 200; }
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- ログイン画面 -->
+<div id="login-view" class="login-wrap">
+  <h2>三船 売上管理</h2>
+  <input id="pass-input" type="password" inputmode="numeric" placeholder="パスワード" autocomplete="off">
+  <button onclick="doLogin()">開く</button>
+</div>
+
+<!-- メイン -->
+<div id="main-view" style="display:none;">
+  <header>
+    <div class="h-title">売上管理 <small>日別</small></div>
+    <button class="reload" onclick="loadAll(true)">↻ 更新</button>
+  </header>
+
+  <div class="toolbar">
+    <label>表示月</label>
+    <select id="month-select" onchange="renderMonth()"></select>
+  </div>
+
+  <div class="month-sum">
+    <div><div class="lbl">件数</div><div class="val" id="sum-count">0</div></div>
+    <div><div class="lbl">客数</div><div class="val" id="sum-guests">0</div></div>
+    <div><div class="lbl">売上</div><div class="val" id="sum-total">¥0</div></div>
+  </div>
+
+  <div id="daylist" class="daylist">
+    <div class="loading">読み込み中…</div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD_mz3-1_fHWNBNWDRt6ZWXmi1ptcrvXCM",
+  authDomain: "revoreji.firebaseapp.com",
+  projectId: "revoreji",
+  storageBucket: "revoreji.firebasestorage.app",
+  messagingSenderId: "91184668244",
+  appId: "1:91184668244:web:22e34995fe0f69d1e9d7c1"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let allSales = [];   // 取得した全売上（キャッシュ）
+
+const DOW = ['日','月','火','水','木','金','土'];
+const yen = n => '¥' + (n||0).toLocaleString();
+
+// ── データ取得（1回だけ。更新ボタンで再取得）──
+window.loadAll = async function(force) {
+  const listEl = document.getElementById('daylist');
+  if (force || allSales.length === 0) {
+    listEl.innerHTML = '<div class="loading">読み込み中…</div>';
+    try {
+      const snap = await getDocs(collection(db, "stores/mifune/sales"));
+      allSales = [];
+      snap.forEach(d => { const x = d.data(); x.id = d.id; allSales.push(x); });
+    } catch(e) {
+      listEl.innerHTML = '<div class="empty">読み込みに失敗しました。<br>通信を確認して「更新」を押してください。</div>';
+      return;
+    }
+  }
+  buildMonthOptions();
+  renderMonth();
+};
+
+// ── 月セレクタを作る ──
+function buildMonthOptions() {
+  const sel = document.getElementById('month-select');
+  const prev = sel.value;
+  const set = {};
+  allSales.forEach(s => {
+    if (!s.timestamp) return;
+    const d = s.timestamp.toDate();
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    set[key] = `${d.getFullYear()}年${d.getMonth()+1}月`;
+  });
+  const now = new Date();
+  const defKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const keys = Object.keys(set).sort().reverse();
+  if (keys.length === 0) { sel.innerHTML = `<option value="${defKey}">${now.getFullYear()}年${now.getMonth()+1}月</option>`; return; }
+  sel.innerHTML = keys.map(k => `<option value="${k}" ${(prev||defKey)===k?'selected':''}>${set[k]}</option>`).join('');
+}
+
+// ── 選択月を日別で描画 ──
+window.renderMonth = function() {
+  const sel = document.getElementById('month-select');
+  if (!sel.value) return;
+  const [y, m] = sel.value.split('-').map(Number);
+
+  const monthSales = allSales.filter(s => {
+    if (!s.timestamp) return false;
+    const d = s.timestamp.toDate();
+    return d.getFullYear() === y && d.getMonth()+1 === m;
+  });
+
+  // 月サマリー
+  let mCount = monthSales.length, mGuests = 0, mTotal = 0;
+  monthSales.forEach(s => { mGuests += (s.guests||0); mTotal += (s.total||0); });
+  document.getElementById('sum-count').textContent = mCount;
+  document.getElementById('sum-guests').textContent = mGuests;
+  document.getElementById('sum-total').textContent = yen(mTotal);
+
+  // 日別グループ
+  const dayMap = {};
+  monthSales.forEach(s => {
+    const d = s.timestamp.toDate();
+    const key = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+    if (!dayMap[key]) dayMap[key] = { date: key, dow: DOW[d.getDay()], ts: d.getTime(), sales: [], total: 0, guests: 0 };
+    dayMap[key].sales.push(s);
+    dayMap[key].total += (s.total||0);
+    dayMap[key].guests += (s.guests||0);
+  });
+  const days = Object.values(dayMap).sort((a,b) => b.ts - a.ts);
+
+  const listEl = document.getElementById('daylist');
+  if (days.length === 0) { listEl.innerHTML = '<div class="empty">この月のデータはありません</div>'; return; }
+
+  listEl.innerHTML = days.map(day => {
+    // その日の会計を時刻降順
+    const rows = day.sales.slice().sort((a,b) => (b.timestamp?.toMillis()||0) - (a.timestamp?.toMillis()||0)).map(s => {
+      const items = (s.items || []).map(i => {
+        const amt = Math.floor(i.price * i.qty * (1 + (i.rate||0.10)));
+        return `<div class="det-item"><span class="di-name">${esc(i.name)}</span><span class="di-qty">×${i.qty}</span><span class="di-amt">${yen(amt)}</span></div>`;
+      }).join('') || '<div class="det-item"><span class="di-name" style="color:var(--sub)">明細データなし</span></div>';
+      const itemCount = (s.items||[]).reduce((n,i)=>n+i.qty,0);
+      return `
+        <div class="salerow" data-id="${s.id}">
+          <div class="sr-top" onclick="toggleDetail(this)">
+            <div class="sr-left">
+              <span class="sr-time">${esc(s.checkout||'--:--')}</span>
+              <span class="sr-table">${esc(s.tableId||'')}</span>
+              <span class="sr-pay">${esc(s.paymentMethod||'現金')}</span>
+            </div>
+            <div class="sr-right">
+              <span class="sr-total">${yen(s.total)}</span>
+              <button class="sr-del" onclick="delSale(event, '${s.id}')">削除</button>
+            </div>
+          </div>
+          <div class="detail">
+            <div class="det-meta">入店 ${esc(s.checkin||'--:--')} ／ 客 ${s.guests||0}名 ／ ${itemCount}点</div>
+            ${items}
+            <div class="det-sum"><span>合計（税込）</span><span>${yen(s.total)}</span></div>
+          </div>
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="daycard">
+        <div class="dayhead" onclick="toggleDay(this)">
+          <div>
+            <div class="d-date">${day.date}（${day.dow}）</div>
+            <div class="d-meta">${day.sales.length}件 ／ ${day.guests}名</div>
+          </div>
+          <div class="d-right">
+            <span class="d-total">${yen(day.total)}</span>
+            <span class="chev"></span>
+          </div>
+        </div>
+        <div class="salelist">${rows}</div>
+      </div>`;
+  }).join('');
+};
+
+// HTMLエスケープ（商品名などの安全表示）
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// 日カードの開閉
+window.toggleDay = function(el){ el.parentElement.classList.toggle('open'); };
+
+// 会計明細の開閉（削除ボタンのクリックは伝播停止済み）
+window.toggleDetail = function(el){ el.parentElement.classList.toggle('open'); };
+
+// 削除
+window.delSale = async function(ev, id){
+  ev.stopPropagation();
+  if (!confirm('この会計を削除します。よろしいですか？\n（取り消せません）')) return;
+  try {
+    await deleteDoc(doc(db, "stores/mifune/sales", id));
+    // キャッシュからも除去して即反映
+    allSales = allSales.filter(s => s.id !== id);
+    renderMonth();
+    showToast('削除しました');
+  } catch(e) {
+    showToast('削除に失敗しました');
+  }
+};
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ── ログイン（簡易パスワード）──
+// localStorage の uriagePass に保存。初回は下の既定値。
+const DEFAULT_PASS = '0885';   // ←必要なら後で変更可
+window.doLogin = function(){
+  const v = document.getElementById('pass-input').value;
+  const saved = localStorage.getItem('uriagePass') || DEFAULT_PASS;
+  if (v === saved) {
+    sessionStorage.setItem('uriageAuthed','1');
+    document.getElementById('login-view').style.display = 'none';
+    document.getElementById('main-view').style.display = 'block';
+    loadAll(false);
+  } else {
+    alert('パスワードが違います');
+  }
+};
+
+// Enterキーでログイン
+document.getElementById('pass-input').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+// セッション中は再入力不要
+if (sessionStorage.getItem('uriageAuthed') === '1') {
+  document.getElementById('login-view').style.display = 'none';
+  document.getElementById('main-view').style.display = 'block';
+  loadAll(false);
+}
+</script>
+</body>
+</html>
