@@ -336,7 +336,7 @@ function showToast(msg){
 
 // ── ログイン（簡易パスワード）──
 // localStorage の uriagePass に保存。初回は下の既定値。
-const DEFAULT_PASS = '0885';   // ←必要なら後で変更可
+const DEFAULT_PASS = '00';   // ←必要なら後で変更可
 window.doLogin = function(){
   const v = document.getElementById('pass-input').value;
   const saved = localStorage.getItem('uriagePass') || DEFAULT_PASS;
