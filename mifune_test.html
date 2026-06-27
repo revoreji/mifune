@@ -1684,6 +1684,7 @@ function showCheckout() {
     `<button class="co-preset-btn" onclick="coSetPreset(${v})">¥${v.toLocaleString()}</button>`
   ).join('');
   coReceivedStr = ''; coReceiptMode = 'receipt';
+  window.coPaying = false;
   setCoReceipt('receipt');
   selectPayment('現金');
   hideAll(); document.getElementById('view-checkout').style.display = 'flex';
@@ -1700,6 +1701,9 @@ async function testPay() {
 
 async function sendToKitchen() {
 if(currentCart.length === 0) return;
+// ▼ 二度押し防止：処理中なら無視
+if (window.sendingKitchen) return;
+window.sendingKitchen = true;
 try {
     // 1. printQueueに直接書き込み（CloudPRNT用）
     for (const item of currentCart) {
@@ -1726,6 +1730,9 @@ try {
 } catch(e) {
     console.warn('Firebase送信失敗:', e.message);
     alert('送信に失敗しました');
+} finally {
+    // 成功・失敗どちらでも必ずフラグを戻す（次の注文を送れるように）
+    window.sendingKitchen = false;
 }
 }
 
@@ -1767,6 +1774,7 @@ function _coUpdateDisplay() {
   const recvEl   = document.getElementById('co-received-val');
   const changeEl = document.getElementById('co-change-val');
   const btn      = document.getElementById('co-confirm-btn');
+  if (window.coPaying) return;
   if (!recvEl) return;
   recvEl.textContent = coReceivedStr ? '¥'+received.toLocaleString() : '¥ ―';
   if (coReceivedStr && received >= total) {
@@ -1789,6 +1797,11 @@ function setCoReceipt(mode) {
   });
 }
 async function payCo() {
+  // ▼ 二度押し防止：処理中なら無視
+  if (window.coPaying) return;
+  window.coPaying = true;
+  const btn = document.getElementById('co-confirm-btn');
+
   const doRyoshu = coReceiptMode === 'ryoshu';
   const doPrint  = coReceiptMode === 'receipt';
   const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]');
@@ -1803,8 +1816,18 @@ async function payCo() {
       if(i.rate===0.08){_sub8+=s;_tax8+=t;}else{_sub10+=s;_tax10+=t;}
     });
     window.openRyoshuusho(_sub,_tax,_sub10,_tax10,_sub8,_tax8);
+    // 領収書はこの画面に戻るのでフラグとボタンを元に戻す
+    window.coPaying = false;
     return;
   }
+
+  // ▼ 押した瞬間：灰色＋「処理中...」にして無効化
+  if (btn) {
+    btn.disabled = true;
+    btn.style.background = '#B4B2A9';
+    btn.textContent = '処理中...';
+  }
+
   try {
     if (window.saveSaleToCloud) await window.saveSaleToCloud(currentTable, currentPaymentMethod);
   } catch(e) { console.warn('saveSaleToCloud失敗:', e); }
@@ -1821,7 +1844,17 @@ async function payCo() {
       } catch(e) { console.warn('queuePrint失敗:', e); }
     }
   }
-  showIndex();
+
+  // ▼ 完了：濃い緑＋「✓ 完了」を一瞬見せてから席選択へ
+  if (btn) {
+    btn.style.background = '#27ae60';
+    btn.textContent = '✓ 完了しました';
+  }
+  setTimeout(() => {
+    if (btn) { btn.style.background = ''; btn.disabled = false; btn.textContent = '会計を確定する'; }
+    window.coPaying = false;
+    showIndex();
+  }, 600);
 }
 async function pay(doPrint) { await payCo(); }
 
