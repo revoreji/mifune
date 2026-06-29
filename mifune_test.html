@@ -6,31 +6,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>【テスト】三船POS mifune_test</title>
+<title>【テスト】三船 リアルタイムPOS【CloudPRNT】</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-
-<script>
-// ▼▼▼ 自動キャッシュクリア（テスト版・本番と別キー） ▼▼▼
-(function(){
-  var APP_VERSION = 'TEST-2026-06-27-01';
-  try {
-    var saved = localStorage.getItem('__appVersion_test');
-    if (saved !== APP_VERSION) {
-      localStorage.setItem('__appVersion_test', APP_VERSION);
-      if (window.caches && caches.keys) {
-        caches.keys().then(function(names){
-          names.forEach(function(n){ caches.delete(n); });
-        }).catch(function(){});
-      }
-      if (!sessionStorage.getItem('__reloadedTest_' + APP_VERSION)) {
-        sessionStorage.setItem('__reloadedTest_' + APP_VERSION, '1');
-        location.reload();
-      }
-    }
-  } catch(e) {}
-})();
-// ▲▲▲ 自動キャッシュクリア ▲▲▲
-</script>
 
 <script>
 // インラインShift-JIS変換テーブル
@@ -160,8 +137,6 @@ footer { width: 100%; display: flex; flex-direction: column; z-index: 100; box-s
 </style>
 </head>
 <body>
-<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#d64545;color:#fff;text-align:center;font-size:12px;font-weight:bold;padding:3px;letter-spacing:0.1em;">⚠ テスト環境 mifune_test ⚠</div>
-<div style="height:22px;"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -547,7 +522,7 @@ window.printStandaloneRyoshu = async function() {
   </div>
 </div>
 
-<div id="view-index" class="view active"><header><div class="admin-btn" id="admin-btn-label" onclick="checkAdminAuth()">売上管理</div><span>三船 席選択</span><div style="display:flex;gap:4px;align-items:center;"><div class="reload-btn" onclick="window.openStandaloneRyoshuusho()" title="領収書発行">📄</div><div class="reload-btn" onclick="openPrinterSettings()" title="プリンター設定">⚙</div><div class="reload-btn" onclick="location.reload()">↻</div></div></header><div class="grid-tables" id="table-grid"></div></div>
+<div id="view-index" class="view active"><div style="background:#e74c3c;color:#fff;text-align:center;padding:6px;font-size:13px;font-weight:bold;letter-spacing:0.05em;">⚠ テスト環境（mifune_test）— 本番ではありません</div><header><div class="admin-btn" id="admin-btn-label" onclick="checkAdminAuth()">売上管理</div><span>【テスト】三船 席選択</span><div style="display:flex;gap:4px;align-items:center;"><div class="reload-btn" onclick="window.openStandaloneRyoshuusho()" title="領収書発行">📄</div><div class="reload-btn" onclick="openPrinterSettings()" title="プリンター設定">⚙</div><div class="reload-btn" onclick="location.reload()">↻</div></div></header><div class="grid-tables" id="table-grid"></div></div>
 
 <div id="view-login" class="view">
 <header><div class="header-left"><span class="back-btn" onclick="showIndex()">＜</span><span>認証</span></div></header>
@@ -1684,7 +1659,6 @@ function showCheckout() {
     `<button class="co-preset-btn" onclick="coSetPreset(${v})">¥${v.toLocaleString()}</button>`
   ).join('');
   coReceivedStr = ''; coReceiptMode = 'receipt';
-  window.coPaying = false;
   setCoReceipt('receipt');
   selectPayment('現金');
   hideAll(); document.getElementById('view-checkout').style.display = 'flex';
@@ -1701,9 +1675,6 @@ async function testPay() {
 
 async function sendToKitchen() {
 if(currentCart.length === 0) return;
-// ▼ 二度押し防止：処理中なら無視
-if (window.sendingKitchen) return;
-window.sendingKitchen = true;
 try {
     // 1. printQueueに直接書き込み（CloudPRNT用）
     for (const item of currentCart) {
@@ -1730,9 +1701,6 @@ try {
 } catch(e) {
     console.warn('Firebase送信失敗:', e.message);
     alert('送信に失敗しました');
-} finally {
-    // 成功・失敗どちらでも必ずフラグを戻す（次の注文を送れるように）
-    window.sendingKitchen = false;
 }
 }
 
@@ -1774,7 +1742,6 @@ function _coUpdateDisplay() {
   const recvEl   = document.getElementById('co-received-val');
   const changeEl = document.getElementById('co-change-val');
   const btn      = document.getElementById('co-confirm-btn');
-  if (window.coPaying) return;
   if (!recvEl) return;
   recvEl.textContent = coReceivedStr ? '¥'+received.toLocaleString() : '¥ ―';
   if (coReceivedStr && received >= total) {
@@ -1797,11 +1764,6 @@ function setCoReceipt(mode) {
   });
 }
 async function payCo() {
-  // ▼ 二度押し防止：処理中なら無視
-  if (window.coPaying) return;
-  window.coPaying = true;
-  const btn = document.getElementById('co-confirm-btn');
-
   const doRyoshu = coReceiptMode === 'ryoshu';
   const doPrint  = coReceiptMode === 'receipt';
   const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]');
@@ -1816,18 +1778,8 @@ async function payCo() {
       if(i.rate===0.08){_sub8+=s;_tax8+=t;}else{_sub10+=s;_tax10+=t;}
     });
     window.openRyoshuusho(_sub,_tax,_sub10,_tax10,_sub8,_tax8);
-    // 領収書はこの画面に戻るのでフラグとボタンを元に戻す
-    window.coPaying = false;
     return;
   }
-
-  // ▼ 押した瞬間：灰色＋「処理中...」にして無効化
-  if (btn) {
-    btn.disabled = true;
-    btn.style.background = '#B4B2A9';
-    btn.textContent = '処理中...';
-  }
-
   try {
     if (window.saveSaleToCloud) await window.saveSaleToCloud(currentTable, currentPaymentMethod);
   } catch(e) { console.warn('saveSaleToCloud失敗:', e); }
@@ -1844,17 +1796,7 @@ async function payCo() {
       } catch(e) { console.warn('queuePrint失敗:', e); }
     }
   }
-
-  // ▼ 完了：濃い緑＋「✓ 完了」を一瞬見せてから席選択へ
-  if (btn) {
-    btn.style.background = '#27ae60';
-    btn.textContent = '✓ 完了しました';
-  }
-  setTimeout(() => {
-    if (btn) { btn.style.background = ''; btn.disabled = false; btn.textContent = '会計を確定する'; }
-    window.coPaying = false;
-    showIndex();
-  }, 600);
+  showIndex();
 }
 async function pay(doPrint) { await payCo(); }
 
