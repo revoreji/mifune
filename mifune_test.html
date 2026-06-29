@@ -956,6 +956,10 @@ const NOMIHODAI_MINUTES = 85;
 const NOMIHODAI_ENCHO_MINUTES = 30;
 let countdownInterval = null;
 let lastAlertedTable = {};
+// アラーム済み記録をlocalStorageに保存（画面を開き直しても消えない＝会計まで再表示しない）
+function isAlerted(tId) { return localStorage.getItem('lo_alerted_' + tId) === '1'; }
+function setAlerted(tId) { localStorage.setItem('lo_alerted_' + tId, '1'); lastAlertedTable[tId] = true; }
+function clearAlerted(tId) { localStorage.removeItem('lo_alerted_' + tId); delete lastAlertedTable[tId]; }
 window.deviceClockOffset = 0;
 window._nomiData = {}; // 飲み放題データ（メモリ管理）
 window.deviceClockOffset = 0; // Date.now() - サーバー時刻（ms）
@@ -977,7 +981,7 @@ async function startCountdownIfNeeded(tableId) {
 // 会計時に呼ぶ
 async function clearCountdown(tableId, skipCloud = false) {
     delete window._nomiData[tableId];
-    delete lastAlertedTable[tableId];
+    clearAlerted(tableId);
     if (!skipCloud && window.cloudSyncNomiClear) await window.cloudSyncNomiClear(tableId);
 }
 
@@ -1054,8 +1058,8 @@ function startCountdownTick() {
         getTablesL().forEach(tId => {
             const rem = getCountdownRemaining(tId);
             if (rem === null) return;
-            if (rem <= 0 && !lastAlertedTable[tId]) {
-                lastAlertedTable[tId] = true;
+            if (rem <= 0 && !isAlerted(tId)) {
+                setAlerted(tId);
                 showAlarmModal(tId);
             }
         });
@@ -1908,8 +1912,8 @@ document.addEventListener('visibilitychange', () => {
     getTablesL().forEach(tId => {
         const rem = getCountdownRemaining(tId);
         if (rem === null) return;
-        if (rem <= 0 && !lastAlertedTable[tId]) {
-            lastAlertedTable[tId] = true;
+        if (rem <= 0 && !isAlerted(tId)) {
+            setAlerted(tId);
             showAlarmModal(tId);
         }
     });
