@@ -312,6 +312,28 @@ updatedAt: Timestamp.now()
 } catch(e) { console.warn('cloudSync失敗:', e.message); }
 };
 
+// ▼▼▼ オーダーログ（保険：注文が消えても残る追記専用ログ）▼▼▼
+// 注文が入るたびにorder_logへ1件追記。上書き・削除しないので消えない。
+window.saveOrderLog = async (tableId, items) => {
+    try {
+        if (!items || items.length === 0) return;
+        const now = new Date();
+        const dateStr = now.getFullYear() + '-' +
+            String(now.getMonth()+1).padStart(2,'0') + '-' +
+            String(now.getDate()).padStart(2,'0');
+        const timeStr = String(now.getHours()).padStart(2,'0') + ':' +
+            String(now.getMinutes()).padStart(2,'0');
+        await addDoc(collection(db, 'stores/mifune_test/order_log'), {
+            tableId: tableId,
+            date: dateStr,
+            time: timeStr,
+            items: items.map(i => ({ name: i.name, price: i.price, qty: i.qty, rate: i.rate || 0.10 })),
+            createdAt: serverTimestamp()
+        });
+    } catch(e) { console.warn('order_log保存失敗:', e.message); }
+};
+// ▲▲▲ オーダーログ ▲▲▲
+
 // ▼▼▼ モバイルオーダー自動キッチン印刷 ▼▼▼
 async function autoKitchenPrint(tableId, mobileOrders, tag) { tag = tag || 'M';
     const hist = JSON.parse(localStorage.getItem('history_' + tableId) || '[]');
@@ -332,6 +354,10 @@ async function autoKitchenPrint(tableId, mobileOrders, tag) { tag = tag || 'M';
     });
     localStorage.setItem('history_' + tableId, JSON.stringify(hist));
     window.cloudSync(tableId);
+    // モバイル/ハンディ注文もorder_logに記録
+    const loggedItems = [];
+    mobileOrders.forEach(order => { order.items.forEach(item => loggedItems.push(item)); });
+    window.saveOrderLog(tableId, loggedItems);
     await startCountdownIfNeeded(tableId);
 }
 // ▲▲▲ モバイルオーダー自動キッチン印刷 ▲▲▲
@@ -1667,7 +1693,7 @@ function updateFooter() { document.getElementById('cart-count').innerText = curr
 function openReceiptChoice() { payCo(); }
 function renderReceiptSample() {}
 function closeReceiptChoice() {}
-async function testSend() { if(currentCart.length === 0) return alert("空です"); const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]'); const merged = hist.concat(currentCart); localStorage.setItem('history_'+currentTable, JSON.stringify(merged)); localStorage.removeItem('cart_'+currentTable); currentCart = []; if(window.cloudSync) await window.cloudSync(currentTable); await startCountdownIfNeeded(currentTable); hideAll(); document.getElementById('view-success').style.display = 'flex'; updateFooter(); }
+async function testSend() { if(currentCart.length === 0) return alert("空です"); const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]'); const merged = hist.concat(currentCart); localStorage.setItem('history_'+currentTable, JSON.stringify(merged)); window.saveOrderLog(currentTable, currentCart); localStorage.removeItem('cart_'+currentTable); currentCart = []; if(window.cloudSync) await window.cloudSync(currentTable); await startCountdownIfNeeded(currentTable); hideAll(); document.getElementById('view-success').style.display = 'flex'; updateFooter(); }
 async function testPay() {
     if(window.saveSaleToCloud) await window.saveSaleToCloud(currentTable, currentPaymentMethod);
     showIndex();
@@ -1695,6 +1721,7 @@ try {
     });
     localStorage.setItem('history_'+currentTable, JSON.stringify(hist));
     window.cloudSync(currentTable);
+    window.saveOrderLog(currentTable, currentCart);
     await startCountdownIfNeeded(currentTable);
     localStorage.removeItem('cart_'+currentTable); currentCart = [];
     hideAll(); document.getElementById('view-success').style.display = 'flex'; updateFooter();
