@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<title>【テスト】オーダー過去データ（保険）</title>
+<title>三船 オーダー過去データ（保険）</title>
 <style>
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body { font-family: sans-serif; margin: 0; background: #f4f4f4; color: #333; }
@@ -32,7 +32,7 @@ header { background: #fff; padding: 14px 16px; display: flex; align-items: cente
 </style>
 </head>
 <body>
-<div class="banner">⚠ テスト環境（mifune_test）— オーダー過去データ（保険用）</div>
+<div class="banner" style="background:#3498db;">📋 三船 オーダー過去データ（保険用・当日）</div>
 <header>
   <div class="title">📋 オーダー過去データ（当日）</div>
   <button class="reload-btn" onclick="loadLog()">↻ 更新</button>
@@ -81,7 +81,7 @@ window.loadLog = async function() {
   try {
     const today = todayStr();
     // 当日分のみ取得
-    const q = query(collection(db, 'stores/mifune_test/order_log'), where('date', '==', today));
+    const q = query(collection(db, 'stores/mifune/order_log'), where('date', '==', today));
     const snap = await getDocs(q);
 
     // 卓ごとにグループ化
