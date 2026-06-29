@@ -1716,12 +1716,10 @@ try {
             itemQty: item.qty
         });
     }
-    // 2. 履歴に追加・cloudSync
+    // 2. 履歴に追加・cloudSync（合算せず注文順に別行で残す）
     const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]');
     currentCart.forEach(item => {
-        const exist = hist.find(h => h.name === item.name);
-        if (exist) exist.qty += item.qty;
-        else hist.push(item);
+        hist.push(item);
     });
     localStorage.setItem('history_'+currentTable, JSON.stringify(hist));
     window.cloudSync(currentTable);
@@ -1817,9 +1815,15 @@ async function payCo() {
   if (doPrint) {
     if (typeof window.queuePrint === 'function') {
       try {
+        const receiptItems = [];
+        hist.forEach(i => {
+          const ex = receiptItems.find(r => r.name === i.name && r.price === i.price && r.rate === i.rate);
+          if (ex) ex.qty += i.qty;
+          else receiptItems.push({ name:i.name, qty:i.qty, price:i.price, rate:i.rate });
+        });
         await window.queuePrint({
           type: 'receipt', tableNo: currentTable, guests: g, checkinTime: c,
-          items: hist.map(i => ({ name:i.name, qty:i.qty, price:i.price, rate:i.rate })),
+          items: receiptItems,
           paymentMethod: currentPaymentMethod,
           cashReceived: currentPaymentMethod === '現金' ? parseInt(coReceivedStr||'0') : 0,
           orderTime: new Date().toLocaleString('ja-JP')
