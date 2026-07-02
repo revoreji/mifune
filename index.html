@@ -1682,6 +1682,7 @@ function showOrderHistory() { window.isEditing = true; hideAll(); document.getEl
 let coReceivedStr = '';
 let coReceiptMode = 'receipt';
 function showCheckout() {
+  window._coProcessing = false; // 新しい会計なのでフラグをリセット
   const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]');
   const g    = localStorage.getItem('guests_'+currentTable) || 0;
   const c    = localStorage.getItem('checkin_'+currentTable) || '--:--';
@@ -1790,6 +1791,7 @@ function coNum(v) { if (coReceivedStr.length >= 7) return; coReceivedStr += v; _
 function coDel()  { coReceivedStr = coReceivedStr.slice(0,-1); _coUpdateDisplay(); }
 function coSetPreset(v) { coReceivedStr = String(v); _coUpdateDisplay(); }
 function _coUpdateDisplay() {
+  if (window._coProcessing) return; // 会計処理中はボタンを復活させない
   const hist     = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]');
   const total    = hist.reduce((s,i) => s + Math.floor(i.price*i.qty*(1+i.rate)), 0);
   const received = parseInt(coReceivedStr || '0');
@@ -1836,6 +1838,15 @@ async function payCo() {
     if(_inc0>0){ const t8=Math.floor(_inc0*8/108); _sub8+=(_inc0-t8); _tax8+=t8; _sub+=(_inc0-t8); _tax+=t8; }
     window.openRyoshuusho(_sub,_tax,_sub10,_tax10,_sub8,_tax8);
     return;
+  }
+  // 二度押し防止：押した瞬間にボタンを無効化（本番送信と同じ方式）
+  if (window._coProcessing) return;
+  window._coProcessing = true;
+  const _coBtn = document.getElementById('co-confirm-btn');
+  if (_coBtn) {
+    _coBtn.disabled = true;
+    _coBtn.style.opacity = '0.6';
+    _coBtn.textContent = '処理中...';
   }
   try {
     if (window.saveSaleToCloud) await window.saveSaleToCloud(currentTable, currentPaymentMethod);
