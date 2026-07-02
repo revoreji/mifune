@@ -160,6 +160,15 @@ window.db = db; window._doc = doc; window._setDoc = setDoc; window._arrayUnion =
 window.currentUser = null;
 window.isEditing = false;
 
+// ▼ 端末ID（伝票ダブり調査用：どの端末が印刷ジョブを作ったか記録する）
+let _deviceId = localStorage.getItem('pos_device_id');
+if (!_deviceId) {
+    _deviceId = 'dev_' + Math.random().toString(36).slice(2, 8);
+    localStorage.setItem('pos_device_id', _deviceId);
+}
+window._deviceId = _deviceId;
+// ▲ 端末ID
+
 // ローカルパスワード認証
 window.loginOwner = () => {
   var input = document.getElementById('login-pass-input').value;
@@ -270,6 +279,8 @@ window.queuePrint = async function(jobData) {
     try {
         await addDoc(collection(db, 'stores/mifune/printQueue'), {
             ...jobData,
+            deviceId: window._deviceId || 'unknown',
+            deviceUA: (navigator.userAgent || '').slice(0, 80),
             status: 'pending',
             createdAt: serverTimestamp()
         });
