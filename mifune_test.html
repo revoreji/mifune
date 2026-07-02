@@ -160,6 +160,15 @@ window.db = db; window._doc = doc; window._setDoc = setDoc; window._arrayUnion =
 window.currentUser = null;
 window.isEditing = false;
 
+// ▼ 端末ID（伝票ダブり調査用：どの端末が印刷ジョブを作ったか記録する）
+let _deviceId = localStorage.getItem('pos_device_id');
+if (!_deviceId) {
+    _deviceId = 'dev_' + Math.random().toString(36).slice(2, 8);
+    localStorage.setItem('pos_device_id', _deviceId);
+}
+window._deviceId = _deviceId;
+// ▲ 端末ID
+
 // ローカルパスワード認証
 window.loginOwner = () => {
   var input = document.getElementById('login-pass-input').value;
@@ -270,6 +279,8 @@ window.queuePrint = async function(jobData) {
     try {
         await addDoc(collection(db, 'stores/mifune_test/printQueue'), {
             ...jobData,
+            deviceId: window._deviceId || 'unknown',
+            deviceUA: (navigator.userAgent || '').slice(0, 80),
             status: 'pending',
             createdAt: serverTimestamp()
         });
@@ -1662,7 +1673,7 @@ function addToCart(name, price, qId, rate, cat, btn) {
 function changeCartQty(idx, delta) { currentCart[idx].qty += delta; if(currentCart[idx].qty < 1) currentCart[idx].qty = 1; localStorage.setItem('cart_'+currentTable, JSON.stringify(currentCart)); renderCartUI(); updateFooter(); }
 function removeFromCart(idx) { currentCart.splice(idx, 1); localStorage.setItem('cart_'+currentTable, JSON.stringify(currentCart)); renderCartUI(); updateFooter(); }
 function renderCartUI() { document.getElementById('cart-items-list').innerHTML = currentCart.map((i, idx) => `<div class="list-row"><div style="flex:1;"><b>${i.name}</b><br><small>¥${i.price.toLocaleString()} x ${i.qty}</small></div><div style="display:flex; align-items:center; gap:8px;"><div class="btn-circle" onclick="changeCartQty(${idx}, -1)">-</div><span style="font-weight:bold;">${i.qty}</span><div class="btn-circle" onclick="changeCartQty(${idx}, 1)">+</div><button class="btn-del" onclick="removeFromCart(${idx})" style="color:red; background:none; border:none;">削除</button></div></div>`).join('') || '<p style="text-align:center;padding:50px;color:#999;">カートは空です</p>'; }
-function showCart() { window.isEditing = true; hideAll(); document.getElementById('view-cart').style.display = 'flex'; renderCartUI(); }
+function showCart() { window.isEditing = true; hideAll(); document.getElementById('view-cart').style.display = 'flex'; renderCartUI(); var _b=document.getElementById('btn-send-kitchen'); if(_b){ _b.disabled=false; _b.style.background='var(--primary)'; _b.style.opacity='1'; _b.textContent='本番送信'; } }
 function changeHistoryQty(idx, delta) { const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]'); hist[idx].qty += delta; if(hist[idx].qty <= 0) { if(!confirm("削除？")) return; hist.splice(idx, 1); } localStorage.setItem('history_'+currentTable, JSON.stringify(hist)); renderHistoryUI(); }
 function renderHistoryUI() { const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]'); let sub = 0, tax = 0; document.getElementById('history-items-list').innerHTML = hist.map((i, idx) => { const lp = i.price * i.qty; const lt = Math.floor(lp * i.rate); sub += lp; tax += lt; return `<div class="list-row"><div><b>${i.name}</b><br><small>税込¥${(lp+lt).toLocaleString()}</small></div><div style="display:flex; align-items:center; gap:10px;"><div class="btn-circle" onclick="changeHistoryQty(${idx}, -1)">-</div><span style="font-weight:bold;">${i.qty}</span><div class="btn-circle" onclick="changeHistoryQty(${idx}, 1)">+</div></div></div>`; }).join('') || 'なし'; document.getElementById('history-summary').innerHTML = `<div style="color:#666; font-size:13px;">入店: ${localStorage.getItem('checkin_'+currentTable)} / 客: ${localStorage.getItem('guests_'+currentTable)}名</div><div>税込計: <b style="font-size:24px; color:var(--primary);">¥${(sub + tax).toLocaleString()}</b></div>`; }
 async function confirmHistoryChange() { if(window.cloudSync) await window.cloudSync(currentTable); alert("同期完了"); }
@@ -1671,6 +1682,7 @@ function showOrderHistory() { window.isEditing = true; hideAll(); document.getEl
 let coReceivedStr = '';
 let coReceiptMode = 'receipt';
 function showCheckout() {
+  window._coProcessing = false; // 新しい会計なのでフラグをリセット
   const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]');
   const g    = localStorage.getItem('guests_'+currentTable) || 0;
   const c    = localStorage.getItem('checkin_'+currentTable) || '--:--';
@@ -1780,6 +1792,7 @@ function coNum(v) { if (coReceivedStr.length >= 7) return; coReceivedStr += v; _
 function coDel()  { coReceivedStr = coReceivedStr.slice(0,-1); _coUpdateDisplay(); }
 function coSetPreset(v) { coReceivedStr = String(v); _coUpdateDisplay(); }
 function _coUpdateDisplay() {
+  if (window._coProcessing) return; // 会計処理中はボタンを復活させない
   const hist     = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]');
   const total    = hist.reduce((s,i) => s + Math.floor(i.price*i.qty*(1+i.rate)), 0);
   const received = parseInt(coReceivedStr || '0');
@@ -1826,6 +1839,15 @@ async function payCo() {
     if(_inc0>0){ const t8=Math.floor(_inc0*8/108); _sub8+=(_inc0-t8); _tax8+=t8; _sub+=(_inc0-t8); _tax+=t8; }
     window.openRyoshuusho(_sub,_tax,_sub10,_tax10,_sub8,_tax8);
     return;
+  }
+  // 二度押し防止：押した瞬間にボタンを無効化（本番送信と同じ方式）
+  if (window._coProcessing) return;
+  window._coProcessing = true;
+  const _coBtn = document.getElementById('co-confirm-btn');
+  if (_coBtn) {
+    _coBtn.disabled = true;
+    _coBtn.style.opacity = '0.6';
+    _coBtn.textContent = '処理中...';
   }
   try {
     if (window.saveSaleToCloud) await window.saveSaleToCloud(currentTable, currentPaymentMethod);
