@@ -140,7 +140,7 @@ footer { width: 100%; display: flex; flex-direction: column; z-index: 100; box-s
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, addDoc, query, orderBy, getDocs, where, Timestamp, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, addDoc, query, orderBy, getDocs, where, Timestamp, serverTimestamp, arrayUnion, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -193,6 +193,30 @@ window.logoutOwner = () => {
   alert('ログアウト完了'); showIndex();
 };
 
+// ▼▼▼ 注文の早い者勝ち取得（複数端末の重複印刷防止）▼▼▼
+// トランザクションで「注文を読む→空にする」を1つの不可分な操作にする。
+// 複数端末が同時に掴もうとしても、成功するのは最初の1台だけ。
+// 負けた端末は空配列を受け取り、印刷も履歴追加もしない
+// （履歴は勝った端末のcloudSyncが全端末に同期してくれる）。
+async function claimOrders(tId, field) {
+    try {
+        return await runTransaction(db, async (tx) => {
+            const ref = doc(db, "stores/mifune_test/tables", tId);
+            const snap = await tx.get(ref);
+            if (!snap.exists()) return [];
+            const orders = snap.data()[field] || [];
+            if (orders.length === 0) return [];
+            tx.set(ref, { [field]: [] }, { merge: true });
+            return orders;
+        });
+    } catch (e) {
+        // 競合で負けた場合もここに来るが、他端末が処理済みなので何もしなくてよい
+        console.warn('claimOrders競合/失敗:', field, e.message);
+        return [];
+    }
+}
+// ▲▲▲ 注文の早い者勝ち取得 ▲▲▲
+
 function startTablesListener() {
   return onSnapshot(collection(db, "stores/mifune_test/tables"), (snapshot) => {
 if(window.isEditing) return;
@@ -227,18 +251,18 @@ if (!docSnap.metadata.hasPendingWrites) {
     }
 }
 
-// ▼ モバイルオーダー検知・自動キッチン印刷
+// ▼ モバイルオーダー検知・自動キッチン印刷（早い者勝ち：掴めた1台だけが印刷）
 const mobileOrders = data.mobileOrders || [];
 if (mobileOrders.length > 0) {
-    setDoc(doc(db, "stores/mifune_test/tables", tId), { mobileOrders: [] }, { merge: true }).then(async () => {
-        await autoKitchenPrint(tId, mobileOrders, 'M');
+    claimOrders(tId, 'mobileOrders').then(async (claimed) => {
+        if (claimed.length > 0) await autoKitchenPrint(tId, claimed, 'M');
     });
 }
-// ▼ ハンディオーダー検知・自動キッチン印刷
+// ▼ ハンディオーダー検知・自動キッチン印刷（早い者勝ち：掴めた1台だけが印刷）
 const handyOrders = data.handyOrders || [];
 if (handyOrders.length > 0) {
-    setDoc(doc(db, "stores/mifune_test/tables", tId), { handyOrders: [] }, { merge: true }).then(async () => {
-        await autoKitchenPrint(tId, handyOrders, 'H');
+    claimOrders(tId, 'handyOrders').then(async (claimed) => {
+        if (claimed.length > 0) await autoKitchenPrint(tId, claimed, 'H');
     });
 }
 // ▲ オーダー検知
