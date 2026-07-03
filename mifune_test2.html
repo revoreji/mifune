@@ -140,7 +140,7 @@ footer { width: 100%; display: flex; flex-direction: column; z-index: 100; box-s
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, addDoc, query, orderBy, getDocs, where, Timestamp, serverTimestamp, arrayUnion, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, collection, addDoc, query, orderBy, getDocs, where, Timestamp, serverTimestamp, arrayUnion, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -237,6 +237,11 @@ async function appendOrderToCloud(tableId, newItems) {
     localStorage.setItem('history_' + tableId, JSON.stringify(merged));
     return merged;
 }
+window.appendOrderToCloud = appendOrderToCloud;
+// 卓の最新データをサーバーから1件取得（卓を開くときの読み直し用）
+window.fetchTableFresh = (tId) => getDoc(doc(db, "stores/mifune_test2/tables", tId));
+// 人数・入店時刻だけを書き込む（履歴には一切触れない）
+window.updateTableMeta = (tId, guests, checkin) => setDoc(doc(db, "stores/mifune_test2/tables", tId), { guests: guests, checkin: checkin, updatedAt: Timestamp.now() }, { merge: true });
 // ▲▲▲ 注文の追記書き込み ▲▲▲
 
 function startTablesListener() {
@@ -1263,9 +1268,9 @@ async function onTableClick(tId) {
     currentTable = tId;
     // 卓を開く瞬間にサーバーから最新を読み直す（古い控えのまま操作が始まる事故の防止）
     try {
-        const snap = await getDocs(query(collection(db, "stores/mifune_test2/tables"), where('__name__', '==', tId)));
-        if (!snap.empty) {
-            const d = snap.docs[0].data();
+        const snap = await window.fetchTableFresh(tId);
+        if (snap.exists()) {
+            const d = snap.data();
             localStorage.setItem('history_' + tId, JSON.stringify(d.history || []));
             localStorage.setItem('guests_' + tId, d.guests || 0);
             localStorage.setItem('checkin_' + tId, d.checkin || "--:--");
@@ -1550,7 +1555,7 @@ function showPickerModal(title, options) {
 function showGuestInput() { hideAll(); tempGuestCount = "0"; document.getElementById('guest-table-name').innerText = currentTable + "番席"; document.getElementById('guest-count-val').innerText = tempGuestCount; document.getElementById('view-guest').style.display = 'flex'; const k = document.getElementById('guest-keypad'); k.innerHTML = [1,2,3,4,5,6,7,8,9,'C',0,'決定'].map(num => { let s = num === '決定' ? 'background:var(--accent); color:#fff;' : ''; let f = num === '決定' ? 'confirmGuestCount()' : (num === 'C' ? 'clearGuestNum()' : `inputGuestNum(${num})`); return `<button class="key-btn" style="${s}" onclick="${f}">${num}</button>`; }).join(''); }
 function inputGuestNum(n) { if(tempGuestCount === "0") tempGuestCount = n.toString(); else if(tempGuestCount.length < 2) tempGuestCount += n.toString(); document.getElementById('guest-count-val').innerText = tempGuestCount; }
 function clearGuestNum() { tempGuestCount = "0"; document.getElementById('guest-count-val').innerText = tempGuestCount; }
-async function confirmGuestCount() { let c = parseInt(tempGuestCount); if(c < 1) return alert("人数を入力してください"); localStorage.setItem('guests_' + currentTable, c); const now = new Date(); localStorage.setItem('checkin_' + currentTable, now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0')); try { await setDoc(doc(db, "stores/mifune_test2/tables", currentTable), { guests: c, checkin: localStorage.getItem('checkin_' + currentTable), updatedAt: Timestamp.now() }, { merge: true }); } catch(e) { console.warn('チェックイン同期失敗:', e.message); } showMenu(); }
+async function confirmGuestCount() { let c = parseInt(tempGuestCount); if(c < 1) return alert("人数を入力してください"); localStorage.setItem('guests_' + currentTable, c); const now = new Date(); localStorage.setItem('checkin_' + currentTable, now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0')); try { await window.updateTableMeta(currentTable, c, localStorage.getItem('checkin_' + currentTable)); } catch(e) { console.warn('チェックイン同期失敗:', e.message); } showMenu(); }
 function showMenu() { window.isEditing = false; currentCart = JSON.parse(localStorage.getItem('cart_'+currentTable) || '[]'); hideAll(); document.getElementById('view-menu').style.display = 'flex'; document.getElementById('display-table-id').innerText = currentTable; document.getElementById('display-guest-count').innerText = localStorage.getItem('guests_' + currentTable) || "0"; document.getElementById('display-checkin-time').innerText = localStorage.getItem('checkin_' + currentTable) || "--:--"; renderSidebar(); renderItems(menuData[0]); updateFooter(); buildPopularCategory(); }
 function renderSidebar() { const side = document.getElementById('side-cats'); side.innerHTML = menuData.map((d, idx) => `<div class="cat" onclick="changeCat(this, ${idx})">${d.cat}</div>`).join(''); side.children[0].classList.add('active'); }
 function changeCat(el, idx) { document.querySelectorAll('.cat').forEach(c => c.classList.remove('active')); el.classList.add('active'); renderItems(menuData[idx]); document.getElementById('display-items').scrollTop = 0; }
