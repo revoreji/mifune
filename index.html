@@ -1683,6 +1683,9 @@ let coReceivedStr = '';
 let coReceiptMode = 'receipt';
 function showCheckout() {
   window._coProcessing = false; // 新しい会計なのでフラグをリセット
+  // ガードが残した「薄さ」と文字を必ず元に戻す（戻し忘れによる薄いボタンのバグ修正）
+  const _cb = document.getElementById('co-confirm-btn');
+  if (_cb) { _cb.style.opacity = '1'; _cb.textContent = '会計を確定する'; }
   const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]');
   const g    = localStorage.getItem('guests_'+currentTable) || 0;
   const c    = localStorage.getItem('checkin_'+currentTable) || '--:--';
