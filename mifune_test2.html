@@ -647,7 +647,7 @@ window.printStandaloneRyoshu = async function() {
     <div style="margin-top:10px; color:#999; font-size:13px; cursor:pointer; text-align:center;" onclick="closeCustomItem()">キャンセル</div>
 </div>
 </div>
-<div id="view-cart" class="view"><header><span class="back-btn" onclick="exitEditing()">＜</span>カート確認</header><div class="list-container" id="cart-items-list"></div><div style="background:#fff; border-top:1px solid #eee; padding-bottom:10px;"><button class="btn-large" style="background:var(--info); color:white;" onclick="testSend()">送信(同期のみ)</button><button id="btn-send-kitchen" class="btn-large" style="background:var(--primary);color:white;" onclick="sendToKitchen()">本番送信</button></div></div>
+<div id="view-cart" class="view"><header><span class="back-btn" onclick="exitEditing()">＜</span>カート確認</header><div class="list-container" id="cart-items-list"></div><div style="background:#fff; border-top:1px solid #eee; padding-bottom:10px;"><button id="btn-send-sync" class="btn-large" style="background:var(--info); color:white;" onclick="testSend()">送信(同期のみ)</button><button id="btn-send-kitchen" class="btn-large" style="background:var(--primary);color:white;" onclick="sendToKitchen()">本番送信</button></div></div>
 <div id="view-history" class="view"><header><span class="back-btn" onclick="exitEditing()">＜</span>注文一覧・取消</header><div class="list-container" id="history-items-list"></div>
 <div id="cancel-bar" style="display:none; background:#fff3f3; border-top:2px solid var(--danger); padding:10px;">
   <div style="font-weight:bold; color:var(--danger); margin-bottom:6px;">【取消】<span id="cancel-item-name"></span></div>
@@ -1897,7 +1897,16 @@ function updateFooter() { document.getElementById('cart-count').innerText = curr
 function openReceiptChoice() { payCo(); }
 function renderReceiptSample() {}
 function closeReceiptChoice() {}
-async function testSend() { if(currentCart.length === 0) return alert("空です"); const sentItems = currentCart.slice(); try { await appendOrderToCloud(currentTable, sentItems); } catch(e) { return alert("同期失敗（電波を確認して再送信してください）: " + e.message); } window.saveOrderLog(currentTable, sentItems); localStorage.removeItem('cart_'+currentTable); currentCart = []; await startCountdownIfNeeded(currentTable); hideAll(); document.getElementById('view-success').style.display = 'flex'; updateFooter(); }
+async function testSend() {
+    if(currentCart.length === 0) return alert("空です");
+    // 二度押しガード（本番送信と同じ方式：追記完了までボタンを無効化）
+    const _sb = document.getElementById('btn-send-sync');
+    if (_sb) { if (_sb.disabled) return; _sb.disabled = true; _sb.style.opacity = '0.6'; _sb.textContent = '送信中...'; }
+    const _sbRestore = () => { if (_sb) { _sb.disabled = false; _sb.style.opacity = '1'; _sb.textContent = '送信(同期のみ)'; } };
+    const sentItems = currentCart.slice();
+    try { await appendOrderToCloud(currentTable, sentItems); } catch(e) { _sbRestore(); return alert("同期失敗（電波を確認して再送信してください）: " + e.message); }
+    _sbRestore();
+    window.saveOrderLog(currentTable, sentItems); localStorage.removeItem('cart_'+currentTable); currentCart = []; await startCountdownIfNeeded(currentTable); hideAll(); document.getElementById('view-success').style.display = 'flex'; updateFooter(); }
 async function testPay() {
     if(window.saveSaleToCloud) await window.saveSaleToCloud(currentTable, currentPaymentMethod);
     showIndex();
