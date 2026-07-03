@@ -224,6 +224,8 @@ async function claimOrders(tId, field) {
 // 同時に2台が送信しても、順番に追記されて両方残る。
 // 書き込み後、サーバー確定値で手元の控えを更新する（古い控えもここで治る）。
 async function appendOrderToCloud(tableId, newItems) {
+    // 旧方式(JSON経由)と同じ整形：未定義の項目を落としてFirestoreが拒否しない形にする
+    newItems = JSON.parse(JSON.stringify(newItems));
     const ref = doc(db, "stores/mifune_test2/tables", tableId);
     const merged = await runTransaction(db, async (tx) => {
         const snap = await tx.get(ref);
@@ -1742,7 +1744,7 @@ try {
         _sendBtn.style.opacity = '1';
         _sendBtn.textContent = '本番送信';
     }
-    alert('送信に失敗しました');
+    alert('送信に失敗しました: ' + (e && e.message ? e.message : e));
 }
 }
 
