@@ -1796,7 +1796,10 @@ let _qseq = 0;
 function card3(item, rankIdx, suggest) {
     const rate = (item.c === '無人' || item.c === 'テイクアウト') ? 0 : 0.10;
     const qId = 'q3-' + (_qseq++);
-    return `<div class="${suggest ? 'suggest-card3' : 'item-card3'}">${rankIdx != null ? `<span class="rank3">${rankIdx + 1}</span>` : ''}<div class="item-main3" style="display:flex; align-items:center; gap:8px; min-width:0;"><div class="item-name3" style="flex:1; min-width:0;">${item.n}</div><div class="item-price3" style="white-space:nowrap; margin-top:0;"><b>¥${item.p.toLocaleString()}</b></div></div><div style="display:flex;align-items:center;gap:2px;flex-shrink:0;"><div class="qbtn3" onclick="changeQty('${qId}',-1)">−</div><span id="${qId}" class="qnum3">1</span><div class="qbtn3" onclick="changeQty('${qId}',1)">＋</div></div><button class="add-btn3" onclick="addToCart('${item.n}', ${item.p}, '${qId}', ${rate}, '${item.c}', this)">追加</button></div>`;
+    return `<div class="${suggest ? 'suggest-card3' : 'item-card3'}" style="flex-direction:column; align-items:stretch; gap:7px;">
+      <div style="display:flex; align-items:center; gap:8px;">${rankIdx != null ? `<span class="rank3">${rankIdx + 1}</span>` : ''}<div class="item-name3" style="flex:1; min-width:0;">${item.n}</div></div>
+      <div style="display:flex; align-items:center; gap:8px;"><div class="item-price3" style="flex:1; margin-top:0;"><b>¥${item.p.toLocaleString()}</b></div><div style="display:flex;align-items:center;gap:2px;flex-shrink:0;"><div class="qbtn3" onclick="changeQty('${qId}',-1)">−</div><span id="${qId}" class="qnum3">1</span><div class="qbtn3" onclick="changeQty('${qId}',1)">＋</div></div><button class="add-btn3" onclick="addToCart('${item.n}', ${item.p}, '${qId}', ${rate}, '${item.c}', this)">追加</button></div>
+    </div>`;
 }
 function renderFeed() {
     _qseq = 0;
