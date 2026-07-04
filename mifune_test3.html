@@ -1812,7 +1812,9 @@ function renderFeed() {
     const accs = '<div class="hot-label" style="margin-top:6px;">ジャンルから探す</div>' +
         CAT_ORDER3.map((c, ci) => `<div class="acc" id="acc3-${ci}"><div class="acc-head" onclick="document.getElementById('acc3-${ci}').classList.toggle('open')">${c}<span class="cnt">${CAT_ITEMS3[c].length}品</span><span class="arrow">▶</span></div><div class="acc-body">${CAT_ITEMS3[c].map(it => card3(it, null, false)).join('')}</div></div>`).join('');
     const customBtn = `<button onclick="openCustomItem()" style="width:100%; margin-top:10px; padding:16px; border:2px dashed #c6c9cf; border-radius:16px; background:transparent; color:#7a8088; font-size:15px; font-weight:800;">＋ カスタム商品を追加（メニューに無い品）</button>`;
-    document.getElementById('item-feed').innerHTML = popular + accs + customBtn;
+    const feed = document.getElementById('item-feed');
+    feed.innerHTML = popular + accs + customBtn;
+    feed.scrollTop = 0; // 卓を開くたびリストの一番上（お通し）から
 }
 // 検索（ひらがな⇔カタカナ同一視＋読みがな辞書。候補は入力欄の真上に湧く）
 function toKatakana(str) { return str.replace(/[\u3041-\u3096]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 0x60)); }
