@@ -1362,11 +1362,17 @@ async function showAdmin(mode) {
 // 日計：その日の売上のみ。削除機能なし（訂正はuriage.htmlで）
 function renderDaySales(sales) {
     let total = 0, guests = 0; const pay = {};
-    sales.forEach(s => { total += s.total || 0; guests += s.guests || 0; const p = s.paymentMethod || '現金'; pay[p] = (pay[p] || 0) + (s.total || 0); });
+    let motsu = 0, sei = 0;
+    sales.forEach(s => {
+        total += s.total || 0; guests += s.guests || 0;
+        const p = s.paymentMethod || '現金'; pay[p] = (pay[p] || 0) + (s.total || 0);
+        (s.items || []).forEach(i => { const sk = skewerCount(i.name, i.qty); motsu += sk.motsu; sei += sk.sei; });
+    });
     document.getElementById('sum-count').innerText = sales.length;
     document.getElementById('sum-guests').innerText = guests;
     document.getElementById('sum-total').innerText = total.toLocaleString();
-    document.getElementById('payment-summary-area').innerHTML = Object.entries(pay).map(([k, v]) => `<span>${k}: ¥${v.toLocaleString()}</span>`).join('') || '';
+    const payHtml = Object.entries(pay).map(([k, v]) => `<span>${k}: ¥${v.toLocaleString()}</span>`).join('') || '';
+    document.getElementById('payment-summary-area').innerHTML = payHtml + `<span style="margin-left:10px; font-weight:bold;">もつ串: ${motsu}串 / 鳥精肉: ${sei}串</span>`;
     document.getElementById('sales-type-summary-area').style.display = 'none';
     document.getElementById('sales-list').innerHTML = sales.map(s =>
         `<div class="sale-card" onclick="showSaleDetail(${JSON.stringify(s).replace(/"/g,'&quot;')})" style="cursor:pointer;"><div class="sale-time-row"><span class="sale-time">${s.checkout || ''}</span><span class="sale-table-badge">${s.tableId}番</span></div><div class="sale-detail-info">客: ${s.guests}名 / 入店: ${s.checkin || '--:--'} / ${s.paymentMethod || '現金'}</div><div class="sale-total-line"><span class="sale-price-big">¥${(s.total || 0).toLocaleString()}</span></div></div>`
@@ -1375,16 +1381,18 @@ function renderDaySales(sales) {
 // 月計：その月の合計と日別の内訳
 function renderMonthSales(sales, m) {
     let total = 0, guests = 0; const dayMap = {};
+    let motsu = 0, sei = 0;
     sales.forEach(s => {
         total += s.total || 0; guests += s.guests || 0;
         const dd = s.timestamp.toDate().getDate();
         if (!dayMap[dd]) dayMap[dd] = { total: 0, count: 0 };
         dayMap[dd].total += s.total || 0; dayMap[dd].count++;
+        (s.items || []).forEach(i => { const sk = skewerCount(i.name, i.qty); motsu += sk.motsu; sei += sk.sei; });
     });
     document.getElementById('sum-count').innerText = sales.length;
     document.getElementById('sum-guests').innerText = guests;
     document.getElementById('sum-total').innerText = total.toLocaleString();
-    document.getElementById('payment-summary-area').innerHTML = '';
+    document.getElementById('payment-summary-area').innerHTML = `<span style="font-weight:bold;">もつ串: ${motsu}串 / 鳥精肉: ${sei}串</span>`;
     document.getElementById('sales-type-summary-area').style.display = 'none';
     document.getElementById('sales-list').innerHTML = Object.keys(dayMap).map(Number).sort((a, b) => b - a).map(dd =>
         `<div class="sale-card"><div class="sale-time-row"><span class="sale-time">${m}/${dd}</span><span class="sale-table-badge">${dayMap[dd].count}件</span></div><div class="sale-total-line"><span class="sale-price-big">¥${dayMap[dd].total.toLocaleString()}</span></div></div>`
