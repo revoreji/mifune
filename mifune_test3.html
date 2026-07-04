@@ -1343,24 +1343,28 @@ async function showAdmin(mode) {
     document.getElementById('admin-month-area').style.display = mode === 'month' ? 'flex' : 'none';
     const list = document.getElementById('sales-list');
     list.innerHTML = '<p style="text-align:center; padding:50px;">読み込み中...</p>';
+    // 前回の表示を消す（読み込み中に古い数字が残って誤解させないように）
+    ['sum-count','sum-guests','sum-total'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = '…'; });
+    const _paClear = document.getElementById('payment-summary-area'); if (_paClear) _paClear.innerHTML = '';
     // 連続タップ対策：最後の呼び出しだけが画面を描く（古い呼び出しの結果は捨てる）
     window._adminSeq = (window._adminSeq || 0) + 1;
     const _mySeq = window._adminSeq;
     const _t0 = performance.now();
     try {
         const now = new Date();
+        const _timeout = (p) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('通信が不安定です（10秒応答なし）')), 10000))]);
         let _sales;
         if (mode === 'month') {
             const inp = document.getElementById('admin-month');
             if (!inp.value) inp.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
             const [y, m] = inp.value.split('-').map(Number);
-            _sales = await window.getSalesMonth(y, m);
+            _sales = await _timeout(window.getSalesMonth(y, m));
             if (_mySeq !== window._adminSeq) return; // 後から来た呼び出しに譲る
             renderMonthSales(_sales, m);
         } else {
             const inp = document.getElementById('admin-date');
             if (!inp.value) inp.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-            _sales = await window.getSalesDayByDate(new Date(inp.value + 'T12:00:00'));
+            _sales = await _timeout(window.getSalesDayByDate(new Date(inp.value + 'T12:00:00')));
             if (_mySeq !== window._adminSeq) return;
             renderDaySales(_sales);
         }
@@ -1369,7 +1373,8 @@ async function showAdmin(mode) {
         const _pa = document.getElementById('payment-summary-area');
         if (_pa) _pa.innerHTML += `<span style="margin-left:10px; color:#999; font-size:11px;">読込 ${_sec}秒</span>`;
     } catch(e) {
-        list.innerHTML = `<p style="text-align:center; padding:30px; color:var(--danger);">読み込み失敗: ${e.message}</p>`;
+        if (_mySeq !== window._adminSeq) return;
+        list.innerHTML = `<p style="text-align:center; padding:30px; color:var(--danger);">読み込み失敗: ${e.message}</p><p style="text-align:center;"><button onclick="showAdmin('${mode}')" style="padding:12px 24px; border:none; border-radius:10px; background:var(--primary); color:#fff; font-weight:bold; font-size:15px;">再読み込み</button></p>`;
     }
 }
 // 日計：その日の売上のみ。削除機能なし（訂正はuriage.htmlで）
