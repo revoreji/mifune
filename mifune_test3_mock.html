@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>【テスト3】三船POS UIモック</title>
+<style>
+:root {
+  --primary: #e8930c;
+  --primary-deep: #c97a00;
+  --ink: #1f2328;
+  --sub: #7a8088;
+  --bg: #f4f4f6;
+  --card: #ffffff;
+  --accent: #15803d;
+  --danger: #d64545;
+  --radius: 16px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: -apple-system, "Hiragino Sans", "Yu Gothic", sans-serif; background: var(--bg); color: var(--ink); }
+
+.mock-banner { background: #4a148c; color: #fff; text-align: center; padding: 4px; font-size: 11px; font-weight: bold; }
+
+/* ===== 画面共通 ===== */
+.view { display: none; height: 100dvh; flex-direction: column; }
+.view.active { display: flex; }
+
+/* ===== 席選択 ===== */
+.seat-header { padding: 14px 16px 10px; font-size: 20px; font-weight: 800; }
+.seat-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 14px 20px; align-content: start; }
+.seat { background: var(--card); border: 2px solid #35c26a; border-radius: var(--radius); padding: 18px 4px; text-align: center; font-weight: 800; font-size: 17px; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+.seat small { display: block; font-weight: 600; color: var(--primary); font-size: 11px; margin-top: 4px; }
+.seat.busy { border-color: var(--primary); background: #fff7ec; }
+.seat.busy small { color: var(--danger); }
+
+/* ===== 注文画面 ===== */
+.order-header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--card); border-bottom: 1px solid #e8e8ec; flex-shrink: 0; }
+.back { font-size: 22px; font-weight: 800; padding: 4px 10px 4px 0; color: var(--sub); }
+.table-name { font-size: 18px; font-weight: 800; }
+.guest-chip { font-size: 13px; font-weight: 700; color: var(--ink); border: 1.5px dashed #c6c9cf; border-radius: 10px; padding: 4px 8px; }
+.checkin { margin-left: auto; font-size: 11px; color: var(--sub); }
+
+/* 人気順リスト（主役） */
+.hot-label { padding: 10px 16px 4px; font-size: 12px; font-weight: 800; color: var(--sub); letter-spacing: .08em; }
+.item-feed { flex: 1; overflow-y: auto; padding: 0 12px 12px; overscroll-behavior: contain; }
+.item-card { display: flex; align-items: center; gap: 10px; background: var(--card); border-radius: var(--radius); padding: 14px 14px; margin-bottom: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+.rank { font-size: 12px; font-weight: 800; color: #c9ccd2; width: 20px; text-align: center; flex-shrink: 0; }
+.item-main { flex: 1; min-width: 0; }
+.item-name { font-size: 16px; font-weight: 800; line-height: 1.25; }
+.item-price { font-size: 13px; color: var(--sub); font-weight: 700; margin-top: 2px; }
+.item-price b { color: var(--primary-deep); font-size: 15px; }
+.qty-ctl { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.qbtn { width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid #d9dce1; background: #fff; font-size: 20px; font-weight: 800; color: var(--ink); display: flex; align-items: center; justify-content: center; }
+.qnum { width: 30px; text-align: center; font-size: 18px; font-weight: 800; }
+.add-btn { flex-shrink: 0; background: var(--primary); color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 800; padding: 12px 18px; box-shadow: 0 2px 6px rgba(232,147,12,.35); }
+.add-btn:active { transform: scale(.96); }
+
+/* ===== 下部固定：検索＋カート（親指ゾーン） ===== */
+.bottom-dock { flex-shrink: 0; background: var(--card); border-top: 1px solid #e8e8ec; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); box-shadow: 0 -4px 16px rgba(0,0,0,.06); }
+.search-row { display: flex; align-items: center; gap: 8px; }
+.search-box { flex: 1; display: flex; align-items: center; gap: 8px; background: #f0f1f4; border: 2px solid transparent; border-radius: 14px; padding: 12px 14px; }
+.search-box.focused { border-color: var(--primary); background: #fff; }
+.search-box span { font-size: 17px; }
+#search-input { flex: 1; border: none; background: transparent; font-size: 16px; font-weight: 700; outline: none; min-width: 0; }
+#search-clear { display: none; border: none; background: #d9dce1; color: #555; width: 28px; height: 28px; border-radius: 50%; font-size: 15px; font-weight: 800; flex-shrink: 0; }
+.cart-bar { display: flex; align-items: center; margin-top: 8px; background: var(--ink); color: #fff; border-radius: 14px; padding: 14px 16px; font-size: 16px; font-weight: 800; }
+.cart-count { background: var(--primary); border-radius: 10px; padding: 2px 10px; margin-right: 10px; }
+.cart-total { margin-left: auto; }
+
+/* ===== 検索候補（入力欄の真上に湧く・チャット式） ===== */
+#suggest-panel { position: fixed; left: 0; right: 0; bottom: 0; display: none; flex-direction: column-reverse; max-height: 46dvh; overflow-y: auto; padding: 8px 12px; gap: 6px; z-index: 40; overscroll-behavior: contain; }
+#suggest-panel.open { display: flex; }
+.suggest-card { display: flex; align-items: center; gap: 10px; background: var(--card); border-radius: 14px; padding: 12px 14px; box-shadow: 0 2px 10px rgba(0,0,0,.12); animation: pop .12s ease-out; }
+@keyframes pop { from { transform: translateY(6px); opacity: 0; } to { transform: none; opacity: 1; } }
+.suggest-none { text-align: center; color: #fff; background: rgba(31,35,40,.75); border-radius: 12px; padding: 10px; font-size: 13px; font-weight: 700; }
+#dock-wrap { position: relative; z-index: 50; }
+#scrim { position: fixed; inset: 0; background: rgba(0,0,0,.28); display: none; z-index: 30; }
+#scrim.open { display: block; }
+
+/* ===== 追加の吹き出し（チャット風フィードバック） ===== */
+#toast-area { position: fixed; left: 0; right: 0; bottom: 150px; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; z-index: 60; }
+.toast { background: rgba(21,128,61,.95); color: #fff; font-size: 14px; font-weight: 800; padding: 10px 18px; border-radius: 999px; box-shadow: 0 4px 14px rgba(0,0,0,.25); animation: rise 1.6s ease forwards; }
+@keyframes rise { 0% { transform: translateY(10px); opacity: 0; } 12% { transform: none; opacity: 1; } 80% { opacity: 1; } 100% { transform: translateY(-8px); opacity: 0; } }
+
+/* ===== カート確認シート ===== */
+#cart-sheet { position: fixed; left: 0; right: 0; bottom: -100%; max-height: 78dvh; background: var(--card); border-radius: 22px 22px 0 0; box-shadow: 0 -8px 30px rgba(0,0,0,.25); transition: bottom .22s ease; z-index: 70; display: flex; flex-direction: column; }
+#cart-sheet.open { bottom: 0; }
+.sheet-head { padding: 14px 18px 8px; font-size: 17px; font-weight: 800; display: flex; align-items: center; }
+.sheet-close { margin-left: auto; font-size: 22px; color: var(--sub); padding: 0 6px; }
+.sheet-body { flex: 1; overflow-y: auto; padding: 0 16px; }
+.cart-line { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #f0f1f4; }
+.cart-line .nm { flex: 1; font-size: 15px; font-weight: 700; }
+.cart-line .pr { font-size: 14px; font-weight: 800; color: var(--primary-deep); width: 76px; text-align: right; }
+.sheet-foot { padding: 12px 16px calc(14px + env(safe-area-inset-bottom)); border-top: 1px solid #eee; }
+.send-btn { width: 100%; background: var(--accent); color: #fff; border: none; border-radius: 14px; padding: 16px; font-size: 17px; font-weight: 800; box-shadow: 0 4px 12px rgba(21,128,61,.35); }
+</style>
+</head>
+<body>
+<div class="mock-banner">⚠ テスト3・UIモックアップ — 印刷もデータ保存もされません（見た目と操作感の検証用）</div>
+
+<!-- 席選択 -->
+<div id="view-seats" class="view active">
+  <div class="seat-header">三船 席選択</div>
+  <div class="seat-grid" id="seat-grid"></div>
+</div>
+
+<!-- 注文画面 -->
+<div id="view-order" class="view">
+  <div class="order-header">
+    <span class="back" onclick="showSeats()">×</span>
+    <span class="table-name" id="hd-table"></span>
+    <span class="guest-chip" onclick="mockToast('人数変更（モック）')">2名 ✎</span>
+    <span class="checkin">入店 <span id="hd-checkin"></span></span>
+  </div>
+  <div class="hot-label">よく出る順（固定リスト・編集可）</div>
+  <div class="item-feed" id="item-feed"></div>
+  <div id="dock-wrap">
+    <div class="bottom-dock">
+      <div class="search-row">
+        <div class="search-box" id="search-box">
+          <span>🔍</span>
+          <input id="search-input" type="text" placeholder="メニューを検索（ひらがなOK）" autocomplete="off"
+                 oninput="onSearch(this.value)" onfocus="openSearch()" >
+          <button id="search-clear" onclick="clearSearch()">×</button>
+        </div>
+      </div>
+      <div class="cart-bar" onclick="openCart()">
+        <span class="cart-count" id="cart-count">0点</span> 注文を確認
+        <span class="cart-total" id="cart-total">¥0</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="scrim" onclick="closeSearch()"></div>
+<div id="suggest-panel"></div>
+<div id="toast-area"></div>
+
+<!-- カート確認シート -->
+<div id="cart-sheet">
+  <div class="sheet-head">注文の確認 <span class="sheet-close" onclick="closeCart()">×</span></div>
+  <div class="sheet-body" id="cart-lines"></div>
+  <div class="sheet-foot"><button class="send-btn" onclick="mockSend()">本番送信（モック）</button></div>
+</div>
+
+<script>
+/* ====== メニューデータ（テスト2から移植・後で結合） ====== */
+const rawData = [
+    ["お通し", "お通し", 300],
+    ["もつ串", "美唄焼鳥", 170],
+    ["鳥精肉", "美唄焼鳥", 180],
+    ["飲み放題男性90分", "飲み放題", 2480],
+    ["飲み放題女性90分", "飲み放題", 2280],
+    ["飲み放題延長", "飲み放題", 800],
+    ["手羽焼き（2本）", "焼きもの", 400],
+    ["国産豚のロース網焼きステーキ", "焼きもの", 700],
+    ["ハーブ豚の網焼きステーキ（1枚）", "焼きもの", 900],
+    ["ハーブ豚の炙りチャーシュー", "焼きもの", 800],
+    ["自家製つくねのコロコロ焼き（4玉）", "焼きもの", 500],
+    ["ささみ串", "焼きもの", 300],
+    ["ささみ串自家製麹漬け（数量限定）", "焼きもの", 300],
+    ["鴨肉の網焼き", "焼きもの", 700],
+    ["ピリ辛ソーセージ（2本）", "焼きもの", 500],
+    ["うずらの玉子（1串）", "焼きもの", 200],
+    ["しいたけ（2個）", "焼きもの", 300],
+    ["プチトマト（1串）", "焼きもの", 200],
+    ["ズッキーニ（1串）", "焼きもの", 200],
+    ["長なす串焼き（1串）", "焼きもの", 300],
+    ["軟白ねぎ（1串）", "焼きもの", 300],
+    ["ししとう（2串）", "焼きもの", 300],
+    ["オリーブオイルにんにくカップ焼き", "焼きもの", 500],
+    ["焼きじゃがバター（2個）", "焼きもの", 500],
+    ["焼きじゃがバター（塩辛付き）（2個）", "焼きもの", 600],
+    ["いももちバター（4個）", "焼きもの", 500],
+    ["鳥もつ煮込み", "一品メニュー", 400],
+    ["特製一口ザンギ", "一品メニュー", 600],
+    ["手羽ザンギ(3本)", "一品メニュー", 600],
+    ["若鶏の皮竜田揚げ(おろしポン酢付き)", "一品メニュー", 600],
+    ["ササミカツ(2枚)", "一品メニュー", 800],
+    ["国産豚のロースカツ", "一品メニュー", 800],
+    ["コーンバター・チーズカップ", "一品メニュー", 600],
+    ["生ハムの軟白ねぎ包み(岩塩付き)", "一品メニュー", 700],
+    ["塩キャベツ", "とりあえず", 400],
+    ["漬物", "とりあえず", 400],
+    ["枝豆", "とりあえず", 400],
+    ["冷奴", "とりあえず", 400],
+    ["山わさび冷奴", "とりあえず", 400],
+    ["なめこおろし", "とりあえず", 400],
+    ["クジラのベーコン ねぎ正油あえ", "酒肴", 800],
+    ["チャンジャ", "酒肴", 400],
+    ["イカの塩辛", "酒肴", 400],
+    ["たこわさび", "酒肴", 400],
+    ["ほたてわさび", "酒肴", 400],
+    ["カニみそとうふ", "酒肴", 500],
+    ["自家製パンチェッタとメークインのオリーブオイル・チーズ熱湯風呂", "オリジナル", 700],
+    ["自家製パンチェッタとコーンのオリーブオイル・チーズ熱湯風呂", "オリジナル", 700],
+    ["チャンジャとクリームチーズのタパス(おつまみ料理)", "オリジナル", 700],
+    ["ハーブ豚チャーシューとマッシュルームのアヒージョ", "オリジナル", 700],
+    ["砂肝とマッシュルームのアヒージョ", "オリジナル", 700],
+    ["タコとマッシュルームのアヒージョ", "オリジナル", 700],
+    ["ピリ辛ソーセージとマッシュルームのアヒージョ", "オリジナル", 700],
+    ["バンズ", "オリジナル", 200],
+    ["まぐろ刺し(数量限定)", "刺身", 800],
+    ["とろしめさば", "刺身", 800],
+    ["たこ頭刺し", "刺身", 700],
+    ["馬刺し(赤身)", "刺身", 1000],
+    ["馬肉ユッケ", "刺身", 1000],
+    ["エイヒレ", "魚類の干物", 400],
+    ["こまい一夜干し", "魚類の干物", 600],
+    ["ししゃも", "魚類の干物", 600],
+    ["鮭とば", "魚類の干物", 500],
+    ["するめいか", "魚類の干物", 500],
+    ["たらこ焼き", "魚類の干物", 500],
+    ["もずく酢", "酢の物", 400],
+    ["ピクルスの盛り合わせ", "酢の物", 600],
+    ["冷しトマト", "サラダ", 400],
+    ["オリジナルサラダ", "サラダ", 700],
+    ["ツナサラダ", "サラダ", 800],
+    ["生ハムサラダ", "サラダ", 800],
+    ["鳥もつ鍋（約2人前）", "鍋物", 2000],
+    ["辛鳥もつ鍋（約2人前）", "鍋物", 2200],
+    ["鴨鍋（約2人前）", "鍋物", 1600],
+    ["湯どうふ", "鍋物", 1000],
+    ["【追加】雑炊セット", "鍋物", 400],
+    ["【追加】単品そば", "鍋物", 400],
+    ["美唄名物とりめし", "ご飯物", 400],
+    ["やきとり丼ぶり", "ご飯物", 700],
+    ["もつ煮込み丼ぶり", "ご飯物", 700],
+    ["炙りチャーシュー丼ぶり", "ご飯物", 800],
+    ["三船特製オムライス", "ご飯物", 800],
+    ["山わさび丼ぶり", "ご飯物", 500],
+    ["ライス", "ご飯物", 300],
+    ["三船名物鳥がらそば", "麺類", 600],
+    ["三船特製ラーメン(正油味のみ)", "麺類", 800],
+    ["三船特製チャーシューメン", "麺類", 1000],
+    ["バターコーンラーメン", "麺類", 1000],
+    ["もつそば(温)", "麺類", 800],
+    ["もつせいろそば(冷)", "麺類", 800],
+    ["鳥せいろそば(冷)", "麺類", 800],
+    ["かしわそば(温)", "麺類", 800],
+    ["スーパードライ 〈中〉", "ビール", 600],
+    ["スーパードライ 〈大〉", "ビール", 700],
+    ["アサヒ マルエフ 〈中瓶〉", "ビール", 700],
+    ["赤星", "ビール", 700],
+    ["アサヒドライゼロ 〈中瓶〉", "ビール", 500],
+    ["ソラチエース", "ビール", 800],
+    ["ハイボール", "ハイボール", 500],
+    ["フロンティアハイボール", "ハイボール", 600],
+    ["コーラハイボール", "ハイボール", 600],
+    ["ジンジャーハイボール", "ハイボール", 600],
+    ["梅酒ロック", "梅酒", 500],
+    ["梅酒ソーダ", "梅酒", 500],
+    ["プレーンサワー", "サワー", 500],
+    ["レモンサワー", "サワー", 500],
+    ["ライムサワー", "サワー", 500],
+    ["カシスサワー", "サワー", 500],
+    ["梅サワー", "サワー", 500],
+    ["グレープフルーツサワー", "サワー", 500],
+    ["ぶどうサワー", "サワー", 500],
+    ["青りんごサワー", "サワー", 500],
+    ["カルピスサワー", "サワー", 500],
+    ["シークァーサーサワー", "サワー", 500],
+    ["ウーロンハイ", "サワー", 500],
+    ["緑茶ハイ", "サワー", 500],
+    ["コーヒー酎ハイ", "サワー", 500],
+    ["生搾りレモンサワー", "サワー", 600],
+    ["生搾りグレープフルーツサワー", "サワー", 600],
+    ["グラスワイン（赤）", "ワイン", 500],
+    ["グラスワイン（白）", "ワイン", 500],
+    ["焼酎甲類（ロック・水割り）", "焼酎", 500],
+    ["㐂六（きろく） 〈宮崎・芋〉", "焼酎", 800],
+    ["山ねこ 〈宮崎・芋〉", "焼酎", 800],
+    ["山せみ 〈宮崎・米〉", "焼酎", 800],
+    ["山猿 〈宮崎・麦〉", "焼酎", 800],
+    ["中々 〈宮崎・麦〉", "焼酎", 800],
+    ["黒霧島 〈宮崎・芋〉", "焼酎", 800],
+    ["海 〈鹿児島・芋〉", "焼酎", 800],
+    ["くじら 〈鹿児島・芋〉", "焼酎", 800],
+    ["よろしく千萬あるべし 〈新潟・米〉", "焼酎", 800],
+    ["カシスソーダ", "カクテル", 600],
+    ["カシスウーロン", "カクテル", 600],
+    ["カシスオレンジ", "カクテル", 600],
+    ["カシスグレープフルーツ", "カクテル", 600],
+    ["ジントニック", "カクテル", 600],
+    ["ラムコーク", "カクテル", 600],
+    ["ワインクーラー", "カクテル", 600],
+    ["クーニャン", "カクテル", 600],
+    ["ファジーネーブル", "カクテル", 600],
+    ["シャンディガフ", "カクテル", 600],
+    ["レッドアイ", "カクテル", 600],
+    ["ブラッディメアリー", "カクテル", 600],
+    ["スクリュードライバー", "カクテル", 600],
+    ["ブルドック", "カクテル", 600],
+    ["モスコミュール", "カクテル", 600],
+    ["コーラ", "ソフトドリンク", 400],
+    ["オレンジジュース", "ソフトドリンク", 400],
+    ["グレープフルーツジュース", "ソフトドリンク", 400],
+    ["カルピス", "ソフトドリンク", 400],
+    ["カルピスソーダ", "ソフトドリンク", 400],
+    ["トマトジュース", "ソフトドリンク", 400],
+    ["ウーロン茶", "ソフトドリンク", 400],
+    ["ほうじ茶", "ソフトドリンク", 400],
+    ["緑茶", "ソフトドリンク", 400],
+    ["ジンジャーエール", "ソフトドリンク", 400],
+    ["アイスクリーム（バニラ・リッツ付き）", "デザート", 400],
+    ["沢の鶴 1合", "日本酒", 600],
+    ["沢の鶴 2合", "日本酒", 900],
+    ["二世古（特別純米新酒しぼり）", "日本酒", 900],
+    ["福司（純米酒）", "日本酒", 900],
+    ["まる田（特別純米）", "日本酒", 900],
+    ["男山（純米生酒）", "日本酒", 900],
+    ["獺祭（純米大吟醸）", "日本酒", 900],
+    ["十一州（吟醸しぼりたて）", "日本酒", 900],
+    ["一ノ蔵（本醸造辛口）", "日本酒", 900],
+    ["ばくれん（吟醸超辛口）", "日本酒", 900],
+    ["くどき上手（純米吟醸辛口）", "日本酒", 900],
+    ["北の勝（清酒）", "日本酒", 900],
+    ["李白（特別純米酒）", "日本酒", 900],
+    ["常山（とびっきり辛口）", "日本酒", 900],
+    ["開運（無濾過純米酒）", "日本酒", 900],
+    ["大和しずく（純米吟醸）", "日本酒", 900],
+    ["越乃寒梅（清酒）", "日本酒", 900],
+    ["八海山（清酒）", "日本酒", 900],
+    ["もつ串 テイクアウト", "テイクアウト", 190],
+    ["精肉 テイクアウト", "テイクアウト", 200],
+    ["もつ煮込み テイクアウト", "テイクアウト", 440],
+    ["もつ串 6本", "無人", 1000],
+    ["鳥精肉 6本", "無人", 1000],
+    ["もつ、精肉 MIX 6本", "無人", 1000],
+    ["弁当A", "無人", 1000],
+    ["弁当B", "無人", 1000]
+];
+const MENU_YOMI = {
+"お通し":"オトウシ オトオシ",
+"もつ串":"モツクシ",
+"鳥精肉":"トリセイニク",
+"飲み放題男性90分":"ノミホウダイダンセイ",
+"飲み放題女性90分":"ノミホウダイジョセイ",
+"飲み放題延長":"ノミホウダイエンチョウ",
+"手羽焼き（2本）":"テバヤキ",
+"国産豚のロース網焼きステーキ":"コクサンブタノロースアミヤキステーキ",
+"ハーブ豚の網焼きステーキ（1枚）":"ハーブブタノアミヤキステーキ",
+"ハーブ豚の炙りチャーシュー":"ハーブブタノアブリチャーシュー",
+"自家製つくねのコロコロ焼き（4玉）":"ジカセイツクネノコロコロヤキ",
+"ささみ串":"ササミクシ",
+"ささみ串自家製麹漬け（数量限定）":"ササミクシジカセイコウジヅケ コウジズケ",
+"鴨肉の網焼き":"カモニクノアミヤキ",
+"ピリ辛ソーセージ（2本）":"ピリカラソーセージ",
+"うずらの玉子（1串）":"ウズラノタマゴ",
+"長なす串焼き（1串）":"ナガナスクシヤキ",
+"軟白ねぎ（1串）":"ナンパクネギ",
+"オリーブオイルにんにくカップ焼き":"オリーブオイルニンニクカップヤキ",
+"焼きじゃがバター（2個）":"ヤキジャガバター",
+"焼きじゃがバター（塩辛付き）（2個）":"ヤキジャガバターシオカラツキ",
+"鳥もつ煮込み":"トリモツニコミ",
+"特製一口ザンギ":"トクセイヒトクチザンギ",
+"手羽ザンギ(3本)":"テバザンギ",
+"若鶏の皮竜田揚げ(おろしポン酢付き)":"ワカドリノカワタツタアゲ オロシポンズ",
+"国産豚のロースカツ":"コクサンブタノロースカツ",
+"生ハムの軟白ねぎ包み(岩塩付き)":"ナマハムノナンパクネギヅツミ イワジオ",
+"塩キャベツ":"シオキャベツ",
+"漬物":"ツケモノ",
+"枝豆":"エダマメ",
+"冷奴":"ヒヤヤッコ",
+"山わさび冷奴":"ヤマワサビヒヤヤッコ",
+"クジラのベーコン ねぎ正油あえ":"クジラノベーコンネギショウユアエ",
+"イカの塩辛":"イカノシオカラ",
+"自家製パンチェッタとメークインのオリーブオイル・チーズ熱湯風呂":"ジカセイパンチェッタトメークインノオリーブオイルチーズネットウブロ",
+"自家製パンチェッタとコーンのオリーブオイル・チーズ熱湯風呂":"ジカセイパンチェッタトコーンノオリーブオイルチーズネットウブロ",
+"チャンジャとクリームチーズのタパス(おつまみ料理)":"チャンジャトクリームチーズノタパス オツマミリョウリ",
+"ハーブ豚チャーシューとマッシュルームのアヒージョ":"ハーブブタチャーシュートマッシュルームノアヒージョ",
+"砂肝とマッシュルームのアヒージョ":"スナギモトマッシュルームノアヒージョ",
+"ピリ辛ソーセージとマッシュルームのアヒージョ":"ピリカラソーセージトマッシュルームノアヒージョ",
+"まぐろ刺し(数量限定)":"マグロサシ",
+"たこ頭刺し":"タコアタマサシ タコカシラサシ",
+"馬刺し(赤身)":"バサシ アカミ",
+"馬肉ユッケ":"バニクユッケ",
+"こまい一夜干し":"コマイイチヤボシ",
+"鮭とば":"サケトバ シャケトバ",
+"たらこ焼き":"タラコヤキ",
+"もずく酢":"モズクス",
+"ピクルスの盛り合わせ":"ピクルスノモリアワセ",
+"冷しトマト":"ヒヤシトマト",
+"生ハムサラダ":"ナマハムサラダ",
+"鳥もつ鍋（約2人前）":"トリモツナベ",
+"辛鳥もつ鍋（約2人前）":"カラトリモツナベ",
+"鴨鍋（約2人前）":"カモナベ",
+"湯どうふ":"ユドウフ ユドーフ",
+"【追加】雑炊セット":"ツイカゾウスイセット",
+"【追加】単品そば":"ツイカタンピンソバ",
+"美唄名物とりめし":"ビバイメイブツトリメシ",
+"やきとり丼ぶり":"ヤキトリドンブリ",
+"もつ煮込み丼ぶり":"モツニコミドンブリ",
+"炙りチャーシュー丼ぶり":"アブリチャーシュードンブリ",
+"三船特製オムライス":"ミフネトクセイオムライス",
+"山わさび丼ぶり":"ヤマワサビドンブリ",
+"三船名物鳥がらそば":"ミフネメイブツトリガラソバ",
+"三船特製ラーメン(正油味のみ)":"ミフネトクセイラーメン ショウユアジ",
+"三船特製チャーシューメン":"ミフネトクセイチャーシューメン",
+"もつそば(温)":"モツソバ",
+"もつせいろそば(冷)":"モツセイロソバ",
+"鳥せいろそば(冷)":"トリセイロソバ",
+"かしわそば(温)":"カシワソバ",
+"スーパードライ 〈中〉":"スーパードライチュウ",
+"スーパードライ 〈大〉":"スーパードライダイ",
+"アサヒ マルエフ 〈中瓶〉":"アサヒマルエフチュウビン",
+"赤星":"アカボシ",
+"アサヒドライゼロ 〈中瓶〉":"アサヒドライゼロチュウビン",
+"梅酒ロック":"ウメシュロック",
+"梅酒ソーダ":"ウメシュソーダ",
+"梅サワー":"ウメサワー",
+"青りんごサワー":"アオリンゴサワー",
+"緑茶ハイ":"リョクチャハイ",
+"コーヒー酎ハイ":"コーヒーチュウハイ",
+"生搾りレモンサワー":"ナマシボリレモンサワー",
+"生搾りグレープフルーツサワー":"ナマシボリグレープフルーツサワー",
+"グラスワイン（赤）":"グラスワインアカ",
+"グラスワイン（白）":"グラスワインシロ",
+"焼酎甲類（ロック・水割り）":"ショウチュウコウルイ ロック ミズワリ",
+"山ねこ 〈宮崎・芋〉":"ヤマネコ ミヤザキ イモ",
+"山せみ 〈宮崎・米〉":"ヤマセミ ミヤザキ コメ",
+"山猿 〈宮崎・麦〉":"ヤマザル ミヤザキ ムギ",
+"中々 〈宮崎・麦〉":"ナカナカ ミヤザキ ムギ",
+"黒霧島 〈宮崎・芋〉":"クロキリシマ ミヤザキ イモ",
+"海 〈鹿児島・芋〉":"ウミ カゴシマ イモ",
+"くじら 〈鹿児島・芋〉":"クジラ カゴシマ イモ",
+"よろしく千萬あるべし 〈新潟・米〉":"ヨロシクセンマンアルベシ ニイガタ コメ",
+"ウーロン茶":"ウーロンチャ",
+"ほうじ茶":"ホウジチャ",
+"緑茶":"リョクチャ",
+"沢の鶴 1合":"サワノツルイチゴウ",
+"沢の鶴 2合":"サワノツルニゴウ",
+"二世古（特別純米新酒しぼり）":"ニセコ トクベツジュンマイシンシュシボリ",
+"福司（純米酒）":"フクツカサ ジュンマイシュ",
+"まる田（特別純米）":"マルタ トクベツジュンマイ",
+"男山（純米生酒）":"オトコヤマ ジュンマイナマザケ",
+"獺祭（純米大吟醸）":"ダッサイ ジュンマイダイギンジョウ",
+"十一州（吟醸しぼりたて）":"ジュウイッシュウ ギンジョウシボリタテ",
+"一ノ蔵（本醸造辛口）":"イチノクラ ホンジョウゾウカラクチ",
+"ばくれん（吟醸超辛口）":"バクレン ギンジョウチョウカラクチ",
+"くどき上手（純米吟醸辛口）":"クドキジョウズ ジュンマイギンジョウカラクチ",
+"北の勝（清酒）":"キタノカツ セイシュ",
+"李白（特別純米酒）":"リハク トクベツジュンマイシュ",
+"常山（とびっきり辛口）":"ジョウザン トビッキリカラクチ",
+"開運（無濾過純米酒）":"カイウン ムロカジュンマイシュ",
+"大和しずく（純米吟醸）":"ヤマトシズク ジュンマイギンジョウ",
+"越乃寒梅（清酒）":"コシノカンバイ セイシュ",
+"八海山（清酒）":"ハッカイサン セイシュ",
+"もつ串 テイクアウト":"モツクシテイクアウト",
+"精肉 テイクアウト":"セイニクテイクアウト",
+"もつ煮込み テイクアウト":"モツニコミテイクアウト",
+"もつ串 6本":"モツクシロッポン",
+"鳥精肉 6本":"トリセイニクロッポン",
+"もつ、精肉 MIX 6本":"モツセイニクミックス",
+"弁当A":"ベントウ",
+"弁当B":"ベントウ"
+};
+
+
+/* ====== 人気順の固定リスト（こうじさんが編集する表） ======
+   上から順に最初の画面に並ぶ。品名はrawDataと完全一致させること */
+const POPULAR_LIST = [
+  "お通し",
+  "もつ串",
+  "鳥精肉",
+  "スーパードライ 〈中〉",
+  "ソラチエース",
+  "ハイボール",
+  "ウーロンハイ",
+  "生搾りレモンサワー",
+  "しいたけ（2個）",
+  "ししとう（2串）",
+  "手羽焼き（2本）",
+  "特製一口ザンギ",
+  "冷しトマト",
+  "枝豆",
+  "鳥もつ煮込み",
+  "うずらの玉子（1串）",
+  "ピリ辛ソーセージ（2本）",
+  "オリジナルサラダ",
+];
+
+/* ====== モックの状態 ====== */
+const ITEM_MAP = {};
+rawData.forEach(r => { if (!ITEM_MAP[r[0]]) ITEM_MAP[r[0]] = { n: r[0], c: r[1], p: r[2] }; });
+let cart = [];
+let qtyState = {};
+
+/* ====== 席選択 ====== */
+const SEATS = ['C-a','C-b','C-c','01','02','03','04','05','06','07','テイクアウト','無人'];
+function renderSeats() {
+  document.getElementById('seat-grid').innerHTML = SEATS.map((s,i) =>
+    `<div class="seat ${i===3?'busy':''}" onclick="openTable('${s}')">${s}<small>${i===3?'¥3,240':'空席'}</small></div>`).join('');
+}
+function showSeats() { document.querySelectorAll('.view').forEach(v=>v.classList.remove('active')); document.getElementById('view-seats').classList.add('active'); }
+function openTable(t) {
+  document.getElementById('hd-table').innerText = t + '番席';
+  const n = new Date();
+  document.getElementById('hd-checkin').innerText = String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-order').classList.add('active');
+  renderFeed();
+}
+
+/* ====== 商品カード（人気順・検索候補で共用） ====== */
+function taxInc(item) {
+  if (item.c === '無人' || item.c === 'テイクアウト') return item.p;
+  return item.p + Math.floor(item.p * 0.10);
+}
+function cardHTML(item, idx, forSuggest) {
+  const key = item.n.replace(/"/g,'');
+  const q = qtyState[item.n] || 1;
+  return `<div class="${forSuggest?'suggest-card':'item-card'}">
+    ${forSuggest?'':(idx!=null?`<span class="rank">${idx+1}</span>`:'')}
+    <div class="item-main">
+      <div class="item-name">${item.n}</div>
+      <div class="item-price"><b>¥${item.p.toLocaleString()}</b>（税込¥${taxInc(item).toLocaleString()}）</div>
+    </div>
+    <div class="qty-ctl">
+      <div class="qbtn" onclick="chgQty('${key}',-1)">−</div>
+      <span class="qnum" id="q-${forSuggest?'s':'f'}-${key}">${q}</span>
+      <div class="qbtn" onclick="chgQty('${key}',1)">＋</div>
+    </div>
+    <button class="add-btn" onclick="addItem('${key}')">追加</button>
+  </div>`;
+}
+function chgQty(name, d) {
+  qtyState[name] = Math.max(1, (qtyState[name]||1) + d);
+  const q = qtyState[name];
+  ['f','s'].forEach(p => { const el = document.getElementById(`q-${p}-${name}`); if (el) el.innerText = q; });
+}
+function addItem(name) {
+  const item = ITEM_MAP[name]; if (!item) return;
+  const q = qtyState[name] || 1;
+  const exist = cart.find(c => c.n === name);
+  if (exist) exist.q += q; else cart.push({ n: name, p: item.p, c: item.c, q });
+  qtyState[name] = 1;
+  ['f','s'].forEach(p => { const el = document.getElementById(`q-${p}-${name}`); if (el) el.innerText = 1; });
+  updateCartBar();
+  toast(`${name} ×${q} 追加`);
+}
+function toast(msg) {
+  const t = document.createElement('div'); t.className = 'toast'; t.innerText = msg;
+  document.getElementById('toast-area').appendChild(t);
+  setTimeout(() => t.remove(), 1700);
+}
+function mockToast(m){ toast(m); }
+function updateCartBar() {
+  const pts = cart.reduce((s,c)=>s+c.q,0);
+  const total = cart.reduce((s,c)=>s + taxInc(c)*c.q, 0);
+  document.getElementById('cart-count').innerText = pts + '点';
+  document.getElementById('cart-total').innerText = '¥' + total.toLocaleString();
+}
+
+/* ====== 人気順フィード ====== */
+function renderFeed() {
+  document.getElementById('item-feed').innerHTML =
+    POPULAR_LIST.map((n,i) => ITEM_MAP[n] ? cardHTML(ITEM_MAP[n], i, false) : '').join('');
+}
+
+/* ====== 検索（チャット式：候補が入力欄の真上に湧く） ====== */
+function toKatakana(str) { return str.replace(/[\u3041-\u3096]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 0x60)); }
+function normSearch(str) { return toKatakana((str || '').trim().toLowerCase()); }
+function openSearch() {
+  document.getElementById('search-box').classList.add('focused');
+  document.getElementById('scrim').classList.add('open');
+  onSearch(document.getElementById('search-input').value);
+}
+function closeSearch() {
+  document.getElementById('search-box').classList.remove('focused');
+  document.getElementById('scrim').classList.remove('open');
+  document.getElementById('suggest-panel').classList.remove('open');
+  document.getElementById('search-input').blur();
+}
+function clearSearch() {
+  const si = document.getElementById('search-input'); si.value = '';
+  document.getElementById('search-clear').style.display = 'none';
+  onSearch(''); si.focus();
+}
+function onSearch(v) {
+  const panel = document.getElementById('suggest-panel');
+  document.getElementById('search-clear').style.display = v ? 'block' : 'none';
+  const query = normSearch(v);
+  if (!query) { panel.classList.remove('open'); panel.innerHTML=''; return; }
+  const hits = [];
+  for (const name in ITEM_MAP) {
+    const yomi = (typeof MENU_YOMI !== 'undefined' && MENU_YOMI[name]) || '';
+    if (normSearch(name).includes(query) || yomi.includes(query)) hits.push(ITEM_MAP[name]);
+    if (hits.length >= 8) break;
+  }
+  panel.innerHTML = hits.length
+    ? hits.map(it => cardHTML(it, null, true)).join('')
+    : '<div class="suggest-none">見つかりません（読みがな未登録かも）</div>';
+  panel.classList.add('open');
+  positionSuggest();
+}
+
+/* キーボードの高さに追従して候補と入力欄を持ち上げる */
+function positionSuggest() {
+  const dock = document.getElementById('dock-wrap');
+  const panel = document.getElementById('suggest-panel');
+  const kb = window.visualViewport ? (window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop) : 0;
+  const lift = Math.max(0, kb);
+  dock.style.transform = lift ? `translateY(-${lift}px)` : '';
+  panel.style.bottom = (lift + dock.offsetHeight) + 'px';
+}
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', positionSuggest);
+  window.visualViewport.addEventListener('scroll', positionSuggest);
+}
+
+/* ====== カート確認シート ====== */
+function openCart() {
+  if (cart.length === 0) { toast('カートは空です'); return; }
+  document.getElementById('cart-lines').innerHTML = cart.map((c,i) =>
+    `<div class="cart-line"><span class="nm">${c.n}</span>
+     <div class="qty-ctl"><div class="qbtn" onclick="cartQty(${i},-1)">−</div><span class="qnum">${c.q}</span><div class="qbtn" onclick="cartQty(${i},1)">＋</div></div>
+     <span class="pr">¥${(taxInc(c)*c.q).toLocaleString()}</span></div>`).join('');
+  document.getElementById('cart-sheet').classList.add('open');
+}
+function cartQty(i, d) {
+  cart[i].q += d;
+  if (cart[i].q <= 0) cart.splice(i,1);
+  updateCartBar();
+  if (cart.length === 0) closeCart(); else openCart();
+}
+function closeCart() { document.getElementById('cart-sheet').classList.remove('open'); }
+function mockSend() {
+  closeCart(); closeSearch();
+  toast(`${cart.reduce((s,c)=>s+c.q,0)}点 送信しました（モック）`);
+  cart = []; updateCartBar();
+}
+
+renderSeats();
+</script>
+</body>
+</html>
