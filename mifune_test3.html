@@ -1836,6 +1836,21 @@ function searchMenu3(v) {
     }
     panel.innerHTML = hits.length ? hits.map(it => card3(it, null, true)).join('') : '<div class="suggest-none">見つかりません（読みがな未登録かも）</div>';
     panel.classList.add('open');
+    fitSuggestPanel();
+}
+// 候補パネルの高さを「キーボードの上に見えている範囲」に収める（一番上の候補が画面外に逃げないように）
+function fitSuggestPanel() {
+    const panel = document.getElementById('suggest-panel');
+    const dock = document.getElementById('search-dock');
+    if (!panel || !panel.classList.contains('open')) return;
+    const visibleH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    const dockH = dock ? dock.offsetHeight : 60;
+    panel.style.maxHeight = Math.max(140, visibleH - dockH - 70) + 'px';
+    panel.scrollTop = 0; // column-reverseなので0が「入力欄に一番近い側」＝最良候補
+}
+if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', fitSuggestPanel);
+    window.visualViewport.addEventListener('scroll', fitSuggestPanel);
 }
 // 検索中はフッター（会計・カートの帯）を隠して候補の場所を確保する
 function setSearchingMode(on) {
