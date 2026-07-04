@@ -94,7 +94,9 @@ body { font-family: -apple-system, "Hiragino Sans", "Yu Gothic", sans-serif; bac
 .cart-line .nm { flex: 1; font-size: 15px; font-weight: 700; }
 .cart-line .pr { font-size: 14px; font-weight: 800; color: var(--primary-deep); width: 76px; text-align: right; }
 .sheet-foot { padding: 12px 16px calc(14px + env(safe-area-inset-bottom)); border-top: 1px solid #eee; }
-.send-btn { width: 100%; background: var(--accent); color: #fff; border: none; border-radius: 14px; padding: 16px; font-size: 17px; font-weight: 800; box-shadow: 0 4px 12px rgba(21,128,61,.35); }
+.send-btn { width: 100%; color: #fff; border: none; border-radius: 14px; padding: 16px; font-size: 17px; font-weight: 800; }
+.send-sync { background: #3498db; box-shadow: 0 4px 12px rgba(52,152,219,.35); margin-bottom: 8px; }
+.send-main { background: #f39c12; box-shadow: 0 4px 12px rgba(243,156,18,.4); }
 </style>
 </head>
 <body>
@@ -142,7 +144,10 @@ body { font-family: -apple-system, "Hiragino Sans", "Yu Gothic", sans-serif; bac
 <div id="cart-sheet">
   <div class="sheet-head">注文の確認 <span class="sheet-close" onclick="closeCart()">×</span></div>
   <div class="sheet-body" id="cart-lines"></div>
-  <div class="sheet-foot"><button class="send-btn" onclick="mockSend()">本番送信（モック）</button></div>
+  <div class="sheet-foot">
+    <button class="send-btn send-sync" onclick="mockSend('同期のみ')">送信(同期のみ)</button>
+    <button class="send-btn send-main" onclick="mockSend('本番送信')">本番送信</button>
+  </div>
 </div>
 
 <script>
@@ -627,9 +632,9 @@ function cartQty(i, d) {
   if (cart.length === 0) closeCart(); else openCart();
 }
 function closeCart() { document.getElementById('cart-sheet').classList.remove('open'); }
-function mockSend() {
+function mockSend(mode) {
   closeCart(); closeSearch();
-  toast(`${cart.reduce((s,c)=>s+c.q,0)}点 送信しました（モック）`);
+  toast(`${cart.reduce((s,c)=>s+c.q,0)}点 ${mode}しました（モック）`);
   cart = []; updateCartBar();
 }
 
