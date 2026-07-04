@@ -232,7 +232,7 @@ window.logoutOwner = () => {
 async function claimOrders(tId, field) {
     try {
         return await runTransaction(db, async (tx) => {
-            const ref = doc(db, "stores/mifune_test2/tables", tId);
+            const ref = doc(db, "stores/mifune_test3/tables", tId);
             const snap = await tx.get(ref);
             if (!snap.exists()) return [];
             const orders = snap.data()[field] || [];
@@ -257,7 +257,7 @@ async function claimOrders(tId, field) {
 async function appendOrderToCloud(tableId, newItems) {
     // 旧方式(JSON経由)と同じ整形：未定義の項目を落としてFirestoreが拒否しない形にする
     newItems = JSON.parse(JSON.stringify(newItems));
-    const ref = doc(db, "stores/mifune_test2/tables", tableId);
+    const ref = doc(db, "stores/mifune_test3/tables", tableId);
     const merged = await runTransaction(db, async (tx) => {
         const snap = await tx.get(ref);
         const serverHist = snap.exists() ? (snap.data().history || []) : [];
@@ -270,13 +270,13 @@ async function appendOrderToCloud(tableId, newItems) {
 }
 window.appendOrderToCloud = appendOrderToCloud;
 // 卓の最新データをサーバーから1件取得（卓を開くときの読み直し用）
-window.fetchTableFresh = (tId) => getDoc(doc(db, "stores/mifune_test2/tables", tId));
+window.fetchTableFresh = (tId) => getDoc(doc(db, "stores/mifune_test3/tables", tId));
 // 人数・入店時刻だけを書き込む（履歴には一切触れない）
-window.updateTableMeta = (tId, guests, checkin) => setDoc(doc(db, "stores/mifune_test2/tables", tId), { guests: guests, checkin: checkin, updatedAt: Timestamp.now() }, { merge: true });
+window.updateTableMeta = (tId, guests, checkin) => setDoc(doc(db, "stores/mifune_test3/tables", tId), { guests: guests, checkin: checkin, updatedAt: Timestamp.now() }, { merge: true });
 // ▲▲▲ 注文の追記書き込み ▲▲▲
 
 function startTablesListener() {
-  return onSnapshot(collection(db, "stores/mifune_test2/tables"), (snapshot) => {
+  return onSnapshot(collection(db, "stores/mifune_test3/tables"), (snapshot) => {
 if(window.isEditing) return;
 const tablesList = ['C-a', 'C-b', 'C-c', '01', '02', '03', '04', '05', '06', '07', 'テイクアウト', '無人'];
 const cloudIds = snapshot.docs.map(d => d.id);
@@ -329,7 +329,7 @@ renderIndex(); updateFooter();
 startTablesListener();
 
 // ▼ カスタム席名Firestore同期
-onSnapshot(doc(db, 'stores/mifune_test2/_system', 'config'), (snap) => {
+onSnapshot(doc(db, 'stores/mifune_test3/_system', 'config'), (snap) => {
   if (!snap.exists()) return;
   const data = snap.data();
   if (Array.isArray(data.customTables)) {
@@ -353,7 +353,7 @@ onSnapshot(doc(db, 'stores/mifune_test2/_system', 'config'), (snap) => {
 // jobData: { type, ...印刷に必要なデータ }
 window.queuePrint = async function(jobData) {
     try {
-        await addDoc(collection(db, 'stores/mifune_test2/printQueue'), {
+        await addDoc(collection(db, 'stores/mifune_test3/printQueue'), {
             ...jobData,
             deviceId: window._deviceId || 'unknown',
             deviceUA: (navigator.userAgent || '').slice(0, 80),
@@ -402,7 +402,7 @@ window.saveOrderLog = async (tableId, items) => {
             String(now.getDate()).padStart(2,'0');
         const timeStr = String(now.getHours()).padStart(2,'0') + ':' +
             String(now.getMinutes()).padStart(2,'0');
-        await addDoc(collection(db, 'stores/mifune_test2/order_log'), {
+        await addDoc(collection(db, 'stores/mifune_test3/order_log'), {
             tableId: tableId,
             date: dateStr,
             time: timeStr,
@@ -453,7 +453,7 @@ let subtotal = 0, tax = 0;
 hist.forEach(i => { subtotal += i.price * i.qty; tax += Math.floor(i.price * i.qty * i.rate); });
 
 try {
-    await addDoc(collection(db, "stores/mifune_test2/sales"), {
+    await addDoc(collection(db, "stores/mifune_test3/sales"), {
         tableId: tableId, guests: guests, checkin: checkin,
         checkout: new Date().getHours().toString().padStart(2, '0') + ":" + new Date().getMinutes().toString().padStart(2, '0'),
         items: hist, subtotal: subtotal, tax: tax, total: subtotal + tax,
@@ -461,7 +461,7 @@ try {
         timestamp: Timestamp.now()
     });
 } catch (e) { console.warn("売上保存失敗:", e.message); }
-try { await deleteDoc(doc(db, "stores/mifune_test2/tables", tableId)); } catch(e) { console.warn("テーブル削除失敗:", e.message); }
+try { await deleteDoc(doc(db, "stores/mifune_test3/tables", tableId)); } catch(e) { console.warn("テーブル削除失敗:", e.message); }
 await clearCountdown(tableId, true);
 renderIndex();
 // カスタム席なら会計後に削除
@@ -475,7 +475,7 @@ if (customs.includes(tableId)) {
 
 // ▼ 売上の期間指定取得（全件ダウンロード廃止：選んだ期間だけ読むので営業日数が増えても速度不変）
 window.getSalesRange = async (start, end) => {
-    const qy = query(collection(db, "stores/mifune_test2/sales"),
+    const qy = query(collection(db, "stores/mifune_test3/sales"),
         where('timestamp', '>=', Timestamp.fromDate(start)),
         where('timestamp', '<=', Timestamp.fromDate(end)),
         orderBy('timestamp', 'desc'));
@@ -493,7 +493,7 @@ window.getSalesDayByDate = (d) => {
 
 // 売上の削除機能はPOSから撤去（訂正はuriage.htmlでのみ行う）
 // deleteDaySales（日別まとめ削除）もPOSから撤去
-window.cloudDelete = async (tableId) => { await deleteDoc(doc(db, "stores/mifune_test2/tables", tableId)); };
+window.cloudDelete = async (tableId) => { await deleteDoc(doc(db, "stores/mifune_test3/tables", tableId)); };
 
 // 飲み放題開始をFirestoreに書き込み（serverTimestamp使用・updatedAtと同時書き込み）
 window.cloudSyncNomi = async (tableId) => {
@@ -501,7 +501,7 @@ window.cloudSyncNomi = async (tableId) => {
         // 即座にメモリにセット（iOS対策）
         window._nomiData[tableId] = { startMs: Date.now(), totalMinutes: NOMIHODAI_MINUTES };
         startCountdownTick();
-        await setDoc(doc(db, "stores/mifune_test2/tables", tableId), {
+        await setDoc(doc(db, "stores/mifune_test3/tables", tableId), {
             nomihodaiStart: serverTimestamp(),
             nomiTotalMinutes: NOMIHODAI_MINUTES,
             updatedAt: serverTimestamp()
@@ -511,7 +511,7 @@ window.cloudSyncNomi = async (tableId) => {
 
 window.cloudSyncNomiEncho = async (tableId, totalMinutes) => {
     try {
-        await setDoc(doc(db, "stores/mifune_test2/tables", tableId), {
+        await setDoc(doc(db, "stores/mifune_test3/tables", tableId), {
             nomiTotalMinutes: totalMinutes,
             updatedAt: serverTimestamp()
         }, { merge: true });
@@ -521,7 +521,7 @@ window.cloudSyncNomiEncho = async (tableId, totalMinutes) => {
 // 飲み放題終了をFirestoreに書き込み
 window.cloudSyncNomiClear = async (tableId) => {
     try {
-        await setDoc(doc(db, "stores/mifune_test2/tables", tableId), { nomihodaiStart: null, nomiTotalMinutes: null }, { merge: true });
+        await setDoc(doc(db, "stores/mifune_test3/tables", tableId), { nomihodaiStart: null, nomiTotalMinutes: null }, { merge: true });
     } catch(e) { console.warn('nomihodaiクリア失敗:', e.message); }
 };
 
@@ -546,7 +546,7 @@ window.printRyoshuusho = async function() {
             return {sub,tax,sub10,tax10,sub8,tax8};
         })();
         const {sub,tax,sub10,tax10,sub8,tax8} = ryoTotal;
-        await addDoc(collection(db, 'stores/mifune_test2/printQueue'), {
+        await addDoc(collection(db, 'stores/mifune_test3/printQueue'), {
             type: 'ryoshuusho', atena, tadashi, sub, tax, sub10, tax10, sub8, tax8, dateStr,
             status: 'pending',
             createdAt: serverTimestamp()
@@ -579,7 +579,7 @@ window.printStandaloneRyoshu = async function() {
     const now = new Date();
     const dateStr = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
     try {
-        await addDoc(collection(db, 'stores/mifune_test2/printQueue'), {
+        await addDoc(collection(db, 'stores/mifune_test3/printQueue'), {
             type: 'ryoshuusho', atena, tadashi,
             sub: sub10, tax: tax10, sub10, tax10, sub8: 0, tax8: 0,
             dateStr, status: 'pending', createdAt: serverTimestamp()
@@ -625,7 +625,7 @@ window.printStandaloneRyoshu = async function() {
   </div>
 </div>
 
-<div id="view-index" class="view active"><div style="background:#00695c;color:#fff;text-align:center;padding:6px;font-size:13px;font-weight:bold;letter-spacing:0.05em;">⚠ テスト3（新UI版・データはmifune_test2）— 本番ではありません</div><header><div class="admin-btn" id="admin-btn-label" onclick="checkAdminAuth()">売上管理</div><span>【テスト3】三船 席選択</span><div style="display:flex;gap:4px;align-items:center;"><div class="reload-btn" onclick="window.openStandaloneRyoshuusho()" title="領収書発行">📄</div><div class="reload-btn" onclick="openPrinterSettings()" title="プリンター設定">⚙</div><div class="reload-btn" onclick="location.reload()">↻</div></div></header><div class="grid-tables" id="table-grid"></div></div>
+<div id="view-index" class="view active"><div style="background:#00695c;color:#fff;text-align:center;padding:6px;font-size:13px;font-weight:bold;letter-spacing:0.05em;">⚠ テスト3（新UI版・専用環境mifune_test3）— 本番ではありません</div><header><div class="admin-btn" id="admin-btn-label" onclick="checkAdminAuth()">売上管理</div><span>【テスト3】三船 席選択</span><div style="display:flex;gap:4px;align-items:center;"><div class="reload-btn" onclick="window.openStandaloneRyoshuusho()" title="領収書発行">📄</div><div class="reload-btn" onclick="openPrinterSettings()" title="プリンター設定">⚙</div><div class="reload-btn" onclick="location.reload()">↻</div></div></header><div class="grid-tables" id="table-grid"></div></div>
 
 <div id="view-login" class="view">
 <header><div class="header-left"><span class="back-btn" onclick="showIndex()">＜</span><span>認証</span></div></header>
@@ -1044,7 +1044,7 @@ function getCustomTableNames() { return JSON.parse(localStorage.getItem('customT
 function saveCustomTableNames(arr) {
   localStorage.setItem('customTables', JSON.stringify(arr));
   // Firestoreに同期
-  window._setDoc(window._doc(db, 'stores/mifune_test2/_system', 'config'), { customTables: arr }, { merge: true }).catch(e => console.warn('customTables同期エラー:', e));
+  window._setDoc(window._doc(db, 'stores/mifune_test3/_system', 'config'), { customTables: arr }, { merge: true }).catch(e => console.warn('customTables同期エラー:', e));
 }
 function getTablesL() { return [...baseTablesL, ...getCustomTableNames()]; }
 const tablesL = baseTablesL; // 後方互換
@@ -1279,7 +1279,7 @@ function showIndex() {
   document.getElementById('view-index').style.display = 'flex';
   if (wasEditing) {
     // カート・履歴から戻ったとき最新データを強制取得
-    window._getDocs(window._collection(window.db, "stores/mifune_test2/tables")).then(snapshot => {
+    window._getDocs(window._collection(window.db, "stores/mifune_test3/tables")).then(snapshot => {
       const tablesList = ['C-a', 'C-b', 'C-c', '01', '02', '03', '04', '05', '06', '07', 'テイクアウト', '無人'];
       const cloudIds = snapshot.docs.map(d => d.id);
       tablesList.forEach(tId => {
@@ -1632,6 +1632,132 @@ async function confirmGuestCount() {
 }
 function showMenu() { window.isEditing = false; const _si = document.getElementById('menu-search3'); if (_si) { _si.value = ''; document.getElementById('search-clear3').style.display = 'none'; closeSearch3(); } currentCart = JSON.parse(localStorage.getItem('cart_'+currentTable) || '[]'); hideAll(); document.getElementById('view-menu').style.display = 'flex'; document.getElementById('display-table-id').innerText = currentTable; document.getElementById('display-guest-count').innerText = localStorage.getItem('guests_' + currentTable) || "0"; document.getElementById('display-checkin-time').innerText = localStorage.getItem('checkin_' + currentTable) || "--:--"; renderFeed(); updateFooter(); }
 // renderSidebarは新UI（人気順＋アコーディオン）で廃止
+// ▼ メニュー読みがな表（漢字の品をひらがな検索で引くための辞書。移植時の欠落を修正）
+const MENU_YOMI = {
+"お通し":"オトウシ オトオシ",
+"もつ串":"モツクシ",
+"鳥精肉":"トリセイニク",
+"飲み放題男性90分":"ノミホウダイダンセイ",
+"飲み放題女性90分":"ノミホウダイジョセイ",
+"飲み放題延長":"ノミホウダイエンチョウ",
+"手羽焼き（2本）":"テバヤキ",
+"国産豚のロース網焼きステーキ":"コクサンブタノロースアミヤキステーキ",
+"ハーブ豚の網焼きステーキ（1枚）":"ハーブブタノアミヤキステーキ",
+"ハーブ豚の炙りチャーシュー":"ハーブブタノアブリチャーシュー",
+"自家製つくねのコロコロ焼き（4玉）":"ジカセイツクネノコロコロヤキ",
+"ささみ串":"ササミクシ",
+"ささみ串自家製麹漬け（数量限定）":"ササミクシジカセイコウジヅケ コウジズケ",
+"鴨肉の網焼き":"カモニクノアミヤキ",
+"ピリ辛ソーセージ（2本）":"ピリカラソーセージ",
+"うずらの玉子（1串）":"ウズラノタマゴ",
+"長なす串焼き（1串）":"ナガナスクシヤキ",
+"軟白ねぎ（1串）":"ナンパクネギ",
+"オリーブオイルにんにくカップ焼き":"オリーブオイルニンニクカップヤキ",
+"焼きじゃがバター（2個）":"ヤキジャガバター",
+"焼きじゃがバター（塩辛付き）（2個）":"ヤキジャガバターシオカラツキ",
+"鳥もつ煮込み":"トリモツニコミ",
+"特製一口ザンギ":"トクセイヒトクチザンギ",
+"手羽ザンギ(3本)":"テバザンギ",
+"若鶏の皮竜田揚げ(おろしポン酢付き)":"ワカドリノカワタツタアゲ オロシポンズ",
+"国産豚のロースカツ":"コクサンブタノロースカツ",
+"生ハムの軟白ねぎ包み(岩塩付き)":"ナマハムノナンパクネギヅツミ イワジオ",
+"塩キャベツ":"シオキャベツ",
+"漬物":"ツケモノ",
+"枝豆":"エダマメ",
+"冷奴":"ヒヤヤッコ",
+"山わさび冷奴":"ヤマワサビヒヤヤッコ",
+"クジラのベーコン ねぎ正油あえ":"クジラノベーコンネギショウユアエ",
+"イカの塩辛":"イカノシオカラ",
+"自家製パンチェッタとメークインのオリーブオイル・チーズ熱湯風呂":"ジカセイパンチェッタトメークインノオリーブオイルチーズネットウブロ",
+"自家製パンチェッタとコーンのオリーブオイル・チーズ熱湯風呂":"ジカセイパンチェッタトコーンノオリーブオイルチーズネットウブロ",
+"チャンジャとクリームチーズのタパス(おつまみ料理)":"チャンジャトクリームチーズノタパス オツマミリョウリ",
+"ハーブ豚チャーシューとマッシュルームのアヒージョ":"ハーブブタチャーシュートマッシュルームノアヒージョ",
+"砂肝とマッシュルームのアヒージョ":"スナギモトマッシュルームノアヒージョ",
+"ピリ辛ソーセージとマッシュルームのアヒージョ":"ピリカラソーセージトマッシュルームノアヒージョ",
+"まぐろ刺し(数量限定)":"マグロサシ",
+"たこ頭刺し":"タコアタマサシ タコカシラサシ",
+"馬刺し(赤身)":"バサシ アカミ",
+"馬肉ユッケ":"バニクユッケ",
+"こまい一夜干し":"コマイイチヤボシ",
+"鮭とば":"サケトバ シャケトバ",
+"たらこ焼き":"タラコヤキ",
+"もずく酢":"モズクス",
+"ピクルスの盛り合わせ":"ピクルスノモリアワセ",
+"冷しトマト":"ヒヤシトマト",
+"生ハムサラダ":"ナマハムサラダ",
+"鳥もつ鍋（約2人前）":"トリモツナベ",
+"辛鳥もつ鍋（約2人前）":"カラトリモツナベ",
+"鴨鍋（約2人前）":"カモナベ",
+"湯どうふ":"ユドウフ ユドーフ",
+"【追加】雑炊セット":"ツイカゾウスイセット",
+"【追加】単品そば":"ツイカタンピンソバ",
+"美唄名物とりめし":"ビバイメイブツトリメシ",
+"やきとり丼ぶり":"ヤキトリドンブリ",
+"もつ煮込み丼ぶり":"モツニコミドンブリ",
+"炙りチャーシュー丼ぶり":"アブリチャーシュードンブリ",
+"三船特製オムライス":"ミフネトクセイオムライス",
+"山わさび丼ぶり":"ヤマワサビドンブリ",
+"三船名物鳥がらそば":"ミフネメイブツトリガラソバ",
+"三船特製ラーメン(正油味のみ)":"ミフネトクセイラーメン ショウユアジ",
+"三船特製チャーシューメン":"ミフネトクセイチャーシューメン",
+"もつそば(温)":"モツソバ",
+"もつせいろそば(冷)":"モツセイロソバ",
+"鳥せいろそば(冷)":"トリセイロソバ",
+"かしわそば(温)":"カシワソバ",
+"スーパードライ 〈中〉":"スーパードライチュウ",
+"スーパードライ 〈大〉":"スーパードライダイ",
+"アサヒ マルエフ 〈中瓶〉":"アサヒマルエフチュウビン",
+"赤星":"アカボシ",
+"アサヒドライゼロ 〈中瓶〉":"アサヒドライゼロチュウビン",
+"梅酒ロック":"ウメシュロック",
+"梅酒ソーダ":"ウメシュソーダ",
+"梅サワー":"ウメサワー",
+"青りんごサワー":"アオリンゴサワー",
+"緑茶ハイ":"リョクチャハイ",
+"コーヒー酎ハイ":"コーヒーチュウハイ",
+"生搾りレモンサワー":"ナマシボリレモンサワー",
+"生搾りグレープフルーツサワー":"ナマシボリグレープフルーツサワー",
+"グラスワイン（赤）":"グラスワインアカ",
+"グラスワイン（白）":"グラスワインシロ",
+"焼酎甲類（ロック・水割り）":"ショウチュウコウルイ ロック ミズワリ",
+"山ねこ 〈宮崎・芋〉":"ヤマネコ ミヤザキ イモ",
+"山せみ 〈宮崎・米〉":"ヤマセミ ミヤザキ コメ",
+"山猿 〈宮崎・麦〉":"ヤマザル ミヤザキ ムギ",
+"中々 〈宮崎・麦〉":"ナカナカ ミヤザキ ムギ",
+"黒霧島 〈宮崎・芋〉":"クロキリシマ ミヤザキ イモ",
+"海 〈鹿児島・芋〉":"ウミ カゴシマ イモ",
+"くじら 〈鹿児島・芋〉":"クジラ カゴシマ イモ",
+"よろしく千萬あるべし 〈新潟・米〉":"ヨロシクセンマンアルベシ ニイガタ コメ",
+"ウーロン茶":"ウーロンチャ",
+"ほうじ茶":"ホウジチャ",
+"緑茶":"リョクチャ",
+"沢の鶴 1合":"サワノツルイチゴウ",
+"沢の鶴 2合":"サワノツルニゴウ",
+"二世古（特別純米新酒しぼり）":"ニセコ トクベツジュンマイシンシュシボリ",
+"福司（純米酒）":"フクツカサ ジュンマイシュ",
+"まる田（特別純米）":"マルタ トクベツジュンマイ",
+"男山（純米生酒）":"オトコヤマ ジュンマイナマザケ",
+"獺祭（純米大吟醸）":"ダッサイ ジュンマイダイギンジョウ",
+"十一州（吟醸しぼりたて）":"ジュウイッシュウ ギンジョウシボリタテ",
+"一ノ蔵（本醸造辛口）":"イチノクラ ホンジョウゾウカラクチ",
+"ばくれん（吟醸超辛口）":"バクレン ギンジョウチョウカラクチ",
+"くどき上手（純米吟醸辛口）":"クドキジョウズ ジュンマイギンジョウカラクチ",
+"北の勝（清酒）":"キタノカツ セイシュ",
+"李白（特別純米酒）":"リハク トクベツジュンマイシュ",
+"常山（とびっきり辛口）":"ジョウザン トビッキリカラクチ",
+"開運（無濾過純米酒）":"カイウン ムロカジュンマイシュ",
+"大和しずく（純米吟醸）":"ヤマトシズク ジュンマイギンジョウ",
+"越乃寒梅（清酒）":"コシノカンバイ セイシュ",
+"八海山（清酒）":"ハッカイサン セイシュ",
+"もつ串 テイクアウト":"モツクシテイクアウト",
+"精肉 テイクアウト":"セイニクテイクアウト",
+"もつ煮込み テイクアウト":"モツニコミテイクアウト",
+"もつ串 6本":"モツクシロッポン",
+"鳥精肉 6本":"トリセイニクロッポン",
+"もつ、精肉 MIX 6本":"モツセイニクミックス",
+"弁当A":"ベントウ",
+"弁当B":"ベントウ"
+};
 // ▼▼▼ テスト3 新UI：人気順フィード＋ジャンル別アコーディオン＋下部検索（チャット式） ▼▼▼
 // 人気順の固定リスト（こうじさんが編集する表。品名はrawDataと完全一致させること）
 const POPULAR_LIST = [
@@ -1694,7 +1820,7 @@ function searchMenu3(v) {
     if (!query) { panel.classList.remove('open'); panel.innerHTML = ''; return; }
     const hits = [];
     for (const name in ITEM_MAP3) {
-        const yomi = MENU_YOMI[name] || '';
+        const yomi = (typeof MENU_YOMI !== 'undefined' && MENU_YOMI[name]) || '';
         if (normSearch(name).includes(query) || yomi.includes(query)) { hits.push(ITEM_MAP3[name]); if (hits.length >= 8) break; }
     }
     panel.innerHTML = hits.length ? hits.map(it => card3(it, null, true)).join('') : '<div class="suggest-none">見つかりません（読みがな未登録かも）</div>';
