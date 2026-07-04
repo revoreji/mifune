@@ -666,6 +666,7 @@ function mockSend(mode) {
   closeCart(); closeSearch();
   toast(`${cart.reduce((s,c)=>s+c.q,0)}点 ${mode}しました（モック）`);
   cart = []; updateCartBar();
+  showSeats(); // 本物と同じく、送信後は席選択に戻る
 }
 
 renderSeats();
