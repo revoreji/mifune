@@ -1343,6 +1343,7 @@ async function showAdmin(mode) {
     document.getElementById('admin-month-area').style.display = mode === 'month' ? 'flex' : 'none';
     const list = document.getElementById('sales-list');
     list.innerHTML = '<p style="text-align:center; padding:50px;">読み込み中...</p>';
+    const _t0 = performance.now();
     try {
         const now = new Date();
         if (mode === 'month') {
@@ -1355,6 +1356,10 @@ async function showAdmin(mode) {
             if (!inp.value) inp.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
             renderDaySales(await window.getSalesDayByDate(new Date(inp.value + 'T12:00:00')));
         }
+        // 読み込み時間の実測を表示（体感の答え合わせ用）
+        const _sec = ((performance.now() - _t0) / 1000).toFixed(2);
+        const _pa = document.getElementById('payment-summary-area');
+        if (_pa) _pa.innerHTML += `<span style="margin-left:10px; color:#999; font-size:11px;">読込 ${_sec}秒</span>`;
     } catch(e) {
         list.innerHTML = `<p style="text-align:center; padding:30px; color:var(--danger);">読み込み失敗: ${e.message}</p>`;
     }
