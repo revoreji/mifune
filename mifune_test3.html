@@ -138,10 +138,10 @@ footer { width: 100%; display: flex; flex-direction: column; z-index: 100; box-s
 /* ===== テスト3 新UI ===== */
 .hot-label { padding: 10px 16px 4px; font-size: 12px; font-weight: 800; color: #7a8088; letter-spacing: .08em; }
 .item-feed { flex: 1; overflow-y: auto; padding: 0 12px 12px; overscroll-behavior: contain; background: #f4f4f6; }
-.item-card3 { display: flex; align-items: center; gap: 10px; background: #fff; border-radius: 16px; padding: 14px; margin-bottom: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+.item-card3 { display: flex; align-items: center; gap: 8px; background: #fff; border-radius: 14px; padding: 12px 12px; margin-bottom: 7px; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
 .rank3 { font-size: 12px; font-weight: 800; color: #c9ccd2; width: 20px; text-align: center; flex-shrink: 0; }
 .item-main3 { flex: 1; min-width: 0; }
-.item-name3 { font-size: 20px; font-weight: 800; line-height: 1.25; }
+.item-name3 { font-size: 18px; font-weight: 800; line-height: 1.3; }
 .item-price3 { font-size: 14px; color: #7a8088; font-weight: 700; margin-top: 3px; }
 .item-price3 b { color: #c97a00; font-size: 18px; }
 .qbtn3 { width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid #d9dce1; background: #fff; font-size: 20px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
@@ -161,7 +161,7 @@ footer { width: 100%; display: flex; flex-direction: column; z-index: 100; box-s
 .search-box3.focused { border-color: var(--primary); background: #fff; }
 #menu-search3 { flex: 1; border: none; background: transparent; font-size: 16px; font-weight: 700; outline: none; min-width: 0; }
 #search-clear3 { display: none; border: none; background: #d9dce1; color: #555; width: 28px; height: 28px; border-radius: 50%; font-size: 15px; font-weight: 800; flex-shrink: 0; }
-#suggest-panel { position: fixed; left: 0; right: 0; bottom: 0; display: none; flex-direction: column-reverse; max-height: 44dvh; overflow-y: auto; padding: 8px 12px; gap: 6px; z-index: 40; overscroll-behavior: contain; }
+#suggest-panel { display: none; flex-direction: column-reverse; max-height: 48dvh; overflow-y: auto; padding: 8px 12px; gap: 6px; flex-shrink: 0; background: #eceef2; border-top: 1px solid #e0e2e8; overscroll-behavior: contain; }
 #suggest-panel.open { display: flex; }
 .suggest-card3 { display: flex; align-items: center; gap: 10px; background: #fff; border-radius: 14px; padding: 12px 14px; box-shadow: 0 2px 10px rgba(0,0,0,.14); }
 .suggest-none { text-align: center; color: #fff; background: rgba(31,35,40,.75); border-radius: 12px; padding: 10px; font-size: 13px; font-weight: 700; }
@@ -649,6 +649,7 @@ window.printStandaloneRyoshu = async function() {
 <div id="view-menu" class="view">
 <header><span class="back-btn" onclick="showIndex()">×</span><span id="display-table-id"></span>番席 <span onclick="openGuestEdit()" style="padding:4px 8px; border:1.5px dashed #bbb; border-radius:8px; cursor:pointer;">(<span id="display-guest-count"></span>名 ✎)</span><span style="margin-left:auto; font-size:11px; color:#666;">入店: <span id="display-checkin-time"></span></span></header>
 <div class="item-feed" id="item-feed"></div>
+<div id="suggest-panel"></div>
 <div class="search-dock" id="search-dock">
   <div class="search-box3" id="search-box3">
     <span>🔍</span>
@@ -656,8 +657,10 @@ window.printStandaloneRyoshu = async function() {
     <button id="search-clear3" onclick="clearSearch3()">×</button>
   </div>
 </div>
-<div id="suggest-panel"></div>
-<footer><div class="footer-history" onclick="showOrderHistory()"><span>💴 お会計へ進む</span><span style="display:flex; align-items:center; gap:8px;"><span id="display-current-total">¥0</span><span style="font-size:20px;">›</span></span></div><div style="display:flex; gap:0;"><div class="footer-cart" style="flex:1;" onclick="showCart()"><div>🛒 <span id="cart-count">0</span>点</div><div>注文を確認 ＞</div></div><div style="background:#8e44ad; color:#fff; padding:18px 14px; font-weight:bold; font-size:13px; cursor:pointer; white-space:nowrap;" onclick="openCustomItem()">＋カスタム</div></div></footer>
+<footer><div style="display:flex; gap:0;">
+<div class="footer-history" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:16px 6px; font-size:16px;" onclick="showOrderHistory()"><span>💴 会計 ›</span><span id="display-current-total" style="display:none;"></span></div>
+<div class="footer-cart" style="flex:1;" onclick="showCart()"><div>🛒 <span id="cart-count">0</span>点</div><div>注文を確認 ＞</div></div>
+</div></footer>
 </div>
 
 <!-- カスタム商品モーダル -->
@@ -1792,12 +1795,8 @@ let _qseq = 0;
 // 商品カード（人気順・ジャンル・検索候補で共用。追加は検証済みのaddToCartをそのまま使う）
 function card3(item, rankIdx, suggest) {
     const rate = (item.c === '無人' || item.c === 'テイクアウト') ? 0 : 0.10;
-    const taxInc = rate === 0 ? item.p : Math.floor(item.p * 1.10);
-    const priceHtml = rate === 0
-        ? `<b>¥${item.p.toLocaleString()}</b>（税込）`
-        : `<b>¥${item.p.toLocaleString()}</b>（税込¥${taxInc.toLocaleString()}）`;
     const qId = 'q3-' + (_qseq++);
-    return `<div class="${suggest ? 'suggest-card3' : 'item-card3'}">${rankIdx != null ? `<span class="rank3">${rankIdx + 1}</span>` : ''}<div class="item-main3"><div class="item-name3">${item.n}</div><div class="item-price3">${priceHtml}</div></div><div style="display:flex;align-items:center;gap:2px;flex-shrink:0;"><div class="qbtn3" onclick="changeQty('${qId}',-1)">−</div><span id="${qId}" class="qnum3">1</span><div class="qbtn3" onclick="changeQty('${qId}',1)">＋</div></div><button class="add-btn3" onclick="addToCart('${item.n}', ${item.p}, '${qId}', ${rate}, '${item.c}', this)">追加</button></div>`;
+    return `<div class="${suggest ? 'suggest-card3' : 'item-card3'}">${rankIdx != null ? `<span class="rank3">${rankIdx + 1}</span>` : ''}<div class="item-main3" style="display:flex; align-items:center; gap:8px; min-width:0;"><div class="item-name3" style="flex:1; min-width:0;">${item.n}</div><div class="item-price3" style="white-space:nowrap; margin-top:0;"><b>¥${item.p.toLocaleString()}</b></div></div><div style="display:flex;align-items:center;gap:2px;flex-shrink:0;"><div class="qbtn3" onclick="changeQty('${qId}',-1)">−</div><span id="${qId}" class="qnum3">1</span><div class="qbtn3" onclick="changeQty('${qId}',1)">＋</div></div><button class="add-btn3" onclick="addToCart('${item.n}', ${item.p}, '${qId}', ${rate}, '${item.c}', this)">追加</button></div>`;
 }
 function renderFeed() {
     _qseq = 0;
@@ -1805,19 +1804,21 @@ function renderFeed() {
         POPULAR_LIST.map((n, i) => ITEM_MAP3[n] ? card3(ITEM_MAP3[n], i, false) : '').join('');
     const accs = '<div class="hot-label" style="margin-top:6px;">ジャンルから探す</div>' +
         CAT_ORDER3.map((c, ci) => `<div class="acc" id="acc3-${ci}"><div class="acc-head" onclick="document.getElementById('acc3-${ci}').classList.toggle('open')">${c}<span class="cnt">${CAT_ITEMS3[c].length}品</span><span class="arrow">▶</span></div><div class="acc-body">${CAT_ITEMS3[c].map(it => card3(it, null, false)).join('')}</div></div>`).join('');
-    document.getElementById('item-feed').innerHTML = popular + accs;
+    const customBtn = `<button onclick="openCustomItem()" style="width:100%; margin-top:10px; padding:16px; border:2px dashed #c6c9cf; border-radius:16px; background:transparent; color:#7a8088; font-size:15px; font-weight:800;">＋ カスタム商品を追加（メニューに無い品）</button>`;
+    document.getElementById('item-feed').innerHTML = popular + accs + customBtn;
 }
 // 検索（ひらがな⇔カタカナ同一視＋読みがな辞書。候補は入力欄の真上に湧く）
 function toKatakana(str) { return str.replace(/[\u3041-\u3096]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 0x60)); }
 function normSearch(str) { return toKatakana((str || '').trim().toLowerCase()); }
 function openSearch3() { document.getElementById('search-box3').classList.add('focused'); searchMenu3(document.getElementById('menu-search3').value); }
-function closeSearch3() { const sb = document.getElementById('search-box3'); if (sb) sb.classList.remove('focused'); const sp = document.getElementById('suggest-panel'); if (sp) sp.classList.remove('open'); }
+function closeSearch3() { const sb = document.getElementById('search-box3'); if (sb) sb.classList.remove('focused'); const sp = document.getElementById('suggest-panel'); if (sp) { sp.classList.remove('open'); sp.innerHTML = ''; } const si = document.getElementById('menu-search3'); if (si) si.value = ''; const sc = document.getElementById('search-clear3'); if (sc) sc.style.display = 'none'; setSearchingMode(false); }
 function clearSearch3() { const si = document.getElementById('menu-search3'); si.value = ''; document.getElementById('search-clear3').style.display = 'none'; searchMenu3(''); si.focus(); }
 function searchMenu3(v) {
     const panel = document.getElementById('suggest-panel');
     document.getElementById('search-clear3').style.display = v ? 'block' : 'none';
     const query = normSearch(v);
-    if (!query) { panel.classList.remove('open'); panel.innerHTML = ''; return; }
+    if (!query) { panel.classList.remove('open'); panel.innerHTML = ''; setSearchingMode(false); return; }
+    setSearchingMode(true);
     const hits = [];
     for (const name in ITEM_MAP3) {
         const yomi = (typeof MENU_YOMI !== 'undefined' && MENU_YOMI[name]) || '';
@@ -1825,19 +1826,12 @@ function searchMenu3(v) {
     }
     panel.innerHTML = hits.length ? hits.map(it => card3(it, null, true)).join('') : '<div class="suggest-none">見つかりません（読みがな未登録かも）</div>';
     panel.classList.add('open');
-    positionSuggest3();
 }
-// キーボードの高さに追従して検索バーと候補を持ち上げる
-function positionSuggest3() {
-    const dock = document.getElementById('search-dock');
-    const panel = document.getElementById('suggest-panel');
-    if (!dock || !panel) return;
-    const kb = window.visualViewport ? Math.max(0, window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop) : 0;
-    dock.style.transform = kb ? `translateY(-${kb}px)` : '';
-    const rect = dock.getBoundingClientRect();
-    panel.style.bottom = (window.innerHeight - rect.top) + 'px';
+// 検索中はフッター（会計・カートの帯）を隠して候補の場所を確保する
+function setSearchingMode(on) {
+    const f = document.querySelector('#view-menu footer');
+    if (f) f.style.display = on ? 'none' : '';
 }
-if (window.visualViewport) { window.visualViewport.addEventListener('resize', positionSuggest3); window.visualViewport.addEventListener('scroll', positionSuggest3); }
 // ▲▲▲ テスト3 新UI ▲▲▲
 // renderItems（旧サイドバー式グリッド）は新UIで廃止
 function changeQty(id, d) { const el = document.getElementById(id); let v = parseInt(el.innerText) + d; if(v >= 1) el.innerText = v; }
