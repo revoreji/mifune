@@ -1352,19 +1352,28 @@ async function showAdmin(mode) {
     const _t0 = performance.now();
     try {
         const now = new Date();
-        const _timeout = (p) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('通信が不安定です（10秒応答なし）')), 10000))]);
+        const _timeout = (p, sec) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(`通信が不安定です（${sec}秒応答なし）`)), sec * 1000))]);
+        // 眠った接続対策：タイムアウトしたら自動でもう1回だけ聞き直す（1回目の失敗が接続を起こすことが多い）
+        const _fetchWithRetry = async (makeFetch) => {
+            try { return await _timeout(makeFetch(), 8); }
+            catch(e1) {
+                if (_mySeq !== window._adminSeq) throw e1;
+                list.innerHTML = '<p style="text-align:center; padding:50px; color:#999;">接続を起こしています…（自動再試行中）</p>';
+                return await _timeout(makeFetch(), 10);
+            }
+        };
         let _sales;
         if (mode === 'month') {
             const inp = document.getElementById('admin-month');
             if (!inp.value) inp.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
             const [y, m] = inp.value.split('-').map(Number);
-            _sales = await _timeout(window.getSalesMonth(y, m));
+            _sales = await _fetchWithRetry(() => window.getSalesMonth(y, m));
             if (_mySeq !== window._adminSeq) return; // 後から来た呼び出しに譲る
             renderMonthSales(_sales, m);
         } else {
             const inp = document.getElementById('admin-date');
             if (!inp.value) inp.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-            _sales = await _timeout(window.getSalesDayByDate(new Date(inp.value + 'T12:00:00')));
+            _sales = await _fetchWithRetry(() => window.getSalesDayByDate(new Date(inp.value + 'T12:00:00')));
             if (_mySeq !== window._adminSeq) return;
             renderDaySales(_sales);
         }
