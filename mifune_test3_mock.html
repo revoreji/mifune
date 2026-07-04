@@ -57,6 +57,16 @@ body { font-family: -apple-system, "Hiragino Sans", "Yu Gothic", sans-serif; bac
 .add-btn { flex-shrink: 0; background: var(--primary); color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 800; padding: 12px 18px; box-shadow: 0 2px 6px rgba(232,147,12,.35); }
 .add-btn:active { transform: scale(.96); }
 
+/* ===== ジャンル別アコーディオン ===== */
+.acc { background: var(--card); border-radius: var(--radius); margin-bottom: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.05); overflow: hidden; }
+.acc-head { display: flex; align-items: center; padding: 15px 16px; font-size: 17px; font-weight: 800; }
+.acc-head .arrow { margin-left: auto; color: var(--sub); font-size: 14px; transition: transform .18s; }
+.acc.open .acc-head .arrow { transform: rotate(90deg); }
+.acc-head .cnt { margin-left: 8px; font-size: 12px; color: var(--sub); font-weight: 700; }
+.acc-body { display: none; padding: 0 8px 8px; }
+.acc.open .acc-body { display: block; }
+.acc-body .item-card { box-shadow: none; border: 1px solid #f0f1f4; margin-bottom: 6px; }
+
 /* ===== 下部固定：検索＋カート（親指ゾーン） ===== */
 .bottom-dock { flex-shrink: 0; background: var(--card); border-top: 1px solid #e8e8ec; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); box-shadow: 0 -4px 16px rgba(0,0,0,.06); }
 .search-row { display: flex; align-items: center; gap: 8px; }
@@ -526,16 +536,19 @@ function cardHTML(item, idx, forSuggest) {
     </div>
     <div class="qty-ctl">
       <div class="qbtn" onclick="chgQty('${key}',-1)">−</div>
-      <span class="qnum" id="q-${forSuggest?'s':'f'}-${key}">${q}</span>
+      <span class="qnum" data-q="${key}">${q}</span>
       <div class="qbtn" onclick="chgQty('${key}',1)">＋</div>
     </div>
     <button class="add-btn" onclick="addItem('${key}')">追加</button>
   </div>`;
 }
+function syncQtyDisplays(name) {
+  const q = qtyState[name] || 1;
+  document.querySelectorAll('.qnum').forEach(el => { if (el.dataset.q === name) el.innerText = q; });
+}
 function chgQty(name, d) {
   qtyState[name] = Math.max(1, (qtyState[name]||1) + d);
-  const q = qtyState[name];
-  ['f','s'].forEach(p => { const el = document.getElementById(`q-${p}-${name}`); if (el) el.innerText = q; });
+  syncQtyDisplays(name);
 }
 function addItem(name) {
   const item = ITEM_MAP[name]; if (!item) return;
@@ -543,7 +556,7 @@ function addItem(name) {
   const exist = cart.find(c => c.n === name);
   if (exist) exist.q += q; else cart.push({ n: name, p: item.p, c: item.c, q });
   qtyState[name] = 1;
-  ['f','s'].forEach(p => { const el = document.getElementById(`q-${p}-${name}`); if (el) el.innerText = 1; });
+  syncQtyDisplays(name);
   updateCartBar();
   toast(`${name} ×${q} 追加`);
 }
@@ -561,9 +574,25 @@ function updateCartBar() {
 }
 
 /* ====== 人気順フィード ====== */
+const CAT_ORDER = [];
+const CAT_ITEMS = {};
+rawData.forEach(r => {
+  const c = r[1];
+  if (!CAT_ITEMS[c]) { CAT_ITEMS[c] = []; CAT_ORDER.push(c); }
+  CAT_ITEMS[c].push(ITEM_MAP[r[0]]);
+});
 function renderFeed() {
-  document.getElementById('item-feed').innerHTML =
-    POPULAR_LIST.map((n,i) => ITEM_MAP[n] ? cardHTML(ITEM_MAP[n], i, false) : '').join('');
+  const popular = POPULAR_LIST.map((n,i) => ITEM_MAP[n] ? cardHTML(ITEM_MAP[n], i, false) : '').join('');
+  const accs = '<div class="hot-label" style="margin-top:6px;">ジャンルから探す</div>' + CAT_ORDER.map((c, ci) =>
+    `<div class="acc" id="acc-${ci}">
+       <div class="acc-head" onclick="toggleAcc(${ci})">${c}<span class="cnt">${CAT_ITEMS[c].length}品</span><span class="arrow">▶</span></div>
+       <div class="acc-body">${CAT_ITEMS[c].map(it => cardHTML(it, null, false)).join('')}</div>
+     </div>`).join('');
+  document.getElementById('item-feed').innerHTML = popular + accs;
+}
+function toggleAcc(ci) {
+  const el = document.getElementById('acc-' + ci);
+  el.classList.toggle('open');
 }
 
 /* ====== 検索（チャット式：候補が入力欄の真上に湧く） ====== */
