@@ -1343,18 +1343,26 @@ async function showAdmin(mode) {
     document.getElementById('admin-month-area').style.display = mode === 'month' ? 'flex' : 'none';
     const list = document.getElementById('sales-list');
     list.innerHTML = '<p style="text-align:center; padding:50px;">読み込み中...</p>';
+    // 連続タップ対策：最後の呼び出しだけが画面を描く（古い呼び出しの結果は捨てる）
+    window._adminSeq = (window._adminSeq || 0) + 1;
+    const _mySeq = window._adminSeq;
     const _t0 = performance.now();
     try {
         const now = new Date();
+        let _sales;
         if (mode === 'month') {
             const inp = document.getElementById('admin-month');
             if (!inp.value) inp.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
             const [y, m] = inp.value.split('-').map(Number);
-            renderMonthSales(await window.getSalesMonth(y, m), m);
+            _sales = await window.getSalesMonth(y, m);
+            if (_mySeq !== window._adminSeq) return; // 後から来た呼び出しに譲る
+            renderMonthSales(_sales, m);
         } else {
             const inp = document.getElementById('admin-date');
             if (!inp.value) inp.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-            renderDaySales(await window.getSalesDayByDate(new Date(inp.value + 'T12:00:00')));
+            _sales = await window.getSalesDayByDate(new Date(inp.value + 'T12:00:00'));
+            if (_mySeq !== window._adminSeq) return;
+            renderDaySales(_sales);
         }
         // 読み込み時間の実測を表示（体感の答え合わせ用）
         const _sec = ((performance.now() - _t0) / 1000).toFixed(2);
