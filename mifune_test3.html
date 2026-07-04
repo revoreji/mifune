@@ -165,6 +165,9 @@ footer { width: 100%; display: flex; flex-direction: column; z-index: 100; box-s
 #suggest-panel.open { display: flex; }
 .suggest-card3 { display: flex; align-items: center; gap: 10px; background: #fff; border-radius: 14px; padding: 12px 14px; box-shadow: 0 2px 10px rgba(0,0,0,.14); }
 .suggest-none { text-align: center; color: #fff; background: rgba(31,35,40,.75); border-radius: 12px; padding: 10px; font-size: 13px; font-weight: 700; }
+#toast-area3 { position: fixed; left: 0; right: 0; bottom: 120px; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; z-index: 60; }
+.toast3 { background: rgba(21,128,61,.95); color: #fff; font-size: 14px; font-weight: 800; padding: 10px 18px; border-radius: 999px; box-shadow: 0 4px 14px rgba(0,0,0,.25); animation: rise3 1.5s ease forwards; }
+@keyframes rise3 { 0% { transform: translateY(10px); opacity: 0; } 12% { transform: none; opacity: 1; } 80% { opacity: 1; } 100% { transform: translateY(-8px); opacity: 0; } }
 </style>
 </head>
 <body>
@@ -650,6 +653,7 @@ window.printStandaloneRyoshu = async function() {
 <header><span class="back-btn" onclick="showIndex()">×</span><span id="display-table-id"></span>番席 <span onclick="openGuestEdit()" style="padding:4px 8px; border:1.5px dashed #bbb; border-radius:8px; cursor:pointer;">(<span id="display-guest-count"></span>名 ✎)</span><span style="margin-left:auto; font-size:11px; color:#666;">入店: <span id="display-checkin-time"></span></span></header>
 <div class="item-feed" id="item-feed"></div>
 <div id="suggest-panel"></div>
+<div id="toast-area3"></div>
 <div class="search-dock" id="search-dock">
   <div class="search-box3" id="search-box3">
     <span>🔍</span>
@@ -1835,6 +1839,26 @@ function setSearchingMode(on) {
     const f = document.querySelector('#view-menu footer');
     if (f) f.style.display = on ? 'none' : '';
 }
+// 追加の吹き出し（キーボードの上に浮かぶ）
+function toast3(msg) {
+    const area = document.getElementById('toast-area3');
+    if (!area) return;
+    const kb = window.visualViewport ? Math.max(0, window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop) : 0;
+    area.style.bottom = (kb + 120) + 'px';
+    const t = document.createElement('div'); t.className = 'toast3'; t.innerText = msg;
+    area.appendChild(t);
+    setTimeout(() => t.remove(), 1600);
+}
+// 検索候補から追加した後：入力を空にして次の品をすぐ打てる状態に（チャット式）
+function afterSuggestAdd() {
+    const si = document.getElementById('menu-search3');
+    if (si) { si.value = ''; }
+    const sc = document.getElementById('search-clear3');
+    if (sc) sc.style.display = 'none';
+    const panel = document.getElementById('suggest-panel');
+    if (panel) { panel.classList.remove('open'); panel.innerHTML = ''; }
+    setSearchingMode(false); // フッターを戻してカート点数の変化を見せる
+}
 // ▲▲▲ テスト3 新UI ▲▲▲
 // renderItems（旧サイドバー式グリッド）は新UIで廃止
 function changeQty(id, d) { const el = document.getElementById(id); let v = parseInt(el.innerText) + d; if(v >= 1) el.innerText = v; }
@@ -1879,6 +1903,8 @@ function addToCart(name, price, qId, rate, cat, btn) {
   localStorage.setItem('cart_'+currentTable, JSON.stringify(currentCart));
   updateFooter(); document.getElementById(qId).innerText = 1;
   if(btn) { btn.classList.add('added'); btn.textContent = '✓ 追加'; setTimeout(() => { btn.classList.remove('added'); btn.textContent = '追加'; }, 200); }
+  if (typeof toast3 === 'function') toast3(`${name} ×${qty} 追加`);
+  if (btn && btn.closest && btn.closest('.suggest-card3')) afterSuggestAdd();
 }
 function changeCartQty(idx, delta) { currentCart[idx].qty += delta; if(currentCart[idx].qty < 1) currentCart[idx].qty = 1; localStorage.setItem('cart_'+currentTable, JSON.stringify(currentCart)); renderCartUI(); updateFooter(); }
 function removeFromCart(idx) { currentCart.splice(idx, 1); localStorage.setItem('cart_'+currentTable, JSON.stringify(currentCart)); renderCartUI(); updateFooter(); }
