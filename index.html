@@ -131,16 +131,54 @@ footer { width: 100%; display: flex; flex-direction: column; z-index: 100; box-s
 .co-receipt-row { display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-top:1px solid #eee; flex-shrink:0; }
 .co-r-btn { padding:7px 12px; border:2px solid #ddd; border-radius:7px; background:#fff; color:#999; font-size:13px; font-weight:bold; cursor:pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
 .co-r-btn.co-r-active { border-color:var(--primary); background:var(--primary); color:#fff; font-weight:bold; box-shadow:0 2px 6px rgba(230,126,34,0.4); }
-.co-confirm-btn { width:100%; padding:16px; border:none; border-radius:14px; background:var(--accent); color:#fff; font-size:17px; font-weight:bold; cursor:pointer; flex-shrink:0; box-shadow:0 4px 10px rgba(46,204,113,0.3); letter-spacing:0.05em; position:sticky; bottom:0; margin-top:auto; z-index:10; }
+.co-confirm-btn { width:100%; padding:16px; border:none; border-radius:14px; background:#15803d; color:#fff; font-size:18px; font-weight:bold; cursor:pointer; flex-shrink:0; box-shadow:0 4px 12px rgba(21,128,61,0.45); letter-spacing:0.05em; position:sticky; bottom:0; margin-top:auto; z-index:10; }
 .co-confirm-btn:disabled { background:#ccc; box-shadow:none; cursor:not-allowed; }
 .co-confirm-btn:active:not(:disabled) { transform:scale(0.98); }
+
+/* ===== テスト3 新UI ===== */
+.hot-label { padding: 10px 16px 4px; font-size: 12px; font-weight: 800; color: #7a8088; letter-spacing: .08em; }
+.item-feed { flex: 1; overflow-y: auto; padding: 0 12px 12px; overscroll-behavior: contain; background: #f4f4f6; }
+.item-card3 { display: flex; align-items: center; gap: 8px; background: #fff; border-radius: 14px; padding: 12px 12px; margin-bottom: 7px; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+.rank3 { font-size: 12px; font-weight: 800; color: #c9ccd2; width: 20px; text-align: center; flex-shrink: 0; }
+.item-main3 { flex: 1; min-width: 0; }
+.item-name3 { font-size: 18px; font-weight: 800; line-height: 1.3; }
+.item-price3 { font-size: 14px; color: #7a8088; font-weight: 700; margin-top: 3px; }
+.item-price3 b { color: #c97a00; font-size: 18px; }
+.qbtn3 { width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid #d9dce1; background: #fff; font-size: 20px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+.qnum3 { width: 30px; text-align: center; font-size: 18px; font-weight: 800; }
+.add-btn3 { flex-shrink: 0; background: var(--primary); color: #fff; border: none; border-radius: 12px; font-size: 17px; font-weight: 800; padding: 14px 26px; box-shadow: 0 2px 6px rgba(243,156,18,.3); }
+.add-btn3:active { transform: scale(.96); }
+.add-btn3.added { background: #27ae60; }
+.acc { background: #fff; border-radius: 16px; margin-bottom: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.05); overflow: hidden; }
+.acc-head { display: flex; align-items: center; padding: 15px 16px; font-size: 17px; font-weight: 800; }
+.acc-head .arrow { margin-left: auto; color: #7a8088; font-size: 14px; transition: transform .18s; }
+.acc.open .acc-head .arrow { transform: rotate(90deg); }
+.acc-head .cnt { margin-left: 8px; font-size: 12px; color: #7a8088; font-weight: 700; }
+.acc-body { display: none; padding: 0 8px 8px; }
+.acc.open .acc-body { display: block; }
+.acc-body .item-card3 { box-shadow: none; border: 1px solid #f0f1f4; margin-bottom: 6px; }
+.search-dock { flex-shrink: 0; background: #fff; border-top: 1px solid #e8e8ec; padding: 8px 12px; }
+.search-box3 { display: flex; align-items: center; gap: 8px; background: #f0f1f4; border: 2px solid transparent; border-radius: 14px; padding: 11px 14px; }
+.search-box3.focused { border-color: var(--primary); background: #fff; }
+#menu-search3 { flex: 1; border: none; background: transparent; font-size: 16px; font-weight: 700; outline: none; min-width: 0; }
+#search-clear3 { display: none; border: none; background: #d9dce1; color: #555; width: 28px; height: 28px; border-radius: 50%; font-size: 15px; font-weight: 800; flex-shrink: 0; }
+#suggest-panel { display: none; flex-direction: column-reverse; max-height: 48dvh; overflow-y: auto; padding: 8px 12px; gap: 6px; flex-shrink: 0; background: #eceef2; border-top: 1px solid #e0e2e8; overscroll-behavior: contain; }
+#suggest-panel.open { display: flex; }
+#view-menu.searching .item-feed { display: none; }
+#view-menu.searching footer { display: none; }
+#view-menu.searching #suggest-panel { flex: 1 1 auto; max-height: none !important; }
+.suggest-card3 { display: flex; align-items: center; gap: 10px; background: #fff; border-radius: 14px; padding: 12px 14px; box-shadow: 0 2px 10px rgba(0,0,0,.14); }
+.suggest-none { text-align: center; color: #fff; background: rgba(31,35,40,.75); border-radius: 12px; padding: 10px; font-size: 13px; font-weight: 700; }
+#toast-area3 { position: fixed; left: 0; right: 0; bottom: 120px; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; z-index: 60; }
+.toast3 { background: rgba(21,128,61,.95); color: #fff; font-size: 14px; font-weight: 800; padding: 10px 18px; border-radius: 999px; box-shadow: 0 4px 14px rgba(0,0,0,.25); animation: rise3 1.5s ease forwards; }
+@keyframes rise3 { 0% { transform: translateY(10px); opacity: 0; } 12% { transform: none; opacity: 1; } 80% { opacity: 1; } 100% { transform: translateY(-8px); opacity: 0; } }
 </style>
 </head>
 <body>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, addDoc, query, orderBy, getDocs, where, Timestamp, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, collection, addDoc, query, orderBy, getDocs, where, Timestamp, serverTimestamp, arrayUnion, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -193,6 +231,57 @@ window.logoutOwner = () => {
   alert('ログアウト完了'); showIndex();
 };
 
+// ▼▼▼ 注文の早い者勝ち取得（複数端末の重複印刷防止）▼▼▼
+// トランザクションで「注文を読む→空にする」を1つの不可分な操作にする。
+// 複数端末が同時に掴もうとしても、成功するのは最初の1台だけ。
+// 負けた端末は空配列を受け取り、印刷も履歴追加もしない
+// （履歴は勝った端末のcloudSyncが全端末に同期してくれる）。
+async function claimOrders(tId, field) {
+    try {
+        return await runTransaction(db, async (tx) => {
+            const ref = doc(db, "stores/mifune/tables", tId);
+            const snap = await tx.get(ref);
+            if (!snap.exists()) return [];
+            const orders = snap.data()[field] || [];
+            if (orders.length === 0) return [];
+            tx.set(ref, { [field]: [] }, { merge: true });
+            return orders;
+        });
+    } catch (e) {
+        // 競合で負けた場合もここに来るが、他端末が処理済みなので何もしなくてよい
+        console.warn('claimOrders競合/失敗:', field, e.message);
+        return [];
+    }
+}
+// ▲▲▲ 注文の早い者勝ち取得 ▲▲▲
+
+// ▼▼▼ 注文の追記書き込み（履歴の丸ごと上書きによる消失防止）▼▼▼
+// トランザクションで「サーバーの今の履歴を読む→新しい品だけを足す」を不可分に行う。
+// 手元の控えが古い端末から送信しても、サーバーの履歴に追記するだけなので
+// 他の注文を消すことができない（6/27の卓02消失事故の再発防止）。
+// 同時に2台が送信しても、順番に追記されて両方残る。
+// 書き込み後、サーバー確定値で手元の控えを更新する（古い控えもここで治る）。
+async function appendOrderToCloud(tableId, newItems) {
+    // 旧方式(JSON経由)と同じ整形：未定義の項目を落としてFirestoreが拒否しない形にする
+    newItems = JSON.parse(JSON.stringify(newItems));
+    const ref = doc(db, "stores/mifune/tables", tableId);
+    const merged = await runTransaction(db, async (tx) => {
+        const snap = await tx.get(ref);
+        const serverHist = snap.exists() ? (snap.data().history || []) : [];
+        const combined = serverHist.concat(newItems);
+        tx.set(ref, { history: combined, updatedAt: Timestamp.now() }, { merge: true });
+        return combined;
+    });
+    localStorage.setItem('history_' + tableId, JSON.stringify(merged));
+    return merged;
+}
+window.appendOrderToCloud = appendOrderToCloud;
+// 卓の最新データをサーバーから1件取得（卓を開くときの読み直し用）
+window.fetchTableFresh = (tId) => getDoc(doc(db, "stores/mifune/tables", tId));
+// 人数・入店時刻だけを書き込む（履歴には一切触れない）
+window.updateTableMeta = (tId, guests, checkin) => setDoc(doc(db, "stores/mifune/tables", tId), { guests: guests, checkin: checkin, updatedAt: Timestamp.now() }, { merge: true });
+// ▲▲▲ 注文の追記書き込み ▲▲▲
+
 function startTablesListener() {
   return onSnapshot(collection(db, "stores/mifune/tables"), (snapshot) => {
 if(window.isEditing) return;
@@ -227,20 +316,14 @@ if (!docSnap.metadata.hasPendingWrites) {
     }
 }
 
-// ▼ モバイルオーダー検知・自動キッチン印刷
+// ▼ モバイルオーダー検知・自動キッチン印刷（早い者勝ち：掴めた1台だけが印刷）
 const mobileOrders = data.mobileOrders || [];
 if (mobileOrders.length > 0) {
-    setDoc(doc(db, "stores/mifune/tables", tId), { mobileOrders: [] }, { merge: true }).then(async () => {
-        await autoKitchenPrint(tId, mobileOrders, 'M');
+    claimOrders(tId, 'mobileOrders').then(async (claimed) => {
+        if (claimed.length > 0) await autoKitchenPrint(tId, claimed, 'M');
     });
 }
-// ▼ ハンディオーダー検知・自動キッチン印刷
-const handyOrders = data.handyOrders || [];
-if (handyOrders.length > 0) {
-    setDoc(doc(db, "stores/mifune/tables", tId), { handyOrders: [] }, { merge: true }).then(async () => {
-        await autoKitchenPrint(tId, handyOrders, 'H');
-    });
-}
+// handyOrders受信はWebPRNT時代の遺産のため廃止（書き手が存在しない）
 // ▲ オーダー検知
 
 });
@@ -312,22 +395,14 @@ window.printDenpyo = async function() {
 };
 // ▲▲▲ 伝票印刷 ▲▲▲
 
-window.cloudSync = async (tableId) => {
-try {
-await setDoc(doc(db, "stores/mifune/tables", tableId), {
-history: JSON.parse(localStorage.getItem('history_' + tableId) || '[]'),
-guests: parseInt(localStorage.getItem('guests_' + tableId)) || 0,
-checkin: localStorage.getItem('checkin_' + tableId) || "--:--",
-updatedAt: Timestamp.now()
-}, { merge: true });
-} catch(e) { console.warn('cloudSync失敗:', e.message); }
-};
+// cloudSync（履歴全文の上書き関数）は廃止。注文はappendOrderToCloud（追記）、人数はguests/checkinのみの書き込みに分離済み
 
 // ▼▼▼ オーダーログ（保険：注文が消えても残る追記専用ログ）▼▼▼
 // 注文が入るたびにorder_logへ1件追記。上書き・削除しないので消えない。
 window.saveOrderLog = async (tableId, items) => {
     try {
         if (!items || items.length === 0) return;
+        // 端末IDも記録（どの端末からの注文か追跡できるように）
         const now = new Date();
         const dateStr = now.getFullYear() + '-' +
             String(now.getMonth()+1).padStart(2,'0') + '-' +
@@ -339,6 +414,8 @@ window.saveOrderLog = async (tableId, items) => {
             date: dateStr,
             time: timeStr,
             items: items.map(i => ({ name: i.name, price: i.price, qty: i.qty, rate: i.rate || 0.10 })),
+            deviceId: window._deviceId || 'unknown',
+            deviceUA: (navigator.userAgent || '').slice(0, 80),
             createdAt: serverTimestamp()
         });
     } catch(e) { console.warn('order_log保存失敗:', e.message); }
@@ -347,12 +424,11 @@ window.saveOrderLog = async (tableId, items) => {
 
 // ▼▼▼ モバイルオーダー自動キッチン印刷 ▼▼▼
 async function autoKitchenPrint(tableId, mobileOrders, tag) { tag = tag || 'M';
-    const hist = JSON.parse(localStorage.getItem('history_' + tableId) || '[]');
+    // 印刷ジョブの作成と、追記する品リストの組み立て
+    const newLines = [];
     mobileOrders.forEach(order => {
         order.items.forEach(item => {
-            const exist = hist.find(h => h.name === item.name);
-            if (exist) exist.qty += item.qty;
-            else hist.push({ name: item.name, price: item.price, qty: item.qty, rate: item.rate || 0.10 });
+            newLines.push({ name: item.name, price: item.price, qty: item.qty, rate: item.rate || 0.10 });
             // キッチン伝票をCloudPRNTキューに追加
             window.queuePrint({
                 type: 'kitchen',
@@ -363,12 +439,14 @@ async function autoKitchenPrint(tableId, mobileOrders, tag) { tag = tag || 'M';
             });
         });
     });
-    localStorage.setItem('history_' + tableId, JSON.stringify(hist));
-    window.cloudSync(tableId);
+    // 履歴に追記（サーバーの今の履歴に足すだけ・上書きしない）
+    try {
+        await appendOrderToCloud(tableId, newLines);
+    } catch(e) {
+        console.warn('履歴追記失敗（order_logには記録済み）:', e.message);
+    }
     // モバイル/ハンディ注文もorder_logに記録
-    const loggedItems = [];
-    mobileOrders.forEach(order => { order.items.forEach(item => loggedItems.push(item)); });
-    window.saveOrderLog(tableId, loggedItems);
+    window.saveOrderLog(tableId, newLines);
     await startCountdownIfNeeded(tableId);
 }
 // ▲▲▲ モバイルオーダー自動キッチン印刷 ▲▲▲
@@ -402,31 +480,26 @@ if (customs.includes(tableId)) {
 ['history_','cart_','guests_','checkin_'].forEach(k => localStorage.removeItem(k + tableId));
 };
 
-window.getSalesData = async (mode) => {
-const now = new Date();
-const snap = await getDocs(collection(db, "stores/mifune/sales"));
-let res = [];
-snap.forEach(d => {
-    let data = d.data(); data.id = d.id;
-    const date = data.timestamp.toDate();
-    if (mode === 'day' && date.toDateString() === now.toDateString()) res.push(data);
-    else if (mode === 'month' && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()) res.push(data);
-    else if (mode === 'dow') res.push(data);
-    else if (mode === 'dates') res.push(data);
-});
-return res.sort((a,b) => b.timestamp - a.timestamp);
+// ▼ 売上の期間指定取得（全件ダウンロード廃止：選んだ期間だけ読むので営業日数が増えても速度不変）
+window.getSalesRange = async (start, end) => {
+    const qy = query(collection(db, "stores/mifune/sales"),
+        where('timestamp', '>=', Timestamp.fromDate(start)),
+        where('timestamp', '<=', Timestamp.fromDate(end)),
+        orderBy('timestamp', 'desc'));
+    const snap = await getDocs(qy);
+    const res = [];
+    snap.forEach(d => { const data = d.data(); data.id = d.id; res.push(data); });
+    return res;
+};
+window.getSalesMonth = (y, m) => window.getSalesRange(new Date(y, m - 1, 1), new Date(y, m, 0, 23, 59, 59, 999));
+window.getSalesDayByDate = (d) => {
+    const st = new Date(d); st.setHours(0, 0, 0, 0);
+    const en = new Date(d); en.setHours(23, 59, 59, 999);
+    return window.getSalesRange(st, en);
 };
 
-window.deleteSaleDoc = async (id) => { if(confirm("消去しますか？")) { await deleteDoc(doc(db, "stores/mifune/sales", id)); await new Promise(r => setTimeout(r, 500)); window.showAdmin('day'); } };
-window.deleteDaySales = async (label) => {
-    const entry = Object.values(window._dayDeleteMap || {}).find(x => x.label === label);
-    if (!entry) return alert("データが見つかりません");
-    if (confirm(`${label} の${entry.ids.length}件をまとめて削除しますか？`)) {
-        await Promise.all(entry.ids.map(id => deleteDoc(doc(db, "stores/mifune/sales", id))));
-        await new Promise(r => setTimeout(r, 500));
-        window.showAdmin('dates');
-    }
-};
+// 売上の削除機能はPOSから撤去（訂正はuriage.htmlでのみ行う）
+// deleteDaySales（日別まとめ削除）もPOSから撤去
 window.cloudDelete = async (tableId) => { await deleteDoc(doc(db, "stores/mifune/tables", tableId)); };
 
 // 飲み放題開始をFirestoreに書き込み（serverTimestamp使用・updatedAtと同時書き込み）
@@ -568,11 +641,10 @@ window.printStandaloneRyoshu = async function() {
 
 <div id="view-admin" class="view">
 <header><div class="header-left"><span class="back-btn" onclick="showIndex()">＜</span><span>売上管理</span></div><div style="font-size:12px; color:var(--danger);" onclick="logoutOwner()">終了</div></header>
-<div class="admin-nav"><div id="nav-day" class="admin-nav-btn active" onclick="showAdmin('day')">本日</div><div id="nav-dates" class="admin-nav-btn" onclick="showAdmin('dates')">日別</div><div id="nav-dow" class="admin-nav-btn" onclick="showAdmin('dow')">曜日別</div><div id="nav-month" class="admin-nav-btn" onclick="showAdmin('month')">月別</div><div id="nav-menu" class="admin-nav-btn" onclick="showAdmin('menu')">メニュー別</div></div>
-<div id="month-selector-area" style="display:none; align-items:center; gap:10px; background:#fff; padding:10px 15px; border-bottom:1px solid #ddd;">
-  <span style="font-size:13px; color:#666;">表示月：</span>
-  <select id="month-selector" onchange="showAdmin(['nav-menu','nav-dates','nav-dow','nav-month'].map(id=>({id,el:document.getElementById(id)})).find(x=>x.el&&x.el.classList.contains('active'))?.id?.replace('nav-','') || 'month')" style="padding:8px 12px; border:1px solid #ddd; border-radius:8px; font-size:15px; flex:1;"></select>
-</div>
+<div class="admin-nav"><div id="nav-day" class="admin-nav-btn active" onclick="showAdmin('day')">日計</div><div id="nav-month" class="admin-nav-btn" onclick="showAdmin('month')">月計</div><a href="uriage.html" class="admin-nav-btn" style="text-decoration:none; color:inherit; text-align:center;">売上管理(詳細)↗</a><a href="order_log.html" class="admin-nav-btn" style="text-decoration:none; color:inherit; text-align:center;">注文ログ↗</a></div>
+<div id="admin-date-area" style="display:none; align-items:center; gap:10px; background:#fff; padding:10px 15px; border-bottom:1px solid #ddd;"><span style="font-size:13px; color:#666;">日付：</span><input type="date" id="admin-date" onchange="showAdmin('day')" style="padding:8px 12px; border:1px solid #ddd; border-radius:8px; font-size:15px; flex:1;"></div>
+<div id="admin-month-area" style="display:none; align-items:center; gap:10px; background:#fff; padding:10px 15px; border-bottom:1px solid #ddd;"><span style="font-size:13px; color:#666;">月：</span><input type="month" id="admin-month" onchange="showAdmin('month')" style="padding:8px 12px; border:1px solid #ddd; border-radius:8px; font-size:15px; flex:1;"></div>
+
 <div id="admin-summary-area" style="padding:15px; background:var(--dark); color:#fff; display:flex; justify-content:space-around; text-align:center; font-size:13px;"><div>件数<br><span id="sum-count" style="font-size:20px; font-weight:bold;">0</span></div><div>客数<br><span id="sum-guests" style="font-size:20px; font-weight:bold;">0</span></div><div>合計<br>¥<span id="sum-total" style="font-size:20px; font-weight:bold;">0</span></div></div>
 <div id="sales-type-summary-area" style="background:#444; color:#fff; padding:10px 15px; font-size:12px; display:none; flex-wrap:wrap; gap:8px; justify-content:center;"></div>
 <div id="payment-summary-area" style="background:#555; color:#fff; padding:10px 15px; font-size:12px; display:flex; flex-wrap:wrap; gap:8px; justify-content:center;"></div>
@@ -582,9 +654,21 @@ window.printStandaloneRyoshu = async function() {
 
 <div id="view-guest" class="view"><header><span class="back-btn" onclick="showIndex()">＜</span>客数入力</header><div class="guest-input-container"><h2 id="guest-table-name"></h2><div class="guest-num-display"><span id="guest-count-val">0</span> 名</div><div class="keypad" id="guest-keypad"></div></div></div>
 <div id="view-menu" class="view">
-<header><span class="back-btn" onclick="showIndex()">×</span><span id="display-table-id"></span>番席 (<span id="display-guest-count"></span>名)<span style="margin-left:auto; font-size:11px; color:#666;">入店: <span id="display-checkin-time"></span></span></header>
-<div class="menu-container"><div class="sidebar" id="side-cats"></div><div class="item-grid" id="display-items"></div></div>
-<footer><div class="footer-history" onclick="showOrderHistory()"><span>💴 お会計へ進む</span><span style="display:flex; align-items:center; gap:8px;"><span id="display-current-total">¥0</span><span style="font-size:20px;">›</span></span></div><div style="display:flex; gap:0;"><div class="footer-cart" style="flex:1;" onclick="showCart()"><div>🛒 <span id="cart-count">0</span>点</div><div>注文を確認 ＞</div></div><div style="background:#8e44ad; color:#fff; padding:18px 14px; font-weight:bold; font-size:13px; cursor:pointer; white-space:nowrap;" onclick="openCustomItem()">＋カスタム</div></div></footer>
+<header><span class="back-btn" onclick="showIndex()">×</span><span id="display-table-id"></span>番席 <span onclick="openGuestEdit()" style="padding:4px 8px; border:1.5px dashed #bbb; border-radius:8px; cursor:pointer;">(<span id="display-guest-count"></span>名 ✎)</span><span style="margin-left:auto; font-size:11px; color:#666;">入店: <span id="display-checkin-time"></span></span></header>
+<div class="item-feed" id="item-feed"></div>
+<div id="suggest-panel"></div>
+<div id="toast-area3"></div>
+<div class="search-dock" id="search-dock">
+  <div class="search-box3" id="search-box3">
+    <span>🔍</span>
+    <input type="text" id="menu-search3" placeholder="メニューを検索（ひらがなOK）" autocomplete="off" oninput="searchMenu3(this.value)" onfocus="openSearch3()">
+    <button id="search-clear3" onclick="clearSearch3()">×</button>
+  </div>
+</div>
+<footer><div style="display:flex; gap:0;">
+<div class="footer-history" style="flex:0 0 38.2%; display:flex; align-items:center; justify-content:center; padding:15px 4px; font-size:16px;" onclick="showOrderHistory()"><span>💴 会計</span><span id="display-current-total" style="display:none;"></span></div>
+<div class="footer-cart" style="flex:1; display:flex; align-items:center; justify-content:center; gap:7px; padding:15px 6px; font-size:16px;" onclick="showCart()"><span>🛒 <span id="cart-count">0</span>点</span><span>注文を確認 ›</span></div>
+</div></footer>
 </div>
 
 <!-- カスタム商品モーダル -->
@@ -609,8 +693,23 @@ window.printStandaloneRyoshu = async function() {
     <div style="margin-top:10px; color:#999; font-size:13px; cursor:pointer; text-align:center;" onclick="closeCustomItem()">キャンセル</div>
 </div>
 </div>
-<div id="view-cart" class="view"><header><span class="back-btn" onclick="exitEditing()">＜</span>カート確認</header><div class="list-container" id="cart-items-list"></div><div style="background:#fff; border-top:1px solid #eee; padding-bottom:10px;"><button class="btn-large" style="background:var(--info); color:white;" onclick="testSend()">送信(同期のみ)</button><button id="btn-send-kitchen" class="btn-large" style="background:var(--primary);color:white;" onclick="sendToKitchen()">本番送信</button></div></div>
-<div id="view-history" class="view"><header><span class="back-btn" onclick="exitEditing()">＜</span>修正</header><div class="list-container" id="history-items-list"></div><div class="summary-area" id="history-summary"></div><div style="background:#fff; border-top:1px solid #ddd; padding-bottom:10px;"><button class="btn-large" style="background:var(--secondary); color:white;" onclick="showCheckout()">お会計確定へ</button></div></div>
+<div id="view-cart" class="view"><header><span class="back-btn" onclick="exitEditing()">＜</span><span id="cart-header-title">カート確認</span></header><div id="cart-table-banner" style="background:#ffc107;color:#000;text-align:center;padding:10px 8px;border-bottom:3px solid #e6a800;line-height:1.2;"></div><div class="list-container" id="cart-items-list"></div><div style="background:#fff; border-top:1px solid #eee; padding-bottom:10px;"><button id="btn-send-kitchen" class="btn-large" style="background:var(--primary);color:white;" onclick="sendToKitchen()">本番送信</button></div></div>
+<div id="view-history" class="view"><header><span class="back-btn" onclick="exitEditing()">＜</span>注文一覧・取消</header><div id="history-table-banner" style="background:#ffc107;color:#000;text-align:center;padding:10px 8px;border-bottom:3px solid #e6a800;line-height:1.2;"></div><div class="list-container" id="history-items-list"></div>
+<div id="cancel-bar" style="display:none; background:#fff3f3; border-top:2px solid var(--danger); padding:10px;">
+  <div style="font-weight:bold; color:var(--danger); margin-bottom:6px;">【取消】<span id="cancel-item-name"></span></div>
+  <div style="display:flex; align-items:center; gap:14px; margin-bottom:8px;">
+    <div class="btn-circle" onclick="adjustCancelQty(-1)">-</div>
+    <span id="cancel-qty" style="font-size:22px; font-weight:bold;">1</span>
+    <div class="btn-circle" onclick="adjustCancelQty(1)">+</div>
+    <span style="font-size:12px; color:#888;">最大 <span id="cancel-max"></span></span>
+  </div>
+  <div style="display:flex; gap:8px;">
+    <button id="btn-cancel-print" style="flex:1; padding:12px; font-weight:bold; border:none; border-radius:8px; background:var(--danger); color:#fff;" onclick="execCancel(true)">取消する（取消伝票が印刷されます）</button>
+    
+    <button style="padding:12px; border:2px solid #999; border-radius:8px; background:#fff;" onclick="closeCancelBar()">やめる</button>
+  </div>
+</div>
+<div class="summary-area" id="history-summary"></div><div style="background:#fff; border-top:1px solid #ddd; padding-bottom:10px;"><button class="btn-large" style="background:var(--secondary); color:white;" onclick="showCheckout()">お会計確定へ</button></div></div>
 <div id="view-checkout" class="view">
   <header>
     <div class="header-left">
@@ -930,7 +1029,9 @@ async function buildPopularCategory() {
     // ログイン済みの場合のみFirestoreからも集計
     if (window.currentUser) {
         try {
-            const allSales = await window.getSalesData('dow');
+            // 直近30日分だけで集計（全期間読みの廃止）
+            const _popEnd = new Date(); const _popStart = new Date(); _popStart.setDate(_popStart.getDate() - 30);
+            const allSales = await window.getSalesRange(_popStart, _popEnd);
             allSales.forEach(s => {
                 (s.items || []).forEach(i => { countMap[i.name] = (countMap[i.name] || 0) + i.qty; });
             });
@@ -946,8 +1047,7 @@ async function buildPopularCategory() {
     const existIdx = menuData.findIndex(x => x.cat === '🔥 人気TOP15');
     const newCat = { cat: '🔥 人気TOP15', items: popularItems };
     if (existIdx >= 0) menuData[existIdx] = newCat; else menuData.splice(1, 0, newCat);
-    renderSidebar();
-    renderItems(menuData[0]);
+    // 新UIでは固定POPULAR_LISTを使用（自動人気集計の描画は廃止）
 }
 // ▲▲▲ 人気メニュー機能追加 ▲▲▲
 const baseTablesL = ['C-a', 'C-b', 'C-c', '01', '02', '03', '04', '05', '06', '07', 'テイクアウト', '無人'];
@@ -1213,191 +1313,131 @@ function showIndex() {
 function checkAdminAuth() { if(window.currentUser) showAdmin('day'); else { hideAll(); document.getElementById('view-login').style.display = 'flex'; } }
 function handleLogin() { window.loginOwner(); }
 window.handleLogin = handleLogin;
-function onTableClick(tId) { currentTable = tId; const hist = JSON.parse(localStorage.getItem('history_' + tId) || '[]'); const guests = parseInt(localStorage.getItem('guests_' + tId)) || 0; if(hist.length > 0 || guests > 0) showMenu(); else showGuestInput(); }
+async function onTableClick(tId) {
+    currentTable = tId;
+    // 卓を開く瞬間にサーバーから最新を読み直す（古い控えのまま操作が始まる事故の防止）
+    try {
+        const snap = await window.fetchTableFresh(tId);
+        if (snap.exists()) {
+            const d = snap.data();
+            localStorage.setItem('history_' + tId, JSON.stringify(d.history || []));
+            localStorage.setItem('guests_' + tId, d.guests || 0);
+            localStorage.setItem('checkin_' + tId, d.checkin || "--:--");
+        } else {
+            localStorage.removeItem('history_' + tId);
+            localStorage.removeItem('guests_' + tId);
+            localStorage.removeItem('checkin_' + tId);
+        }
+    } catch(e) { console.warn('卓の読み直し失敗（手元の控えで続行）:', e.message); }
+    const hist = JSON.parse(localStorage.getItem('history_' + tId) || '[]');
+    const guests = parseInt(localStorage.getItem('guests_' + tId)) || 0;
+    if(hist.length > 0 || guests > 0) showMenu(); else showGuestInput();
+}
 
 async function showAdmin(mode) {
     window.showAdmin = showAdmin;
     hideAll(); document.getElementById('view-admin').style.display = 'flex';
     document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
-    const navId = mode==='month'?'month':mode==='dow'?'dow':mode==='dates'?'dates':mode==='menu'?'menu':'day';
-    const navEl = document.getElementById('nav-' + navId);
-    if(navEl) navEl.classList.add('active');
-    // 月別セレクター表示制御
-    const selArea = document.getElementById('month-selector-area');
-    selArea.style.display = (mode === 'month' || mode === 'menu' || mode === 'dates' || mode === 'dow') ? 'flex' : 'none';
-    const list = document.getElementById('sales-list'); list.innerHTML = '<p style="text-align:center; padding:50px;">集計中...</p>';
+    document.getElementById('nav-' + (mode === 'month' ? 'month' : 'day')).classList.add('active');
+    document.getElementById('admin-date-area').style.display = mode === 'day' ? 'flex' : 'none';
+    document.getElementById('admin-month-area').style.display = mode === 'month' ? 'flex' : 'none';
+    const list = document.getElementById('sales-list');
+    list.innerHTML = '<p style="text-align:center; padding:50px;">読み込み中...</p>';
+    // 前回の表示を消す（読み込み中に古い数字が残って誤解させないように）
+    ['sum-count','sum-guests','sum-total'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = '…'; });
+    const _paClear = document.getElementById('payment-summary-area'); if (_paClear) _paClear.innerHTML = '';
+    // 連続タップ対策：最後の呼び出しだけが画面を描く（古い呼び出しの結果は捨てる）
+    window._adminSeq = (window._adminSeq || 0) + 1;
+    const _mySeq = window._adminSeq;
+    const _t0 = performance.now();
     try {
-        // 全データ取得（dow=全件）
-        const allSales = await window.getSalesData('dow');
-        // 月別セレクターを全データから動的生成（month/dates/dow/menu共通）
-        if (mode === 'month' || mode === 'dates' || mode === 'dow' || mode === 'menu') {
-            const monthSet = {};
-            allSales.forEach(s => {
-                const d = s.timestamp.toDate();
-                const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-                const label = `${d.getFullYear()}年${d.getMonth()+1}月`;
-                monthSet[key] = label;
-            });
-            const sel = document.getElementById('month-selector');
-            const currentVal = sel.value;
-            const now = new Date();
-            const defaultKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-            sel.innerHTML = Object.keys(monthSet).sort().reverse().map(k =>
-                `<option value="${k}" ${(currentVal||defaultKey)===k?'selected':''}>${monthSet[k]}</option>`
-            ).join('');
-        }
-        // 表示対象のsalesをフィルタ
-        let sales;
         const now = new Date();
-        const getSelectedYM = () => document.getElementById('month-selector').value.split('-').map(Number);
-        if (mode === 'month' || mode === 'dates' || mode === 'dow') {
-            const [selY, selM] = getSelectedYM();
-            sales = allSales.filter(s => { const d = s.timestamp.toDate(); return d.getFullYear()===selY && d.getMonth()+1===selM; });
-        } else if (mode === 'day') {
-            sales = allSales.filter(s => s.timestamp.toDate().toDateString() === now.toDateString());
+        const _timeout = (p, sec) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(`通信が不安定です（${sec}秒応答なし）`)), sec * 1000))]);
+        // 眠った接続対策：タイムアウトしたら自動でもう1回だけ聞き直す（1回目の失敗が接続を起こすことが多い）
+        const _fetchWithRetry = async (makeFetch) => {
+            try { return await _timeout(makeFetch(), 5); }
+            catch(e1) {
+                if (_mySeq !== window._adminSeq) throw e1;
+                if (!list.querySelector('.sale-card')) list.innerHTML = '<p style="text-align:center; padding:50px; color:#999;">接続を起こしています…（自動再試行中）</p>';
+                return await _timeout(makeFetch(), 10);
+            }
+        };
+        let _sales;
+        if (mode === 'month') {
+            const inp = document.getElementById('admin-month');
+            if (!inp.value) inp.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+            const [y, m] = inp.value.split('-').map(Number);
+            // 前回の結果があれば即表示（体感ゼロ秒）→裏で最新を取得して差し替え
+            const _ckM = 'salesCache_m_' + inp.value;
+            try { const _cv = localStorage.getItem(_ckM); if (_cv) { renderMonthSales(JSON.parse(_cv), m); const _pa0 = document.getElementById('payment-summary-area'); if (_pa0) _pa0.innerHTML += '<span style="margin-left:10px; color:#e6a800; font-size:11px;">最新に更新中…</span>'; } } catch(_e) {}
+            _sales = await _fetchWithRetry(() => window.getSalesMonth(y, m));
+            if (_mySeq !== window._adminSeq) return; // 後から来た呼び出しに譲る
+            try { localStorage.setItem(_ckM, JSON.stringify(_sales)); } catch(_e) {}
+            renderMonthSales(_sales, m);
         } else {
-            sales = allSales;
+            const inp = document.getElementById('admin-date');
+            if (!inp.value) inp.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+            // 前回の結果があれば即表示（体感ゼロ秒）→裏で最新を取得して差し替え
+            const _ckD = 'salesCache_d_' + inp.value;
+            try { const _cv = localStorage.getItem(_ckD); if (_cv) { renderDaySales(JSON.parse(_cv)); const _pa0 = document.getElementById('payment-summary-area'); if (_pa0) _pa0.innerHTML += '<span style="margin-left:10px; color:#e6a800; font-size:11px;">最新に更新中…</span>'; } } catch(_e) {}
+            _sales = await _fetchWithRetry(() => window.getSalesDayByDate(new Date(inp.value + 'T12:00:00')));
+            if (_mySeq !== window._adminSeq) return;
+            try { localStorage.setItem(_ckD, JSON.stringify(_sales)); } catch(_e) {}
+            renderDaySales(_sales);
         }
-        let total = 0, guests = 0;
-        if (mode === 'day') {
-            let motsuCount = 0, toriCount = 0;
-            const cards = sales.map(s => {
-                total += s.total; guests += s.guests;
-                (s.items || []).forEach(item => {
-                    if (item.name && item.name.includes('もつ串')) motsuCount += item.qty;
-                    if (item.name && item.name.includes('鳥精肉')) toriCount += item.qty;
-                });
-                return `<div class="sale-card" onclick="showSaleDetail(${JSON.stringify(s).replace(/"/g,'&quot;')})" style="cursor:pointer;"><div class="sale-time-row"><span class="sale-time">${s.checkout}</span><span class="sale-table-badge">${s.tableId}番</span></div><div class="sale-detail-info">客: ${s.guests}名 / 入店: ${s.checkin} / ${s.paymentMethod || '現金'}</div><div class="sale-total-line"><span class="sale-price-big">¥${s.total.toLocaleString()}</span><button class="btn-del-sale" onclick="event.stopPropagation();deleteSaleDoc('${s.id}')">削除</button></div></div>`;
-            }).join('') || '<p style="text-align:center; padding:50px;">本日データなし</p>';
-            const countBar = `<div style="background:#fff3cd; border:1px solid #ffc107; border-radius:10px; padding:12px 16px; margin:10px 0; display:flex; gap:20px; justify-content:center; font-weight:bold; font-size:15px;"><span>🍢 もつ串: ${motsuCount}串</span><span>🐔 鳥精肉: ${toriCount}串</span></div>`;
-            list.innerHTML = countBar + cards;
-        } else if (mode === 'dates') {
-            // 日別グループ集計
-            const dayMap = {};
-            sales.forEach(s => {
-                const d = s.timestamp.toDate();
-                const key = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
-                const dow = ['日','月','火','水','木','金','土'][d.getDay()];
-                if(!dayMap[key]) dayMap[key] = { label: `${key}（${dow}）`, t: 0, c: 0, g: 0, ts: d.getTime(), ids: [], pay: {} };
-                dayMap[key].t += s.total; dayMap[key].c++; dayMap[key].g += s.guests; dayMap[key].ids.push(s.id);
-                const pm = s.paymentMethod || '現金';
-                dayMap[key].pay[pm] = (dayMap[key].pay[pm] || 0) + s.total;
-                total += s.total; guests += s.guests;
-            });
-            window._dayDeleteMap = dayMap;
-            const sorted = Object.values(dayMap).sort((a,b) => b.ts - a.ts);
-            list.innerHTML = sorted.map((s, i) => {
-                const payDetail = Object.entries(s.pay).map(([k,v]) => `${k}: ¥${v.toLocaleString()}`).join(' / ');
-                return `<div class="sale-card"><div class="sale-time-row"><span class="sale-time" style="font-size:15px;">${s.label}</span></div><div class="sale-detail-info">件数: ${s.c} / 客数: ${s.g}名</div><div class="sale-detail-info" style="color:#888; font-size:12px;">${payDetail}</div><div class="sale-total-line"><span class="sale-price-big">¥${s.t.toLocaleString()}</span><button class="btn-del-sale" onclick="deleteDaySales('${s.label}')">削除</button></div></div>`;
-            }).join('') || '<p style="text-align:center; padding:50px;">データなし</p>';
-        } else if (mode === 'dow') {
-            const labels = ['日','月','火','水','木','金','土'];
-            let stats = [0,1,2,3,4,5,6].map(i=>({l:labels[i], t:0, c:0, g:0}));
-            sales.forEach(s => { const dow = s.timestamp.toDate().getDay(); stats[dow].t += s.total; stats[dow].c++; stats[dow].g += s.guests; total += s.total; guests += s.guests; });
-            list.innerHTML = stats.map(s => `<div class="sale-card"><div class="sale-time-row"><span class="sale-time">${s.l}曜日</span></div><div class="sale-detail-info">件数: ${s.c} / 客数: ${s.g}</div><div class="sale-total-line"><span class="sale-price-big">¥${s.t.toLocaleString()}</span></div></div>`).join('');
-        } else if (mode === 'month') {
-            sales.forEach(s => { total += s.total; guests += s.guests; });
-            // 日別にグループ化して表示
-            const dayMap = {};
-            sales.forEach(s => {
-                const d = s.timestamp.toDate();
-                const key = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
-                const dow = ['日','月','火','水','木','金','土'][d.getDay()];
-                if(!dayMap[key]) dayMap[key] = { label: `${key}（${dow}）`, t: 0, c: 0, g: 0, ts: d.getTime() };
-                dayMap[key].t += s.total; dayMap[key].c++; dayMap[key].g += s.guests;
-            });
-            const sorted = Object.values(dayMap).sort((a,b) => b.ts - a.ts);
-            list.innerHTML = sorted.map(s => `<div class="sale-card"><div class="sale-time-row"><span class="sale-time" style="font-size:15px;">${s.label}</span></div><div class="sale-detail-info">件数: ${s.c} / 客数: ${s.g}名</div><div class="sale-total-line"><span class="sale-price-big">¥${s.t.toLocaleString()}</span></div></div>`).join('') || '<p style="text-align:center; padding:50px;">データなし</p>';
-        } else if (mode === 'menu') {
-            // 月別セレクターをメニューモードでも生成
-            const monthSet = {};
-            allSales.forEach(s => {
-                const d = s.timestamp.toDate();
-                const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-                const label = `${d.getFullYear()}年${d.getMonth()+1}月`;
-                monthSet[key] = label;
-            });
-            const sel2 = document.getElementById('month-selector');
-            const currentVal2 = sel2.value;
-            const now2 = new Date();
-            const defaultKey2 = `${now2.getFullYear()}-${String(now2.getMonth()+1).padStart(2,'0')}`;
-            sel2.innerHTML = Object.keys(monthSet).sort().reverse().map(k =>
-                `<option value="${k}" ${(currentVal2||defaultKey2)===k?'selected':''}>${monthSet[k]}</option>`
-            ).join('');
-            const [selY2, selM2] = sel2.value.split('-').map(Number);
-            const menuSales = allSales.filter(s => {
-                const d = s.timestamp.toDate();
-                return d.getFullYear() === selY2 && d.getMonth()+1 === selM2;
-            });
-            const itemMap = {};
-            menuSales.forEach(s => {
-                total += s.total; guests += s.guests;
-                (s.items || []).forEach(item => {
-                    if (!itemMap[item.name]) itemMap[item.name] = { qty: 0, amount: 0 };
-                    itemMap[item.name].qty += item.qty;
-                    itemMap[item.name].amount += Math.floor(item.price * item.qty * (1 + (item.rate || 0.10)));
-                });
-            });
-            const monthLabel = `${selY2}年${selM2}月`;
-            const sortedItems = Object.entries(itemMap).sort((a,b) => b[1].qty - a[1].qty);
-            list.innerHTML = `<div style="padding:12px 15px; background:#f8f8f8; font-size:13px; color:#666; border-bottom:1px solid #eee;">📅 ${monthLabel} のメニュー別集計（注文数順）</div>` +
-                (sortedItems.map(([name, d], i) =>
-                    `<div class="sale-card"><div class="sale-time-row"><span class="sale-time" style="font-size:14px;">${i+1}. ${name}</span></div><div class="sale-detail-info">注文数: ${d.qty}点</div><div class="sale-total-line"><span class="sale-price-big">¥${d.amount.toLocaleString()}</span></div></div>`
-                ).join('') || '<p style="text-align:center; padding:50px;">データなし</p>');
-            document.getElementById('sum-count').innerText = menuSales.length;
-        }
-        document.getElementById('sum-total').innerText = total.toLocaleString();
-        document.getElementById('sum-guests').innerText = guests;
-        document.getElementById('sum-count').innerText = sales.length;
-        // 売上種別内訳（店内／テイクアウト／無人）
-        const typeArea = document.getElementById('sales-type-summary-area');
-        if (mode !== 'menu' && mode !== 'dow') {
-            // カテゴリー名→rawDataで逆引きするマップ
-            const catLookup = {};
-            rawData.forEach(r => { catLookup[r[0]] = r[1]; });
-            const typeMap = { '店内': 0, 'テイクアウト': 0, '無人': 0 };
-            sales.forEach(s => {
-                if (s.items && s.items.length > 0) {
-                    s.items.forEach(item => {
-                        const itemCat = item.cat || catLookup[item.name] || '';
-                        const taxIncl = Math.floor(item.price * item.qty * (1 + item.rate));
-                        if (itemCat === 'テイクアウト') typeMap['テイクアウト'] += taxIncl;
-                        else if (itemCat === '無人') typeMap['無人'] += taxIncl;
-                        else typeMap['店内'] += taxIncl;
-                    });
-                } else {
-                    // itemsがない古いデータはtableIdで判定
-                    if (s.tableId === 'テイクアウト') typeMap['テイクアウト'] += s.total;
-                    else if (s.tableId === '無人') typeMap['無人'] += s.total;
-                    else typeMap['店内'] += s.total;
-                }
-            });
-            typeArea.innerHTML = Object.entries(typeMap).map(([k, v]) =>
-                `<span style="background:rgba(255,255,255,0.15); padding:4px 10px; border-radius:10px;">${k}: ¥${v.toLocaleString()}</span>`
-            ).join('');
-            typeArea.style.display = 'flex';
+        // 読み込み時間の実測を表示（体感の答え合わせ用）
+        const _sec = ((performance.now() - _t0) / 1000).toFixed(2);
+        const _pa = document.getElementById('payment-summary-area');
+        if (_pa) _pa.innerHTML += `<span style="margin-left:10px; color:#999; font-size:11px;">読込 ${_sec}秒</span>`;
+    } catch(e) {
+        if (_mySeq !== window._adminSeq) return;
+        if (list.querySelector('.sale-card')) {
+            const _pa1 = document.getElementById('payment-summary-area');
+            if (_pa1) _pa1.innerHTML += `<span style="margin-left:10px; color:var(--danger); font-size:11px;">最新の取得に失敗（前回の内容を表示中）</span><button onclick="showAdmin('${mode}')" style="margin-left:8px; padding:4px 10px; border:none; border-radius:6px; background:var(--primary); color:#fff; font-size:11px;">再読込</button>`;
         } else {
-            typeArea.style.display = 'none';
+            list.innerHTML = `<p style="text-align:center; padding:30px; color:var(--danger);">読み込み失敗: ${e.message}</p><p style="text-align:center;"><button onclick="showAdmin('${mode}')" style="padding:12px 24px; border:none; border-radius:10px; background:var(--primary); color:#fff; font-weight:bold; font-size:15px;">再読み込み</button></p>`;
         }
-        // 決済種別内訳（menuモード以外）
-        const payArea = document.getElementById('payment-summary-area');
-        if (mode !== 'menu' && mode !== 'dow') {
-            const payMap = {};
-            sales.forEach(s => {
-                const pm = s.paymentMethod || '現金';
-                if (!payMap[pm]) payMap[pm] = 0;
-                payMap[pm] += s.total;
-            });
-            payArea.innerHTML = Object.entries(payMap).map(([k, v]) =>
-                `<span style="background:rgba(255,255,255,0.15); padding:4px 10px; border-radius:10px;">${k}: ¥${v.toLocaleString()}</span>`
-            ).join('');
-            payArea.style.display = Object.keys(payMap).length > 0 ? 'flex' : 'none';
-        } else {
-            payArea.style.display = 'none';
-        }
-    } catch(e) { list.innerHTML = `<p style="color:red; padding:20px;">エラー: ${e.message}</p>`; }
+    }
 }
-
+// 日計：その日の売上のみ。削除機能なし（訂正はuriage.htmlで）
+function renderDaySales(sales) {
+    let total = 0, guests = 0; const pay = {};
+    let motsu = 0, sei = 0;
+    sales.forEach(s => {
+        total += s.total || 0; guests += s.guests || 0;
+        const p = s.paymentMethod || '現金'; pay[p] = (pay[p] || 0) + (s.total || 0);
+        (s.items || []).forEach(i => { const sk = skewerCount(i.name, i.qty); motsu += sk.motsu; sei += sk.sei; });
+    });
+    document.getElementById('sum-count').innerText = sales.length;
+    document.getElementById('sum-guests').innerText = guests;
+    document.getElementById('sum-total').innerText = total.toLocaleString();
+    const payHtml = Object.entries(pay).map(([k, v]) => `<span>${k}: ¥${v.toLocaleString()}</span>`).join('') || '';
+    document.getElementById('payment-summary-area').innerHTML = payHtml + `<span style="margin-left:10px; font-weight:bold;">もつ串: ${motsu}串 / 鳥精肉: ${sei}串</span>`;
+    document.getElementById('sales-type-summary-area').style.display = 'none';
+    document.getElementById('sales-list').innerHTML = sales.map(s =>
+        `<div class="sale-card" onclick="showSaleDetail(${JSON.stringify(s).replace(/"/g,'&quot;')})" style="cursor:pointer;"><div class="sale-time-row"><span class="sale-time">${s.checkout || ''}</span><span class="sale-table-badge">${s.tableId}番</span></div><div class="sale-detail-info">客: ${s.guests}名 / 入店: ${s.checkin || '--:--'} / ${s.paymentMethod || '現金'}</div><div class="sale-total-line"><span class="sale-price-big">¥${(s.total || 0).toLocaleString()}</span></div></div>`
+    ).join('') || '<p style="text-align:center; padding:30px; color:#999;">この日の売上はありません</p>';
+}
+// 月計：その月の合計と日別の内訳
+function renderMonthSales(sales, m) {
+    let total = 0, guests = 0; const dayMap = {};
+    let motsu = 0, sei = 0;
+    sales.forEach(s => {
+        total += s.total || 0; guests += s.guests || 0;
+        const dd = s.timestamp.toDate().getDate();
+        if (!dayMap[dd]) dayMap[dd] = { total: 0, count: 0 };
+        dayMap[dd].total += s.total || 0; dayMap[dd].count++;
+        (s.items || []).forEach(i => { const sk = skewerCount(i.name, i.qty); motsu += sk.motsu; sei += sk.sei; });
+    });
+    document.getElementById('sum-count').innerText = sales.length;
+    document.getElementById('sum-guests').innerText = guests;
+    document.getElementById('sum-total').innerText = total.toLocaleString();
+    document.getElementById('payment-summary-area').innerHTML = `<span style="font-weight:bold;">もつ串: ${motsu}串 / 鳥精肉: ${sei}串</span>`;
+    document.getElementById('sales-type-summary-area').style.display = 'none';
+    document.getElementById('sales-list').innerHTML = Object.keys(dayMap).map(Number).sort((a, b) => b - a).map(dd =>
+        `<div class="sale-card"><div class="sale-time-row"><span class="sale-time">${m}/${dd}</span><span class="sale-table-badge">${dayMap[dd].count}件</span></div><div class="sale-total-line"><span class="sale-price-big">¥${dayMap[dd].total.toLocaleString()}</span></div></div>`
+    ).join('') || '<p style="text-align:center; padding:30px; color:#999;">この月の売上はありません</p>';
+}
 async function exportCSV() {
     // 対象月を選択
     const now = new Date();
@@ -1411,11 +1451,7 @@ async function exportCSV() {
     const chosen = await showPickerModal('CSV出力 - 対象月を選択', options.reverse());
     if (!chosen) return;
     const [selY, selM] = chosen.split('-').map(Number);
-    const allSales = await window.getSalesData('dow');
-    const sales = allSales.filter(s => {
-        const d = s.timestamp.toDate();
-        return d.getFullYear() === selY && d.getMonth()+1 === selM;
-    }).sort((a, b) => a.timestamp - b.timestamp);
+    const sales = (await window.getSalesMonth(selY, selM)).sort((a, b) => a.timestamp - b.timestamp);
     if (sales.length === 0) return alert("データなし");
 
     const header = '日時,席,客数,入店,退店,税込合計';
@@ -1447,11 +1483,7 @@ async function exportYayoiCSV() {
     const chosen = await showPickerModal('弥生出力 - 対象月を選択', options.reverse());
     if (!chosen) return;
     const [selY, selM] = chosen.split('-').map(Number);
-    const allSales = await window.getSalesData('dow');
-    const sales = allSales.filter(s => {
-        const d = s.timestamp.toDate();
-        return d.getFullYear() === selY && d.getMonth()+1 === selM;
-    }).sort((a, b) => a.timestamp - b.timestamp);
+    const sales = (await window.getSalesMonth(selY, selM)).sort((a, b) => a.timestamp - b.timestamp);
     if (sales.length === 0) return alert("データなし");
 
     const debitMap = {
@@ -1508,6 +1540,22 @@ async function exportYayoiCSV() {
     URL.revokeObjectURL(url);
 }
 
+// ▼ 串数の換算表（日計・月計の「もつ串/鳥精肉 何串」の数え方）
+// セット商品・名前違いの商品を実際の串数に換算する。
+// 新しいセット商品を作ったらこの表に1行足す（表に無い商品は「もつ串/鳥精肉を含む名前＝1点1串」で数える）
+const SKEWER_MAP = {
+    "もつ串 6本":           { motsu: 6, sei: 0 },
+    "鳥精肉 6本":           { motsu: 0, sei: 6 },
+    "もつ、精肉 MIX 6本":   { motsu: 3, sei: 3 },
+    "精肉 テイクアウト":     { motsu: 0, sei: 1 },
+};
+function skewerCount(name, qty) {
+    if (!name) return { motsu: 0, sei: 0 };
+    if (SKEWER_MAP[name]) return { motsu: SKEWER_MAP[name].motsu * qty, sei: SKEWER_MAP[name].sei * qty };
+    if (name.includes('もつ串')) return { motsu: qty, sei: 0 };
+    if (name.includes('鳥精肉')) return { motsu: 0, sei: qty };
+    return { motsu: 0, sei: 0 };
+}
 async function printReport(mode) {
     const now = new Date();
     if (mode === 'month') {
@@ -1521,8 +1569,7 @@ async function printReport(mode) {
         const chosen = await showPickerModal('月計印刷 - 対象月を選択', options);
         if (!chosen) return;
         const [selY, selM] = chosen.split('-').map(Number);
-        const allSales = await window.getSalesData('dow');
-        const sales = allSales.filter(s => { const d = s.timestamp.toDate(); return d.getFullYear()===selY && d.getMonth()+1===selM; });
+        const sales = await window.getSalesMonth(selY, selM);
         if (sales.length === 0) return alert("データなし");
         let total = 0, guests = 0, motsuCount = 0, toriCount = 0;
         const dayMap = {};
@@ -1530,8 +1577,8 @@ async function printReport(mode) {
         sales.forEach(s => {
             total += s.total; guests += s.guests;
             (s.items || []).forEach(item => {
-                if (item.name && item.name.includes('もつ串')) motsuCount += item.qty;
-                if (item.name && item.name.includes('鳥精肉')) toriCount += item.qty;
+                const sk = skewerCount(item.name, item.qty);
+                motsuCount += sk.motsu; toriCount += sk.sei;
                 if (!itemMap[item.name]) itemMap[item.name] = { qty: 0, amount: 0 };
                 itemMap[item.name].qty += item.qty;
                 itemMap[item.name].amount += Math.floor(item.price * item.qty * (1 + (item.rate || 0.10)));
@@ -1567,16 +1614,15 @@ async function printReport(mode) {
         }
         const chosen = await showPickerModal('日計印刷 - 対象日を選択', options);
         if (!chosen) return;
-        const allSales = await window.getSalesData('dow');
-        const sales = allSales.filter(s => s.timestamp.toDate().toDateString() === chosen);
+        const sales = await window.getSalesDayByDate(new Date(chosen));
         if (sales.length === 0) return alert("データなし");
         let total = 0, guests = 0, motsuCount = 0, toriCount = 0;
         const itemMap = {};
         sales.forEach(s => {
             total += s.total; guests += s.guests;
             (s.items || []).forEach(item => {
-                if (item.name && item.name.includes('もつ串')) motsuCount += item.qty;
-                if (item.name && item.name.includes('鳥精肉')) toriCount += item.qty;
+                const sk = skewerCount(item.name, item.qty);
+                motsuCount += sk.motsu; toriCount += sk.sei;
                 if (!itemMap[item.name]) itemMap[item.name] = { qty: 0, amount: 0 };
                 itemMap[item.name].qty += item.qty;
                 itemMap[item.name].amount += Math.floor(item.price * item.qty * (1 + (item.rate || 0.10)));
@@ -1619,14 +1665,273 @@ function showPickerModal(title, options) {
     });
 }
 
-function showGuestInput() { hideAll(); tempGuestCount = "0"; document.getElementById('guest-table-name').innerText = currentTable + "番席"; document.getElementById('guest-count-val').innerText = tempGuestCount; document.getElementById('view-guest').style.display = 'flex'; const k = document.getElementById('guest-keypad'); k.innerHTML = [1,2,3,4,5,6,7,8,9,'C',0,'決定'].map(num => { let s = num === '決定' ? 'background:var(--accent); color:#fff;' : ''; let f = num === '決定' ? 'confirmGuestCount()' : (num === 'C' ? 'clearGuestNum()' : `inputGuestNum(${num})`); return `<button class="key-btn" style="${s}" onclick="${f}">${num}</button>`; }).join(''); }
+let guestEditMode = false; // false=新規入店 / true=途中の人数変更
+function openGuestEdit() { guestEditMode = true; showGuestInput(); }
+function showGuestInput() { hideAll(); tempGuestCount = "0"; const _cur = localStorage.getItem('guests_' + currentTable) || "0"; document.getElementById('guest-table-name').innerText = currentTable + "番席" + (guestEditMode ? `（人数変更・現在${_cur}名）` : ""); document.getElementById('guest-count-val').innerText = tempGuestCount; document.getElementById('view-guest').style.display = 'flex'; const k = document.getElementById('guest-keypad'); k.innerHTML = [1,2,3,4,5,6,7,8,9,'C',0,'決定'].map(num => { let s = num === '決定' ? 'background:var(--accent); color:#fff;' : ''; let f = num === '決定' ? 'confirmGuestCount()' : (num === 'C' ? 'clearGuestNum()' : `inputGuestNum(${num})`); return `<button class="key-btn" style="${s}" onclick="${f}">${num}</button>`; }).join(''); }
 function inputGuestNum(n) { if(tempGuestCount === "0") tempGuestCount = n.toString(); else if(tempGuestCount.length < 2) tempGuestCount += n.toString(); document.getElementById('guest-count-val').innerText = tempGuestCount; }
 function clearGuestNum() { tempGuestCount = "0"; document.getElementById('guest-count-val').innerText = tempGuestCount; }
-async function confirmGuestCount() { let c = parseInt(tempGuestCount); if(c < 1) return alert("人数を入力してください"); localStorage.setItem('guests_' + currentTable, c); const now = new Date(); localStorage.setItem('checkin_' + currentTable, now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0')); try { if(window.cloudSync) await window.cloudSync(currentTable); } catch(e) { console.warn('チェックイン同期失敗:', e.message); } showMenu(); }
-function showMenu() { window.isEditing = false; currentCart = JSON.parse(localStorage.getItem('cart_'+currentTable) || '[]'); hideAll(); document.getElementById('view-menu').style.display = 'flex'; document.getElementById('display-table-id').innerText = currentTable; document.getElementById('display-guest-count').innerText = localStorage.getItem('guests_' + currentTable) || "0"; document.getElementById('display-checkin-time').innerText = localStorage.getItem('checkin_' + currentTable) || "--:--"; renderSidebar(); renderItems(menuData[0]); updateFooter(); buildPopularCategory(); }
-function renderSidebar() { const side = document.getElementById('side-cats'); side.innerHTML = menuData.map((d, idx) => `<div class="cat" onclick="changeCat(this, ${idx})">${d.cat}</div>`).join(''); side.children[0].classList.add('active'); }
-function changeCat(el, idx) { document.querySelectorAll('.cat').forEach(c => c.classList.remove('active')); el.classList.add('active'); renderItems(menuData[idx]); document.getElementById('display-items').scrollTop = 0; }
-function renderItems(category) { const container = document.getElementById('display-items'); container.innerHTML = category.items.map((item, idx) => { let rate, taxExcPrice, taxInc; if (category.cat === "無人") { rate = 0; taxExcPrice = item.p; taxInc = item.p; } else if (category.cat === "テイクアウト" || item.c === "テイクアウト") { rate = 0; taxExcPrice = item.p; taxInc = item.p; } else { rate = 0.10; taxExcPrice = item.p; taxInc = Math.floor(item.p * 1.10); } const isTaxIncDisplay = (category.cat === "無人" || category.cat === "テイクアウト" || item.c === "テイクアウト"); const priceHtml = isTaxIncDisplay ? `¥${taxInc.toLocaleString()}<small style="font-size:10px; color:#999;"> (税込)</small>` : `¥${item.p.toLocaleString()} <small style="font-size:10px; color:#999;">(税込¥${taxInc.toLocaleString()})</small>`;return `<div class="item-card"><div class="item-info"><span class="item-name">${item.n}</span><span class="item-price">${priceHtml}</span></div><div class="qty-ctrl"><div class="btn-circle" onclick="changeQty('q${idx}', -1)">-</div><span id="q${idx}" style="font-weight:bold; min-width:18px; text-align:center;">1</span><div class="btn-circle" onclick="changeQty('q${idx}', 1)">+</div><button class="btn-add" onclick="addToCart('${item.n}', ${taxExcPrice}, 'q${idx}', ${rate}, '${category.cat}', this)">追加</button></div></div>`; }).join(''); }
+async function confirmGuestCount() {
+    let c = parseInt(tempGuestCount);
+    if(c < 1) return alert("人数を入力してください");
+    const oldCount = parseInt(localStorage.getItem('guests_' + currentTable)) || 0;
+    localStorage.setItem('guests_' + currentTable, c);
+    if (!guestEditMode) {
+        // 新規入店：入店時刻を今にセット
+        const now = new Date();
+        localStorage.setItem('checkin_' + currentTable, now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0'));
+    }
+    // 変更モードでは入店時刻はそのまま維持
+    try { await window.updateTableMeta(currentTable, c, localStorage.getItem('checkin_' + currentTable)); } catch(e) { console.warn('チェックイン同期失敗:', e.message); }
+    // 途中の人数変更は保険ログに記録（後から「なぜこの人数か」を追えるように）
+    if (guestEditMode && oldCount !== c) {
+        window.saveOrderLog(currentTable, [{ name: `客数変更 ${oldCount}名→${c}名`, price: 0, qty: 1, rate: 0 }]);
+    }
+    guestEditMode = false;
+    showMenu();
+}
+function showMenu() { window.isEditing = false; const _si = document.getElementById('menu-search3'); if (_si) { _si.value = ''; document.getElementById('search-clear3').style.display = 'none'; closeSearch3(); } currentCart = JSON.parse(localStorage.getItem('cart_'+currentTable) || '[]'); hideAll(); document.getElementById('view-menu').style.display = 'flex'; document.getElementById('display-table-id').innerText = currentTable; document.getElementById('display-guest-count').innerText = localStorage.getItem('guests_' + currentTable) || "0"; document.getElementById('display-checkin-time').innerText = localStorage.getItem('checkin_' + currentTable) || "--:--"; renderFeed(); updateFooter(); }
+// renderSidebarは新UI（人気順＋アコーディオン）で廃止
+// ▼ メニュー読みがな表（漢字の品をひらがな検索で引くための辞書。移植時の欠落を修正）
+const MENU_YOMI = {
+"お通し":"オトウシ オトオシ",
+"もつ串":"モツクシ",
+"鳥精肉":"トリセイニク",
+"飲み放題男性90分":"ノミホウダイダンセイ",
+"飲み放題女性90分":"ノミホウダイジョセイ",
+"飲み放題延長":"ノミホウダイエンチョウ",
+"手羽焼き（2本）":"テバヤキ",
+"国産豚のロース網焼きステーキ":"コクサンブタノロースアミヤキステーキ",
+"ハーブ豚の網焼きステーキ（1枚）":"ハーブブタノアミヤキステーキ",
+"ハーブ豚の炙りチャーシュー":"ハーブブタノアブリチャーシュー",
+"自家製つくねのコロコロ焼き（4玉）":"ジカセイツクネノコロコロヤキ",
+"ささみ串":"ササミクシ",
+"ささみ串自家製麹漬け（数量限定）":"ササミクシジカセイコウジヅケ コウジズケ",
+"鴨肉の網焼き":"カモニクノアミヤキ",
+"ピリ辛ソーセージ（2本）":"ピリカラソーセージ",
+"うずらの玉子（1串）":"ウズラノタマゴ",
+"長なす串焼き（1串）":"ナガナスクシヤキ",
+"軟白ねぎ（1串）":"ナンパクネギ",
+"オリーブオイルにんにくカップ焼き":"オリーブオイルニンニクカップヤキ",
+"焼きじゃがバター（2個）":"ヤキジャガバター",
+"焼きじゃがバター（塩辛付き）（2個）":"ヤキジャガバターシオカラツキ",
+"鳥もつ煮込み":"トリモツニコミ",
+"特製一口ザンギ":"トクセイヒトクチザンギ",
+"手羽ザンギ(3本)":"テバザンギ",
+"若鶏の皮竜田揚げ(おろしポン酢付き)":"ワカドリノカワタツタアゲ オロシポンズ",
+"国産豚のロースカツ":"コクサンブタノロースカツ",
+"生ハムの軟白ねぎ包み(岩塩付き)":"ナマハムノナンパクネギヅツミ イワジオ",
+"塩キャベツ":"シオキャベツ",
+"漬物":"ツケモノ",
+"枝豆":"エダマメ",
+"冷奴":"ヒヤヤッコ",
+"山わさび冷奴":"ヤマワサビヒヤヤッコ",
+"クジラのベーコン ねぎ正油あえ":"クジラノベーコンネギショウユアエ",
+"イカの塩辛":"イカノシオカラ",
+"自家製パンチェッタとメークインのオリーブオイル・チーズ熱湯風呂":"ジカセイパンチェッタトメークインノオリーブオイルチーズネットウブロ",
+"自家製パンチェッタとコーンのオリーブオイル・チーズ熱湯風呂":"ジカセイパンチェッタトコーンノオリーブオイルチーズネットウブロ",
+"チャンジャとクリームチーズのタパス(おつまみ料理)":"チャンジャトクリームチーズノタパス オツマミリョウリ",
+"ハーブ豚チャーシューとマッシュルームのアヒージョ":"ハーブブタチャーシュートマッシュルームノアヒージョ",
+"砂肝とマッシュルームのアヒージョ":"スナギモトマッシュルームノアヒージョ",
+"ピリ辛ソーセージとマッシュルームのアヒージョ":"ピリカラソーセージトマッシュルームノアヒージョ",
+"まぐろ刺し(数量限定)":"マグロサシ",
+"たこ頭刺し":"タコアタマサシ タコカシラサシ",
+"馬刺し(赤身)":"バサシ アカミ",
+"馬肉ユッケ":"バニクユッケ",
+"こまい一夜干し":"コマイイチヤボシ",
+"鮭とば":"サケトバ シャケトバ",
+"たらこ焼き":"タラコヤキ",
+"もずく酢":"モズクス",
+"ピクルスの盛り合わせ":"ピクルスノモリアワセ",
+"冷しトマト":"ヒヤシトマト",
+"生ハムサラダ":"ナマハムサラダ",
+"鳥もつ鍋（約2人前）":"トリモツナベ",
+"辛鳥もつ鍋（約2人前）":"カラトリモツナベ",
+"鴨鍋（約2人前）":"カモナベ",
+"湯どうふ":"ユドウフ ユドーフ",
+"【追加】雑炊セット":"ツイカゾウスイセット",
+"【追加】単品そば":"ツイカタンピンソバ",
+"美唄名物とりめし":"ビバイメイブツトリメシ",
+"やきとり丼ぶり":"ヤキトリドンブリ",
+"もつ煮込み丼ぶり":"モツニコミドンブリ",
+"炙りチャーシュー丼ぶり":"アブリチャーシュードンブリ",
+"三船特製オムライス":"ミフネトクセイオムライス",
+"山わさび丼ぶり":"ヤマワサビドンブリ",
+"三船名物鳥がらそば":"ミフネメイブツトリガラソバ",
+"三船特製ラーメン(正油味のみ)":"ミフネトクセイラーメン ショウユアジ",
+"三船特製チャーシューメン":"ミフネトクセイチャーシューメン",
+"もつそば(温)":"モツソバ",
+"もつせいろそば(冷)":"モツセイロソバ",
+"鳥せいろそば(冷)":"トリセイロソバ",
+"かしわそば(温)":"カシワソバ",
+"スーパードライ 〈中〉":"スーパードライチュウ",
+"スーパードライ 〈大〉":"スーパードライダイ",
+"アサヒ マルエフ 〈中瓶〉":"アサヒマルエフチュウビン",
+"赤星":"アカボシ",
+"アサヒドライゼロ 〈中瓶〉":"アサヒドライゼロチュウビン",
+"梅酒ロック":"ウメシュロック",
+"梅酒ソーダ":"ウメシュソーダ",
+"梅サワー":"ウメサワー",
+"青りんごサワー":"アオリンゴサワー",
+"緑茶ハイ":"リョクチャハイ",
+"コーヒー酎ハイ":"コーヒーチュウハイ",
+"生搾りレモンサワー":"ナマシボリレモンサワー",
+"生搾りグレープフルーツサワー":"ナマシボリグレープフルーツサワー",
+"グラスワイン（赤）":"グラスワインアカ",
+"グラスワイン（白）":"グラスワインシロ",
+"焼酎甲類（ロック・水割り）":"ショウチュウコウルイ ロック ミズワリ",
+"山ねこ 〈宮崎・芋〉":"ヤマネコ ミヤザキ イモ",
+"山せみ 〈宮崎・米〉":"ヤマセミ ミヤザキ コメ",
+"山猿 〈宮崎・麦〉":"ヤマザル ミヤザキ ムギ",
+"中々 〈宮崎・麦〉":"ナカナカ ミヤザキ ムギ",
+"黒霧島 〈宮崎・芋〉":"クロキリシマ ミヤザキ イモ",
+"海 〈鹿児島・芋〉":"ウミ カゴシマ イモ",
+"くじら 〈鹿児島・芋〉":"クジラ カゴシマ イモ",
+"よろしく千萬あるべし 〈新潟・米〉":"ヨロシクセンマンアルベシ ニイガタ コメ",
+"ウーロン茶":"ウーロンチャ",
+"ほうじ茶":"ホウジチャ",
+"緑茶":"リョクチャ",
+"沢の鶴 1合":"サワノツルイチゴウ",
+"沢の鶴 2合":"サワノツルニゴウ",
+"二世古（特別純米新酒しぼり）":"ニセコ トクベツジュンマイシンシュシボリ",
+"福司（純米酒）":"フクツカサ ジュンマイシュ",
+"まる田（特別純米）":"マルタ トクベツジュンマイ",
+"男山（純米生酒）":"オトコヤマ ジュンマイナマザケ",
+"獺祭（純米大吟醸）":"ダッサイ ジュンマイダイギンジョウ",
+"十一州（吟醸しぼりたて）":"ジュウイッシュウ ギンジョウシボリタテ",
+"一ノ蔵（本醸造辛口）":"イチノクラ ホンジョウゾウカラクチ",
+"ばくれん（吟醸超辛口）":"バクレン ギンジョウチョウカラクチ",
+"くどき上手（純米吟醸辛口）":"クドキジョウズ ジュンマイギンジョウカラクチ",
+"北の勝（清酒）":"キタノカツ セイシュ",
+"李白（特別純米酒）":"リハク トクベツジュンマイシュ",
+"常山（とびっきり辛口）":"ジョウザン トビッキリカラクチ",
+"開運（無濾過純米酒）":"カイウン ムロカジュンマイシュ",
+"大和しずく（純米吟醸）":"ヤマトシズク ジュンマイギンジョウ",
+"越乃寒梅（清酒）":"コシノカンバイ セイシュ",
+"八海山（清酒）":"ハッカイサン セイシュ",
+"もつ串 テイクアウト":"モツクシテイクアウト",
+"精肉 テイクアウト":"セイニクテイクアウト",
+"もつ煮込み テイクアウト":"モツニコミテイクアウト",
+"もつ串 6本":"モツクシロッポン",
+"鳥精肉 6本":"トリセイニクロッポン",
+"もつ、精肉 MIX 6本":"モツセイニクミックス",
+"弁当A":"ベントウ",
+"弁当B":"ベントウ"
+};
+// ▼▼▼ テスト3 新UI：人気順フィード＋ジャンル別アコーディオン＋下部検索（チャット式） ▼▼▼
+// 人気順の固定リスト（こうじさんが編集する表。品名はrawDataと完全一致させること）
+const POPULAR_LIST = [
+  "お通し",
+  "もつ串",
+  "鳥精肉",
+  "スーパードライ 〈中〉",
+  "ソラチエース",
+  "赤星",
+  "飲み放題男性90分",
+  "飲み放題女性90分",
+  "うずらの玉子（1串）",
+  "三船名物鳥がらそば",
+  "軟白ねぎ（1串）",
+  "ハイボール",
+  "スーパードライ 〈大〉",
+  "ささみ串自家製麹漬け（数量限定）",
+  "ズッキーニ（1串）",
+  "ピリ辛ソーセージ（2本）",
+  "しいたけ（2個）",
+  "フロンティアハイボール",
+  "特製一口ザンギ",
+];
+const ITEM_MAP3 = {}; const CAT_ORDER3 = []; const CAT_ITEMS3 = {};
+rawData.forEach(r => {
+    const n = r[0], c = r[1], p = r[2];
+    if (!ITEM_MAP3[n]) ITEM_MAP3[n] = { n, c, p };
+    if (!CAT_ITEMS3[c]) { CAT_ITEMS3[c] = []; CAT_ORDER3.push(c); }
+    CAT_ITEMS3[c].push(ITEM_MAP3[n]);
+});
+let _qseq = 0;
+// 商品カード（人気順・ジャンル・検索候補で共用。追加は検証済みのaddToCartをそのまま使う）
+function card3(item, rankIdx, suggest) {
+    const rate = (item.c === '無人' || item.c === 'テイクアウト') ? 0 : 0.10;
+    const qId = 'q3-' + (_qseq++);
+    return `<div class="${suggest ? 'suggest-card3' : 'item-card3'}" style="flex-direction:column; align-items:stretch; gap:7px;">
+      <div style="display:flex; align-items:center; gap:8px;">${rankIdx != null ? `<span class="rank3">${rankIdx + 1}</span>` : ''}<div class="item-name3" style="flex:1; min-width:0;">${item.n}</div></div>
+      <div style="display:flex; align-items:center; gap:8px;"><div class="item-price3" style="flex:1; margin-top:0;"><b>¥${item.p.toLocaleString()}</b></div><div style="display:flex;align-items:center;gap:2px;flex-shrink:0;"><div class="qbtn3" onclick="changeQty('${qId}',-1)">−</div><span id="${qId}" class="qnum3">1</span><div class="qbtn3" onclick="changeQty('${qId}',1)">＋</div></div><button class="add-btn3" onclick="addToCart('${item.n}', ${item.p}, '${qId}', ${rate}, '${item.c}', this)">追加</button></div>
+    </div>`;
+}
+function renderFeed() {
+    _qseq = 0;
+    const popular = '<div class="hot-label">よく出る順</div>' +
+        POPULAR_LIST.map((n, i) => ITEM_MAP3[n] ? card3(ITEM_MAP3[n], i, false) : '').join('');
+    const accs = '<div class="hot-label" style="margin-top:6px;">ジャンルから探す</div>' +
+        CAT_ORDER3.map((c, ci) => `<div class="acc" id="acc3-${ci}"><div class="acc-head" onclick="document.getElementById('acc3-${ci}').classList.toggle('open')">${c}<span class="cnt">${CAT_ITEMS3[c].length}品</span><span class="arrow">▶</span></div><div class="acc-body">${CAT_ITEMS3[c].map(it => card3(it, null, false)).join('')}</div></div>`).join('');
+    const customBtn = `<button onclick="openCustomItem()" style="width:100%; margin-top:10px; padding:16px; border:2px dashed #c6c9cf; border-radius:16px; background:transparent; color:#7a8088; font-size:15px; font-weight:800;">＋ カスタム商品を追加（メニューに無い品）</button>`;
+    const feed = document.getElementById('item-feed');
+    feed.innerHTML = popular + accs + customBtn;
+    feed.scrollTop = 0; // 卓を開くたびリストの一番上（お通し）から
+}
+// 検索（ひらがな⇔カタカナ同一視＋読みがな辞書。候補は入力欄の真上に湧く）
+function toKatakana(str) { return str.replace(/[\u3041-\u3096]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 0x60)); }
+function normSearch(str) { return toKatakana((str || '').trim().toLowerCase()); }
+function openSearch3() { document.getElementById('search-box3').classList.add('focused'); searchMenu3(document.getElementById('menu-search3').value); }
+function closeSearch3() { const sb = document.getElementById('search-box3'); if (sb) sb.classList.remove('focused'); const sp = document.getElementById('suggest-panel'); if (sp) { sp.classList.remove('open'); sp.innerHTML = ''; } const si = document.getElementById('menu-search3'); if (si) si.value = ''; const sc = document.getElementById('search-clear3'); if (sc) sc.style.display = 'none'; setSearchingMode(false); }
+function clearSearch3() { const si = document.getElementById('menu-search3'); si.value = ''; document.getElementById('search-clear3').style.display = 'none'; searchMenu3(''); si.focus(); }
+function searchMenu3(v) {
+    const panel = document.getElementById('suggest-panel');
+    document.getElementById('search-clear3').style.display = v ? 'block' : 'none';
+    const query = normSearch(v);
+    if (!query) { panel.classList.remove('open'); panel.innerHTML = ''; setSearchingMode(false); return; }
+    setSearchingMode(true);
+    const hits = [];
+    for (const name in ITEM_MAP3) {
+        const yomi = (typeof MENU_YOMI !== 'undefined' && MENU_YOMI[name]) || '';
+        if (normSearch(name).includes(query) || yomi.includes(query)) { hits.push(ITEM_MAP3[name]); if (hits.length >= 8) break; }
+    }
+    panel.innerHTML = hits.length ? hits.map(it => card3(it, null, true)).join('') : '<div class="suggest-none">見つかりません（読みがな未登録かも）</div>';
+    panel.classList.add('open');
+    fitSuggestPanel();
+}
+// 候補パネルの高さを「キーボードの上に見えている範囲」に収める（一番上の候補が画面外に逃げないように）
+function fitSuggestPanel() {
+    const panel = document.getElementById('suggest-panel');
+    const dock = document.getElementById('search-dock');
+    if (!panel || !panel.classList.contains('open')) return;
+    const visibleH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    const dockH = dock ? dock.offsetHeight : 60;
+    panel.style.maxHeight = Math.max(140, visibleH - dockH - 70) + 'px';
+    panel.scrollTop = 0; // column-reverseなので0が「入力欄に一番近い側」＝最良候補
+}
+if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', fitSuggestPanel);
+    window.visualViewport.addEventListener('scroll', fitSuggestPanel);
+}
+// 検索中はメニューとフッターを引っ込めて「候補と検索バーだけ」の画面にする（誤タップ防止）
+function setSearchingMode(on) {
+    const vm = document.getElementById('view-menu');
+    if (vm) vm.classList.toggle('searching', on);
+    const f = document.querySelector('#view-menu footer');
+    if (f) f.style.display = ''; // 旧方式の直接指定が残っていた場合の掃除
+}
+// 追加の吹き出し（キーボードの上に浮かぶ）
+function toast3(msg) {
+    const area = document.getElementById('toast-area3');
+    if (!area) return;
+    const kb = window.visualViewport ? Math.max(0, window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop) : 0;
+    area.style.bottom = (kb + 120) + 'px';
+    const t = document.createElement('div'); t.className = 'toast3'; t.innerText = msg;
+    area.appendChild(t);
+    setTimeout(() => t.remove(), 1600);
+}
+// 検索候補から追加した後：入力を空にして次の品をすぐ打てる状態に（チャット式）
+function afterSuggestAdd() {
+    const si = document.getElementById('menu-search3');
+    if (si) { si.value = ''; }
+    const sc = document.getElementById('search-clear3');
+    if (sc) sc.style.display = 'none';
+    const panel = document.getElementById('suggest-panel');
+    if (panel) { panel.classList.remove('open'); panel.innerHTML = ''; }
+    setSearchingMode(false); // フッターを戻してカート点数の変化を見せる
+}
+// ▲▲▲ テスト3 新UI ▲▲▲
+// renderItems（旧サイドバー式グリッド）は新UIで廃止
 function changeQty(id, d) { const el = document.getElementById(id); let v = parseInt(el.innerText) + d; if(v >= 1) el.innerText = v; }
 let customTaxRate = 0.10;
 function openCustomItem() {
@@ -1669,16 +1974,82 @@ function addToCart(name, price, qId, rate, cat, btn) {
   localStorage.setItem('cart_'+currentTable, JSON.stringify(currentCart));
   updateFooter(); document.getElementById(qId).innerText = 1;
   if(btn) { btn.classList.add('added'); btn.textContent = '✓ 追加'; setTimeout(() => { btn.classList.remove('added'); btn.textContent = '追加'; }, 200); }
+  if (typeof toast3 === 'function') toast3(`${name} ×${qty} 追加`);
+  if (btn && btn.closest && btn.closest('.suggest-card3')) afterSuggestAdd();
 }
 function changeCartQty(idx, delta) { currentCart[idx].qty += delta; if(currentCart[idx].qty < 1) currentCart[idx].qty = 1; localStorage.setItem('cart_'+currentTable, JSON.stringify(currentCart)); renderCartUI(); updateFooter(); }
 function removeFromCart(idx) { currentCart.splice(idx, 1); localStorage.setItem('cart_'+currentTable, JSON.stringify(currentCart)); renderCartUI(); updateFooter(); }
 function renderCartUI() { document.getElementById('cart-items-list').innerHTML = currentCart.map((i, idx) => `<div class="list-row"><div style="flex:1;"><b>${i.name}</b><br><small>¥${i.price.toLocaleString()} x ${i.qty}</small></div><div style="display:flex; align-items:center; gap:8px;"><div class="btn-circle" onclick="changeCartQty(${idx}, -1)">-</div><span style="font-weight:bold;">${i.qty}</span><div class="btn-circle" onclick="changeCartQty(${idx}, 1)">+</div><button class="btn-del" onclick="removeFromCart(${idx})" style="color:red; background:none; border:none;">削除</button></div></div>`).join('') || '<p style="text-align:center;padding:50px;color:#999;">カートは空です</p>'; }
-function showCart() { window.isEditing = true; hideAll(); document.getElementById('view-cart').style.display = 'flex'; renderCartUI(); var _b=document.getElementById('btn-send-kitchen'); if(_b){ _b.disabled=false; _b.style.background='var(--primary)'; _b.style.opacity='1'; _b.textContent='本番送信'; } }
-function changeHistoryQty(idx, delta) { const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]'); hist[idx].qty += delta; if(hist[idx].qty <= 0) { if(!confirm("削除？")) return; hist.splice(idx, 1); } localStorage.setItem('history_'+currentTable, JSON.stringify(hist)); renderHistoryUI(); }
-function renderHistoryUI() { const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]'); let sub = 0, tax = 0; document.getElementById('history-items-list').innerHTML = hist.map((i, idx) => { const lp = i.price * i.qty; const lt = Math.floor(lp * i.rate); sub += lp; tax += lt; return `<div class="list-row"><div><b>${i.name}</b><br><small>税込¥${(lp+lt).toLocaleString()}</small></div><div style="display:flex; align-items:center; gap:10px;"><div class="btn-circle" onclick="changeHistoryQty(${idx}, -1)">-</div><span style="font-weight:bold;">${i.qty}</span><div class="btn-circle" onclick="changeHistoryQty(${idx}, 1)">+</div></div></div>`; }).join('') || 'なし'; document.getElementById('history-summary').innerHTML = `<div style="color:#666; font-size:13px;">入店: ${localStorage.getItem('checkin_'+currentTable)} / 客: ${localStorage.getItem('guests_'+currentTable)}名</div><div>税込計: <b style="font-size:24px; color:var(--primary);">¥${(sub + tax).toLocaleString()}</b></div>`; }
-async function confirmHistoryChange() { if(window.cloudSync) await window.cloudSync(currentTable); alert("同期完了"); }
+function showCart() { window.isEditing = true; hideAll(); document.getElementById('view-cart').style.display = 'flex'; var _ch=document.getElementById('cart-header-title'); if(_ch){ _ch.textContent = 'カート確認'; } var _tb=document.getElementById('cart-table-banner'); if(_tb){ _tb.innerHTML = '<span style="font-size:34px;font-weight:900;letter-spacing:2px;">' + currentTable + '番卓</span><span style="font-size:15px;font-weight:bold;margin-left:10px;">の注文でよろしいですか？</span>'; } renderCartUI(); var _b=document.getElementById('btn-send-kitchen'); if(_b){ _b.disabled=false; _b.style.background='var(--primary)'; _b.style.opacity='1'; _b.textContent='本番送信'; } }
+// ▼▼▼ 取消フロー（追記方式：品を消すのではなくマイナス行を足す）▼▼▼
+function netQtyByName(hist) {
+    const net = {};
+    hist.forEach(i => { net[i.name] = (net[i.name] || 0) + i.qty; });
+    return net;
+}
+let _cancelTarget = null;
+function startCancel(name, price, rate, max) {
+    _cancelTarget = { name, price, rate, max, qty: 1 };
+    document.getElementById('cancel-item-name').innerText = name;
+    document.getElementById('cancel-qty').innerText = '1';
+    document.getElementById('cancel-max').innerText = max;
+    document.getElementById('cancel-bar').style.display = 'block';
+    const bp = document.getElementById('btn-cancel-print');
+    bp.disabled = false; bp.style.opacity = '1';
+    bp.textContent = '取消する（取消伝票が印刷されます）';
+}
+function adjustCancelQty(delta) {
+    if (!_cancelTarget) return;
+    _cancelTarget.qty = Math.min(Math.max(1, _cancelTarget.qty + delta), _cancelTarget.max);
+    document.getElementById('cancel-qty').innerText = _cancelTarget.qty;
+}
+function closeCancelBar() { _cancelTarget = null; document.getElementById('cancel-bar').style.display = 'none'; }
+async function execCancel(doPrint) {
+    if (!_cancelTarget) return;
+    // 二度押しガード（送信・会計と同じ方式）
+    const bp = document.getElementById('btn-cancel-print');
+    if (bp.disabled) return;
+    bp.disabled = true; bp.style.opacity = '0.6';
+    bp.textContent = '処理中...';
+    const t = _cancelTarget;
+    try {
+        const cancelLine = { name: t.name, price: t.price, qty: -t.qty, rate: t.rate, cancel: true };
+        if (doPrint) {
+            await window.queuePrint({ type: 'kitchen', tableId: currentTable, tag: 'H', itemName: '【取消】' + t.name, itemQty: t.qty });
+        }
+        await appendOrderToCloud(currentTable, [cancelLine]);
+        window.saveOrderLog(currentTable, [cancelLine]);
+        closeCancelBar();
+        renderHistoryUI();
+    } catch(e) {
+        alert('取消の送信に失敗しました（電波を確認してやり直してください）: ' + e.message);
+        bp.disabled = false; bp.style.opacity = '1';
+        bp.textContent = '取消する（取消伝票が印刷されます）';
+    }
+}
+// ▲▲▲ 取消フロー ▲▲▲
+function lineTax(lp, rate) { return lp >= 0 ? Math.floor(lp * rate) : -Math.floor(-lp * rate); }
+function renderHistoryUI() {
+    const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]');
+    const net = netQtyByName(hist);
+    let sub = 0, tax = 0;
+    document.getElementById('history-items-list').innerHTML = hist.map((i) => {
+        const lp = i.price * i.qty;
+        const lt = lineTax(lp, i.rate);
+        sub += lp; tax += lt;
+        if (i.qty < 0) {
+            return `<div class="list-row" style="background:#fff5f5;"><div><b style="color:var(--danger); text-decoration:line-through;">${i.name}</b> <span style="color:var(--danger); font-size:12px; font-weight:bold;">取消 x${-i.qty}</span><br><small style="color:var(--danger);">-¥${(-(lp+lt)).toLocaleString()}</small></div><div></div></div>`;
+        }
+        const remain = net[i.name] || 0;
+        const cancelBtn = remain > 0
+            ? `<button style="padding:6px 12px; border:2px solid var(--danger); background:#fff; color:var(--danger); border-radius:8px; font-weight:bold;" onclick="startCancel('${i.name.replace(/'/g, "\\'")}', ${i.price}, ${i.rate}, ${remain})">取消</button>`
+            : `<span style="color:#bbb; font-size:12px;">取消済</span>`;
+        return `<div class="list-row"><div><b>${i.name}</b> x${i.qty}<br><small>税込¥${(lp+lt).toLocaleString()}</small></div><div>${cancelBtn}</div></div>`;
+    }).join('') || 'なし';
+    document.getElementById('history-summary').innerHTML = `<div style="color:#666; font-size:13px;">入店: ${localStorage.getItem('checkin_'+currentTable)} / 客: ${localStorage.getItem('guests_'+currentTable)}名</div><div>税込計: <b style="font-size:24px; color:var(--primary);">¥${(sub + tax).toLocaleString()}</b></div>`;
+}
 function exitEditing() { window.isEditing = false; showMenu(); }
-function showOrderHistory() { window.isEditing = true; hideAll(); document.getElementById('view-history').style.display = 'flex'; renderHistoryUI(); }
+function showOrderHistory() { window.isEditing = true; hideAll(); document.getElementById('view-history').style.display = 'flex'; var _htb=document.getElementById('history-table-banner'); if(_htb){ _htb.innerHTML = '<span style="font-size:34px;font-weight:900;letter-spacing:2px;">' + currentTable + '番卓</span><span style="font-size:15px;font-weight:bold;margin-left:10px;">の会計・取消</span>'; } renderHistoryUI(); }
 let coReceivedStr = '';
 let coReceiptMode = 'receipt';
 function showCheckout() {
@@ -1712,7 +2083,16 @@ function updateFooter() { document.getElementById('cart-count').innerText = curr
 function openReceiptChoice() { payCo(); }
 function renderReceiptSample() {}
 function closeReceiptChoice() {}
-async function testSend() { if(currentCart.length === 0) return alert("空です"); const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]'); const merged = hist.concat(currentCart); localStorage.setItem('history_'+currentTable, JSON.stringify(merged)); window.saveOrderLog(currentTable, currentCart); localStorage.removeItem('cart_'+currentTable); currentCart = []; if(window.cloudSync) await window.cloudSync(currentTable); await startCountdownIfNeeded(currentTable); hideAll(); document.getElementById('view-success').style.display = 'flex'; updateFooter(); }
+async function testSend() {
+    if(currentCart.length === 0) return alert("空です");
+    // 二度押しガード（本番送信と同じ方式：追記完了までボタンを無効化）
+    const _sb = document.getElementById('btn-send-sync');
+    if (_sb) { if (_sb.disabled) return; _sb.disabled = true; _sb.style.opacity = '0.6'; _sb.textContent = '送信中...'; }
+    const _sbRestore = () => { if (_sb) { _sb.disabled = false; _sb.style.opacity = '1'; _sb.textContent = '送信(同期のみ)'; } };
+    const sentItems = currentCart.slice();
+    try { await appendOrderToCloud(currentTable, sentItems); } catch(e) { _sbRestore(); return alert("同期失敗（電波を確認して再送信してください）: " + e.message); }
+    _sbRestore();
+    window.saveOrderLog(currentTable, sentItems); localStorage.removeItem('cart_'+currentTable); currentCart = []; await startCountdownIfNeeded(currentTable); hideAll(); document.getElementById('view-success').style.display = 'flex'; updateFooter(); }
 async function testPay() {
     if(window.saveSaleToCloud) await window.saveSaleToCloud(currentTable, currentPaymentMethod);
     showIndex();
@@ -1723,7 +2103,7 @@ if(currentCart.length === 0) return;
 // 二度押し防止：押した瞬間にボタンを無効化して色を変える
 const _sendBtn = document.getElementById('btn-send-kitchen');
 if (_sendBtn) {
-    if (_sendBtn.disabled) return;
+    if (_sendBtn.disabled) return;  // すでに押されていたら何もしない
     _sendBtn.disabled = true;
     _sendBtn.style.background = '#999';
     _sendBtn.style.opacity = '0.6';
@@ -1740,26 +2120,22 @@ try {
             itemQty: item.qty
         });
     }
-    // 2. 履歴に追加・cloudSync（合算せず注文順に別行で残す）
-    const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]');
-    currentCart.forEach(item => {
-        hist.push(item);
-    });
-    localStorage.setItem('history_'+currentTable, JSON.stringify(hist));
-    window.cloudSync(currentTable);
+    // 2. 履歴に追記（サーバーの今の履歴に新しい品だけを足す・上書きしない）
+    await appendOrderToCloud(currentTable, currentCart);
     window.saveOrderLog(currentTable, currentCart);
     await startCountdownIfNeeded(currentTable);
     localStorage.removeItem('cart_'+currentTable); currentCart = [];
     hideAll(); document.getElementById('view-success').style.display = 'flex'; updateFooter();
 } catch(e) {
     console.warn('Firebase送信失敗:', e.message);
+    // 送信失敗時はボタンを元に戻して再送信できるようにする
     if (_sendBtn) {
         _sendBtn.disabled = false;
         _sendBtn.style.background = 'var(--primary)';
         _sendBtn.style.opacity = '1';
         _sendBtn.textContent = '本番送信';
     }
-    alert('送信に失敗しました');
+    alert('送信に失敗しました: ' + (e && e.message ? e.message : e));
 }
 }
 
