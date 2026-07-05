@@ -34,6 +34,7 @@ header { background: #fff; padding: 14px 16px; display: flex; align-items: cente
 <body>
 <div class="banner" style="background:#3498db;">📋 三船 オーダー過去データ（保険用・当日）</div>
 <header>
+  <a href="index.html" onclick="if(document.referrer && history.length > 1){ history.back(); return false; }" style="text-decoration:none; color:#3498db; font-size:15px; font-weight:bold; margin-right:10px; white-space:nowrap;">＜ POSに戻る</a>
   <div class="title">📋 オーダー過去データ（当日）</div>
   <button class="reload-btn" onclick="loadLog()">↻ 更新</button>
 </header>
