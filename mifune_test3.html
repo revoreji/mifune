@@ -694,7 +694,7 @@ window.printStandaloneRyoshu = async function() {
 </div>
 </div>
 <div id="view-cart" class="view"><header><span class="back-btn" onclick="exitEditing()">＜</span><span id="cart-header-title">カート確認</span></header><div id="cart-table-banner" style="background:#ffc107;color:#000;text-align:center;padding:10px 8px;border-bottom:3px solid #e6a800;line-height:1.2;"></div><div class="list-container" id="cart-items-list"></div><div style="background:#fff; border-top:1px solid #eee; padding-bottom:10px;"><button id="btn-send-kitchen" class="btn-large" style="background:var(--primary);color:white;" onclick="sendToKitchen()">本番送信</button></div></div>
-<div id="view-history" class="view"><header><span class="back-btn" onclick="exitEditing()">＜</span>注文一覧・取消</header><div class="list-container" id="history-items-list"></div>
+<div id="view-history" class="view"><header><span class="back-btn" onclick="exitEditing()">＜</span>注文一覧・取消</header><div id="history-table-banner" style="background:#ffc107;color:#000;text-align:center;padding:10px 8px;border-bottom:3px solid #e6a800;line-height:1.2;"></div><div class="list-container" id="history-items-list"></div>
 <div id="cancel-bar" style="display:none; background:#fff3f3; border-top:2px solid var(--danger); padding:10px;">
   <div style="font-weight:bold; color:var(--danger); margin-bottom:6px;">【取消】<span id="cancel-item-name"></span></div>
   <div style="display:flex; align-items:center; gap:14px; margin-bottom:8px;">
@@ -2036,7 +2036,7 @@ function renderHistoryUI() {
     document.getElementById('history-summary').innerHTML = `<div style="color:#666; font-size:13px;">入店: ${localStorage.getItem('checkin_'+currentTable)} / 客: ${localStorage.getItem('guests_'+currentTable)}名</div><div>税込計: <b style="font-size:24px; color:var(--primary);">¥${(sub + tax).toLocaleString()}</b></div>`;
 }
 function exitEditing() { window.isEditing = false; showMenu(); }
-function showOrderHistory() { window.isEditing = true; hideAll(); document.getElementById('view-history').style.display = 'flex'; renderHistoryUI(); }
+function showOrderHistory() { window.isEditing = true; hideAll(); document.getElementById('view-history').style.display = 'flex'; var _htb=document.getElementById('history-table-banner'); if(_htb){ _htb.innerHTML = '<span style="font-size:34px;font-weight:900;letter-spacing:2px;">' + currentTable + '番卓</span><span style="font-size:15px;font-weight:bold;margin-left:10px;">の会計・取消</span>'; } renderHistoryUI(); }
 let coReceivedStr = '';
 let coReceiptMode = 'receipt';
 function showCheckout() {
