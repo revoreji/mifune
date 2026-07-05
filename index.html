@@ -498,6 +498,31 @@ window.getSalesDayByDate = (d) => {
     return window.getSalesRange(st, en);
 };
 
+// ▼▼▼ 今日の売上リアルタイム同期 ▼▼▼
+// 売上管理を一度開いたら、今日の売上をonSnapshotで常時手元に保持する。
+// 以降「今日の日計」は取りに行かずに手元の最新を即表示（開くたびの読み込み待ちを廃止）。
+window._salesToday = null;
+window._salesTodayUnsub = null;
+window.startSalesTodayListener = () => {
+    if (window._salesTodayUnsub) return;
+    const st = new Date(); st.setHours(0,0,0,0);
+    const en = new Date(); en.setHours(23,59,59,999);
+    const qy = query(collection(db, "stores/mifune/sales"),
+        where('timestamp', '>=', Timestamp.fromDate(st)),
+        where('timestamp', '<=', Timestamp.fromDate(en)),
+        orderBy('timestamp', 'desc'));
+    window._salesTodayUnsub = onSnapshot(qy, (snap) => {
+        const res = [];
+        snap.forEach(d => { const data = d.data(); data.id = d.id; res.push(data); });
+        window._salesToday = res;
+        if (typeof window.onSalesTodayUpdate === 'function') window.onSalesTodayUpdate(res);
+    }, (err) => { console.warn('salesTodayListener:', err.message); });
+};
+window.stopSalesTodayListener = () => {
+    if (window._salesTodayUnsub) { window._salesTodayUnsub(); window._salesTodayUnsub = null; window._salesToday = null; }
+};
+// ▲▲▲ 今日の売上リアルタイム同期 ▲▲▲
+
 // 売上の削除機能はPOSから撤去（訂正はuriage.htmlでのみ行う）
 // deleteDaySales（日別まとめ削除）もPOSから撤去
 window.cloudDelete = async (tableId) => { await deleteDoc(doc(db, "stores/mifune/tables", tableId)); };
@@ -1336,6 +1361,7 @@ async function onTableClick(tId) {
 
 async function showAdmin(mode) {
     window.showAdmin = showAdmin;
+    window._adminMode = mode;
     hideAll(); document.getElementById('view-admin').style.display = 'flex';
     document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('nav-' + (mode === 'month' ? 'month' : 'day')).classList.add('active');
@@ -1378,6 +1404,21 @@ async function showAdmin(mode) {
             const inp = document.getElementById('admin-date');
             if (!inp.value) inp.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
             // 前回の結果があれば即表示（体感ゼロ秒）→裏で最新を取得して差し替え
+            const _todayKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+            if (inp.value === _todayKey) {
+                // 今日：日付をまたいだ古いリスナーは張り直す
+                if (window._salesTodayDate && window._salesTodayDate !== _todayKey) window.stopSalesTodayListener();
+                window._salesTodayDate = _todayKey;
+                window.startSalesTodayListener();
+                if (window._salesToday !== null) {
+                    // 手元の最新を即表示（取得なし・以降は自動で最新に追随）
+                    renderDaySales(window._salesToday);
+                    const _paL = document.getElementById('payment-summary-area');
+                    if (_paL) _paL.innerHTML += '<span style="margin-left:10px; color:#2e7d32; font-size:11px;">リアルタイム更新中</span>';
+                    return;
+                }
+                // リスナー起動直後でまだデータが無い場合だけ、従来通り取りに行く（次回からは即表示）
+            }
             const _ckD = 'salesCache_d_' + inp.value;
             try { const _cv = localStorage.getItem(_ckD); if (_cv) { renderDaySales(JSON.parse(_cv)); const _pa0 = document.getElementById('payment-summary-area'); if (_pa0) _pa0.innerHTML += '<span style="margin-left:10px; color:#e6a800; font-size:11px;">最新に更新中…</span>'; } } catch(_e) {}
             _sales = await _fetchWithRetry(() => window.getSalesDayByDate(new Date(inp.value + 'T12:00:00')));
@@ -1399,6 +1440,18 @@ async function showAdmin(mode) {
         }
     }
 }
+// リスナーが最新を受け取るたび、今日の日計を開いていれば画面を描き直す
+window.onSalesTodayUpdate = function(res) {
+    try {
+        const v = document.getElementById('view-admin');
+        const inp = document.getElementById('admin-date');
+        if (v && v.style.display === 'flex' && window._adminMode === 'day' && inp && inp.value === window._salesTodayDate) {
+            renderDaySales(res);
+            const _paR = document.getElementById('payment-summary-area');
+            if (_paR) _paR.innerHTML += '<span style="margin-left:10px; color:#2e7d32; font-size:11px;">リアルタイム更新中</span>';
+        }
+    } catch(e) {}
+};
 // 日計：その日の売上のみ。削除機能なし（訂正はuriage.htmlで）
 function renderDaySales(sales) {
     let total = 0, guests = 0; const pay = {};
