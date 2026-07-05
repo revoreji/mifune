@@ -1355,7 +1355,7 @@ async function showAdmin(mode) {
         const _timeout = (p, sec) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(`通信が不安定です（${sec}秒応答なし）`)), sec * 1000))]);
         // 眠った接続対策：タイムアウトしたら自動でもう1回だけ聞き直す（1回目の失敗が接続を起こすことが多い）
         const _fetchWithRetry = async (makeFetch) => {
-            try { return await _timeout(makeFetch(), 8); }
+            try { return await _timeout(makeFetch(), 5); }
             catch(e1) {
                 if (_mySeq !== window._adminSeq) throw e1;
                 list.innerHTML = '<p style="text-align:center; padding:50px; color:#999;">接続を起こしています…（自動再試行中）</p>';
