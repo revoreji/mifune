@@ -160,6 +160,7 @@ header {
 <!-- メイン -->
 <div id="main-view" style="display:none;">
   <header>
+    <a href="index.html" onclick="if(document.referrer && history.length > 1){ history.back(); return false; }" style="text-decoration:none; color:#3498db; font-size:15px; font-weight:bold; margin-right:10px; white-space:nowrap;">＜ POSに戻る</a>
     <div class="h-title">売上管理 <small>日別</small></div>
     <button class="reload" onclick="loadAll(true)">↻ 更新</button>
   </header>
