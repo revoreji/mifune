@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-06-t4s1-01';
+  var T4_VERSION = '2026-07-06-t4s1-03';
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -201,7 +201,7 @@ footer { width: 100%; display: flex; flex-direction: column; z-index: 100; box-s
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, collection, addDoc, query, orderBy, getDocs, where, Timestamp, serverTimestamp, arrayUnion, runTransaction, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, initializeFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, collection, addDoc, query, orderBy, getDocs, where, Timestamp, serverTimestamp, arrayUnion, runTransaction, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -214,7 +214,10 @@ appId: "1:91184668244:web:22e34995fe0f69d1e9d7c1"
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+// iOS対策: iPhoneはスリープ/画面切替でWeb接続を強制的に眠らせ、Firestoreの接続が
+// 「死んでいるのにSDKが気づかない」状態になる（卓タップ・送信・会計が数十秒ぶら下がる正体）。
+// ロングポーリング強制で、切れた接続に即気づいて張り直す方式に変える（Firestore公式の緩和策）
+const db = initializeFirestore(app, { experimentalForceLongPolling: true });
 const auth = getAuth(app);
 window.db = db; window._doc = doc; window._setDoc = setDoc; window._arrayUnion = arrayUnion; window._getDocs = getDocs; window._collection = collection;
 
@@ -710,7 +713,7 @@ window.printStandaloneRyoshu = async function() {
 
 <div style="position:fixed;top:0;left:0;right:0;background:#1b5e20;color:#fff;text-align:center;font-size:12px;font-weight:bold;padding:3px 0;z-index:9998;pointer-events:none;" id="t4-banner">【テスト4 ステージ1】mifune_test3</div>
 <script>document.getElementById('t4-banner').textContent += '｜' + (window.__T4_VERSION || 'v不明');</script>
-<div id="view-index" class="view active"><header><div class="admin-btn" id="admin-btn-label" onclick="checkAdminAuth()">売上管理</div><span>三船 席選択</span><div style="display:flex;gap:4px;align-items:center;"><div class="reload-btn" onclick="window.openStandaloneRyoshuusho()" title="領収書発行">📄</div><div class="reload-btn" onclick="openPrinterSettings()" title="プリンター設定">⚙</div><div class="reload-btn" onclick="location.reload()">↻</div></div></header><div class="grid-tables" id="table-grid"></div></div>
+<div id="view-index" class="view active"><header><div class="admin-btn" id="admin-btn-label" onclick="location.href='kanri_test4.html'">経営管理</div><span>三船 席選択</span><div style="display:flex;gap:4px;align-items:center;"><div class="reload-btn" onclick="window.openStandaloneRyoshuusho()" title="領収書発行">📄</div><div class="reload-btn" onclick="openPrinterSettings()" title="プリンター設定">⚙</div><div class="reload-btn" onclick="location.reload()">↻</div></div></header><div class="grid-tables" id="table-grid"></div></div>
 
 <div id="view-login" class="view">
 <header><div class="header-left"><span class="back-btn" onclick="showIndex()">＜</span><span>認証</span></div></header>
