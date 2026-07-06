@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>三船 経営管理【テスト4】</title>
+
+<style>
+:root {
+  --bg: #f4f5f7;
+  --card: #ffffff;
+  --ink: #2b2b2b;
+  --sub: #8a8f99;
+  --line: #e8eaed;
+  --accent: #e8821a;      /* 三船オレンジ */
+  --accent-soft: #fff4e8;
+  --blue: #3a7bd5;
+  --danger: #d64545;
+  --danger-soft: #fdeeee;
+  --green: #2e9e6b;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  line-height: 1.5; padding-bottom: 60px;
+}
+
+/* テスト環境バナー */
+.testband { background: #1b5e20; color: #fff; text-align: center; font-size: 12px; font-weight: 700; padding: 3px 0; }
+
+/* ヘッダー */
+header {
+  background: var(--card); border-bottom: 1px solid var(--line);
+  padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 50; gap: 8px;
+}
+.h-title { font-size: 17px; font-weight: 700; letter-spacing: 0.02em; white-space: nowrap; }
+.backlink { text-decoration: none; color: var(--blue); font-size: 14px; font-weight: 700; white-space: nowrap; }
+.reload { border: 1px solid var(--line); background: #fff; color: var(--accent);
+  border-radius: 8px; padding: 7px 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
+
+/* ログイン */
+.login-wrap { max-width: 360px; margin: 80px auto; padding: 0 20px; text-align: center; }
+.login-wrap h2 { font-size: 18px; margin-bottom: 24px; }
+.login-wrap input { width: 100%; padding: 16px; font-size: 18px; border: 2px solid var(--line);
+  border-radius: 12px; margin-bottom: 16px; text-align: center; }
+.login-wrap button { width: 100%; padding: 15px; font-size: 16px; font-weight: 700; color: #fff;
+  background: var(--accent); border: none; border-radius: 12px; cursor: pointer; }
+
+/* タブ */
+.tabs { display: flex; background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: 53px; z-index: 40; }
+.tab { flex: 1; padding: 13px 0; text-align: center; font-size: 14px; font-weight: 700; color: var(--sub);
+  cursor: pointer; border-bottom: 3px solid transparent; }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ツールバー（日付・月選択） */
+.toolbar { padding: 12px 16px 4px; display: flex; align-items: center; gap: 10px; }
+.toolbar label { font-size: 13px; color: var(--sub); white-space: nowrap; }
+.toolbar input, .toolbar select { flex: 1; padding: 10px 12px; font-size: 15px; border: 1px solid var(--line);
+  border-radius: 10px; background: #fff; min-width: 0; }
+.loadinfo { font-size: 11px; color: var(--sub); text-align: right; padding: 2px 18px 0; min-height: 15px; }
+
+/* サマリーバンド */
+.sumband { margin: 8px 16px 4px; background: var(--ink); color: #fff; border-radius: 14px;
+  padding: 16px; display: flex; justify-content: space-around; text-align: center; }
+.sumband .lbl { font-size: 11px; opacity: 0.7; }
+.sumband .val { font-size: 21px; font-weight: 700; margin-top: 2px; }
+.sumband .val small { font-size: 12px; font-weight: 500; opacity: 0.8; }
+
+/* チップ列（支払方法・串数・税率） */
+.chips { margin: 8px 16px 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { flex: 1; min-width: 130px; background: var(--card); border: 1px solid var(--line);
+  border-radius: 12px; padding: 10px 13px; display: flex; justify-content: space-between; align-items: center; }
+.chip .c-lbl { font-size: 12px; color: var(--sub); }
+.chip .c-val { font-size: 15px; font-weight: 700; }
+
+/* セクションカード */
+.seccard { background: var(--card); border: 1px solid var(--line); border-radius: 14px; margin: 12px 16px; overflow: hidden; }
+.sechead { padding: 12px 16px; font-size: 13px; font-weight: 700; color: var(--sub); border-bottom: 1px solid var(--line);
+  letter-spacing: 0.05em; }
+
+/* 時間帯バー */
+.hourrow { display: flex; align-items: center; gap: 8px; padding: 4px 16px; font-size: 12px; }
+.hourrow .h-lbl { width: 34px; color: var(--sub); font-weight: 700; text-align: right; }
+.hourrow .h-bar { flex: 1; height: 14px; background: #f0f1f3; border-radius: 7px; overflow: hidden; }
+.hourrow .h-fill { height: 100%; background: var(--accent); border-radius: 7px; }
+.hourrow .h-val { width: 72px; text-align: right; font-weight: 700; }
+
+/* ランキング表 */
+.ranktable { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ranktable th { text-align: left; font-size: 11px; color: var(--sub); padding: 8px 12px; border-bottom: 1px solid var(--line); background: #fafbfc; }
+.ranktable td { padding: 8px 12px; border-bottom: 1px solid #f2f3f5; }
+.ranktable td.num { text-align: right; font-weight: 700; white-space: nowrap; }
+.ranktable tr:last-child td { border-bottom: none; }
+
+/* 日別リスト（月計） */
+.dayrow { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px;
+  border-bottom: 1px solid #f2f3f5; cursor: pointer; }
+.dayrow:last-child { border-bottom: none; }
+.dayrow:active { background: #fafafa; }
+.dayrow .d-date { font-size: 14px; font-weight: 700; }
+.dayrow .d-meta { font-size: 11px; color: var(--sub); margin-top: 2px; }
+.dayrow .d-total { font-size: 16px; font-weight: 700; color: var(--accent); }
+
+/* 明細（会計リスト） */
+.salerow { padding: 13px 16px; border-bottom: 1px solid var(--line); background: #fff; }
+.salerow:last-child { border-bottom: none; }
+.sr-top { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+.sr-left { display: flex; align-items: baseline; gap: 10px; }
+.sr-time { font-size: 15px; font-weight: 700; }
+.sr-table { font-size: 12px; color: var(--sub); background: #eef0f3; padding: 2px 8px; border-radius: 6px; }
+.sr-pay { font-size: 11px; color: var(--sub); }
+.sr-right { display: flex; align-items: center; gap: 12px; }
+.sr-total { font-size: 16px; font-weight: 700; }
+.sr-del { background: var(--danger-soft); color: var(--danger); border: none; border-radius: 8px;
+  padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.sr-del:active { background: var(--danger); color: #fff; }
+.detail { display: none; margin-top: 11px; padding: 11px 12px; background: #fbfbfc;
+  border: 1px solid var(--line); border-radius: 10px; }
+.salerow.open .detail { display: block; }
+.det-item { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
+.det-item .di-name { color: var(--ink); }
+.det-item .di-name.cancel { color: var(--danger); text-decoration: line-through; }
+.det-item .di-qty { color: var(--sub); margin: 0 8px 0 6px; }
+.det-item .di-amt { font-weight: 600; white-space: nowrap; }
+.det-sum { display: flex; justify-content: space-between; font-size: 13px; padding-top: 8px;
+  margin-top: 6px; border-top: 1px dashed var(--line); color: var(--sub); }
+.det-meta { font-size: 11px; color: var(--sub); margin-bottom: 8px; }
+
+/* ボタン */
+.btnrow { display: flex; gap: 10px; margin: 12px 16px; }
+.bigbtn { flex: 1; padding: 14px 0; border: none; border-radius: 12px; font-size: 14px; font-weight: 700;
+  color: #fff; background: var(--blue); cursor: pointer; }
+.bigbtn.orange { background: var(--accent); }
+.bigbtn.green { background: var(--green); }
+.bigbtn:disabled { background: #bbb; }
+
+.empty { text-align: center; color: var(--sub); padding: 50px 20px; font-size: 14px; }
+.errbox { margin: 12px 16px; padding: 14px; background: var(--danger-soft); color: var(--danger);
+  border-radius: 12px; font-size: 13px; font-weight: 600; }
+.notebox { margin: 8px 16px; padding: 10px 14px; background: var(--accent-soft); color: #9a6a2e;
+  border-radius: 10px; font-size: 12px; }
+
+/* トースト */
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: var(--ink); color: #fff; padding: 12px 22px; border-radius: 999px;
+  font-size: 14px; font-weight: 600; opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 200; }
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="testband">【テスト4】mifune_test3 検証環境</div>
+
+<!-- ログイン画面 -->
+<div id="login-view" class="login-wrap">
+  <h2>三船 経営管理</h2>
+  <input id="pass-input" type="password" inputmode="numeric" placeholder="パスワード" autocomplete="off">
+  <button onclick="doLogin()">開く</button>
+</div>
+
+<!-- メイン -->
+<div id="main-view" style="display:none;">
+  <header>
+    <a class="backlink" href="mifune_test4.html" onclick="if(document.referrer && history.length > 1){ history.back(); return false; }">＜ POSに戻る</a>
+    <div class="h-title">経営管理</div>
+    <button class="reload" onclick="refreshCurrent()">↻ 更新</button>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" id="tab-day" onclick="showTab('day')">日計</div>
+    <div class="tab" id="tab-month" onclick="showTab('month')">月計</div>
+    <div class="tab" id="tab-detail" onclick="showTab('detail')">明細</div>
+    <div class="tab" id="tab-export" onclick="showTab('export')">出力</div>
+  </div>
+
+  <!-- ══ 日計 ══ -->
+  <div id="view-day">
+    <div class="toolbar">
+      <label>営業日</label>
+      <input type="date" id="day-date" onchange="loadDay()">
+    </div>
+    <div class="loadinfo" id="day-loadinfo"></div>
+    <div id="day-body"><div class="empty">読み込み中…</div></div>
+  </div>
+
+  <!-- ══ 月計 ══ -->
+  <div id="view-month" style="display:none;">
+    <div class="toolbar">
+      <label>対象月</label>
+      <input type="month" id="month-input" onchange="loadMonth()">
+    </div>
+    <div class="loadinfo" id="month-loadinfo"></div>
+    <div id="month-body"><div class="empty">読み込み中…</div></div>
+  </div>
+
+  <!-- ══ 明細 ══ -->
+  <div id="view-detail" style="display:none;">
+    <div class="toolbar">
+      <label>営業日</label>
+      <input type="date" id="detail-date" onchange="loadDetail()">
+    </div>
+    <div class="loadinfo" id="detail-loadinfo"></div>
+    <div class="notebox">明細の削除は会計の訂正用です。削除するとこの営業日の日次集計も自動で作り直されます。</div>
+    <div id="detail-body"><div class="empty">読み込み中…</div></div>
+  </div>
+
+  <!-- ══ 出力 ══ -->
+  <div id="view-export" style="display:none;">
+    <div class="seccard">
+      <div class="sechead">弥生会計 仕訳CSV</div>
+      <div class="toolbar">
+        <label>対象月</label>
+        <input type="month" id="yayoi-month">
+      </div>
+      <div class="btnrow"><button class="bigbtn green" onclick="exportYayoiCSV()">弥生CSVをダウンロード</button></div>
+      <div class="notebox" style="margin-top:0;">仕訳は暦月・会計1件ごとに10%/8%へ分解して出力します（従来と同じ形式）。</div>
+    </div>
+    <div class="seccard">
+      <div class="sechead">その他</div>
+      <div class="btnrow"><button class="bigbtn" onclick="location.href='order_log.html'">注文ログを開く ↗</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, deleteDoc, addDoc, query, where, orderBy, startAt, endAt, documentId, Timestamp, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD_mz3-1_fHWNBNWDRt6ZWXmi1ptcrvXCM",
+  authDomain: "revoreji.firebaseapp.com",
+  projectId: "revoreji",
+  storageBucket: "revoreji.firebasestorage.app",
+  messagingSenderId: "91184668244",
+  appId: "1:91184668244:web:22e34995fe0f69d1e9d7c1"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ═══════════════════════════════════════════════════════════
+// 店舗ID（本番化するときはここ1箇所を 'mifune' に変えるだけ）
+const STORE = 'mifune_test3';
+// ═══════════════════════════════════════════════════════════
+
+const DOW = ['日','月','火','水','木','金','土'];
+const yen = n => '¥' + (n||0).toLocaleString();
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ▼ 営業日・集計の共通定義（POS本体・調査ツールと完全一致させること。変更時は3ファイル同時）
+function bizDate(d) {
+    const t = new Date(d.getTime() - 5 * 60 * 60 * 1000);
+    return t.getFullYear() + '-' + String(t.getMonth()+1).padStart(2,'0') + '-' + String(t.getDate()).padStart(2,'0');
+}
+function sanitizeKey(name) {
+    return String(name).replace(/\./g,'．').replace(/\//g,'／').replace(/\[/g,'［').replace(/\]/g,'］').replace(/\*/g,'＊').replace(/~/g,'〜');
+}
+const SKEWER_MAP = {
+    "もつ串 6本":           { motsu: 6, sei: 0 },
+    "鳥精肉 6本":           { motsu: 0, sei: 6 },
+    "もつ、精肉 MIX 6本":   { motsu: 3, sei: 3 },
+    "精肉 テイクアウト":     { motsu: 0, sei: 1 },
+};
+function skewerCount(name, qty) {
+    if (!name) return { motsu: 0, sei: 0 };
+    if (SKEWER_MAP[name]) return { motsu: SKEWER_MAP[name].motsu * qty, sei: SKEWER_MAP[name].sei * qty };
+    if (name.includes('もつ串')) return { motsu: qty, sei: 0 };
+    if (name.includes('鳥精肉')) return { motsu: 0, sei: qty };
+    return { motsu: 0, sei: 0 };
+}
+function saleSummaryDelta(s) {
+    const d = { count: 1, guests: s.guests || 0, subtotal: s.subtotal || 0, tax: s.tax || 0, total: s.total || 0,
+                total10: 0, total8: 0, motsu: 0, sei: 0, payment: {}, hours: {}, items: {} };
+    const pm = s.paymentMethod || '現金';
+    d.payment[pm] = s.total || 0;
+    let hh = null;
+    if (s.checkout && /^\d{2}:/.test(s.checkout)) hh = s.checkout.slice(0,2);
+    else if (s.timestamp && s.timestamp.toDate) hh = String(s.timestamp.toDate().getHours()).padStart(2,'0');
+    if (hh !== null) d.hours[hh] = s.total || 0;
+    (s.items || []).forEach(i => {
+        const lp = i.price * i.qty;
+        const lt = lp >= 0 ? Math.floor(lp * i.rate) : -Math.floor(-lp * i.rate);
+        if (i.rate === 0.08) d.total8 += lp + lt; else d.total10 += lp + lt;
+        const sk = skewerCount(i.name, i.qty);
+        d.motsu += sk.motsu; d.sei += sk.sei;
+        const key = sanitizeKey(i.name);
+        if (!d.items[key]) d.items[key] = { qty: 0, amount: 0 };
+        d.items[key].qty += i.qty;
+        d.items[key].amount += lp + lt;
+    });
+    return d;
+}
+// 売上明細の配列から日次集計文書を丸ごと作り直す（削除後の再構築用）
+function computeSummaryFromSales(sales, dateStr) {
+    const sum = { date: dateStr, count: 0, guests: 0, subtotal: 0, tax: 0, total: 0,
+                  total10: 0, total8: 0, motsu: 0, sei: 0, payment: {}, hours: {}, items: {} };
+    sales.forEach(s => {
+        const d = saleSummaryDelta(s);
+        sum.count += d.count; sum.guests += d.guests; sum.subtotal += d.subtotal;
+        sum.tax += d.tax; sum.total += d.total; sum.total10 += d.total10; sum.total8 += d.total8;
+        sum.motsu += d.motsu; sum.sei += d.sei;
+        Object.entries(d.payment).forEach(([k,v]) => { sum.payment[k] = (sum.payment[k]||0) + v; });
+        Object.entries(d.hours).forEach(([k,v]) => { sum.hours[k] = (sum.hours[k]||0) + v; });
+        Object.entries(d.items).forEach(([k,v]) => {
+            if (!sum.items[k]) sum.items[k] = { qty: 0, amount: 0 };
+            sum.items[k].qty += v.qty; sum.items[k].amount += v.amount;
+        });
+    });
+    return sum;
+}
+// ▲ 共通定義
+
+// 営業日dateStr（YYYY-MM-DD）の売上を読む（当日5:00〜翌日5:00）
+async function fetchSalesOfBizDate(dateStr) {
+    const start = new Date(dateStr + 'T05:00:00');
+    const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+    const qy = query(collection(db, 'stores/' + STORE + '/sales'),
+        where('timestamp', '>=', Timestamp.fromDate(start)),
+        where('timestamp', '<', Timestamp.fromDate(end)),
+        orderBy('timestamp', 'desc'));
+    const snap = await getDocs(qy);
+    const res = [];
+    snap.forEach(d => { const x = d.data(); x.id = d.id; res.push(x); });
+    return res;
+}
+
+// 印刷キュー（POS本体と同じ形式・deviceId共用）
+let _deviceId = localStorage.getItem('pos_device_id');
+if (!_deviceId) { _deviceId = 'dev_' + Math.random().toString(36).slice(2, 8); localStorage.setItem('pos_device_id', _deviceId); }
+async function queuePrint(jobData) {
+    await addDoc(collection(db, 'stores/' + STORE + '/printQueue'), {
+        ...jobData,
+        deviceId: _deviceId,
+        deviceUA: (navigator.userAgent || '').slice(0, 80),
+        status: 'pending',
+        createdAt: serverTimestamp()
+    });
+}
+
+// ═══ 表示ユーティリティ ═══
+function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 1800);
+}
+function todayBizDate() { return bizDate(new Date()); }
+function fmtLoad(el, t0) { document.getElementById(el).textContent = '読込 ' + ((performance.now()-t0)/1000).toFixed(2) + '秒'; }
+function itemsRankHtml(itemsMap) {
+    const ranked = Object.entries(itemsMap || {}).filter(([,v]) => v.qty !== 0).sort((a,b) => b[1].qty - a[1].qty);
+    if (ranked.length === 0) return '<div class="empty" style="padding:20px;">品目データなし</div>';
+    let html = '<table class="ranktable"><tr><th>#</th><th>品名</th><th style="text-align:right;">数量</th><th style="text-align:right;">金額(税込)</th></tr>';
+    ranked.forEach(([name, v], i) => {
+        html += `<tr><td>${i+1}</td><td>${esc(name)}</td><td class="num">${v.qty}</td><td class="num">${yen(v.amount)}</td></tr>`;
+    });
+    return html + '</table>';
+}
+function paymentChipsHtml(pay) {
+    const order = ['現金','クレジット','QR決済','電子マネー'];
+    const keys = Object.keys(pay || {}).filter(k => pay[k] !== 0).sort((a,b) => {
+        const ia = order.indexOf(a), ib = order.indexOf(b);
+        return (ia<0?99:ia) - (ib<0?99:ib);
+    });
+    if (keys.length === 0) return '';
+    return '<div class="chips">' + keys.map(k =>
+        `<div class="chip"><span class="c-lbl">${esc(k)}</span><span class="c-val">${yen(pay[k])}</span></div>`).join('') + '</div>';
+}
+function hoursBarHtml(hours) {
+    const keys = Object.keys(hours || {}).filter(k => hours[k] !== 0);
+    if (keys.length === 0) return '';
+    // 営業日順（5時始まり）に並べる
+    keys.sort((a,b) => ((parseInt(a)+19)%24) - ((parseInt(b)+19)%24));
+    const max = Math.max(...keys.map(k => hours[k]));
+    let html = '<div class="seccard"><div class="sechead">時間帯別売上</div><div style="padding:8px 0;">';
+    keys.forEach(k => {
+        const pct = max > 0 ? Math.max(3, Math.round(hours[k] / max * 100)) : 0;
+        html += `<div class="hourrow"><span class="h-lbl">${esc(k)}時</span><div class="h-bar"><div class="h-fill" style="width:${pct}%"></div></div><span class="h-val">${yen(hours[k])}</span></div>`;
+    });
+    return html + '</div></div>';
+}
+function sumbandHtml(s) {
+    const perGuest = (s.guests > 0) ? Math.round(s.total / s.guests) : 0;
+    return `<div class="sumband">
+      <div><div class="lbl">売上</div><div class="val">${yen(s.total)}</div></div>
+      <div><div class="lbl">組数</div><div class="val">${s.count||0}</div></div>
+      <div><div class="lbl">客数</div><div class="val">${s.guests||0}</div></div>
+      <div><div class="lbl">客単価</div><div class="val">${perGuest ? yen(perGuest) : '—'}</div></div>
+    </div>`;
+}
+function skewerChipsHtml(s) {
+    return `<div class="chips">
+      <div class="chip"><span class="c-lbl">もつ串</span><span class="c-val">${s.motsu||0}串</span></div>
+      <div class="chip"><span class="c-lbl">鳥精肉</span><span class="c-val">${s.sei||0}串</span></div>
+      <div class="chip"><span class="c-lbl">10%対象(税込)</span><span class="c-val">${yen(s.total10)}</span></div>
+      <div class="chip"><span class="c-lbl">8%対象(税込)</span><span class="c-val">${yen(s.total8)}</span></div>
+    </div>`;
+}
+
+// ═══ タブ切替 ═══
+let currentTab = 'day';
+window.showTab = function(tab) {
+    currentTab = tab;
+    ['day','month','detail','export'].forEach(t => {
+        document.getElementById('view-' + t).style.display = (t === tab) ? 'block' : 'none';
+        document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+    });
+    if (tab === 'day' && !_dayLoaded) loadDay();
+    if (tab === 'month' && !_monthLoaded) loadMonth();
+    if (tab === 'detail' && !_detailLoaded) loadDetail();
+};
+window.refreshCurrent = function() {
+    if (currentTab === 'day') loadDay();
+    else if (currentTab === 'month') loadMonth();
+    else if (currentTab === 'detail') loadDetail();
+};
+
+// ═══ 日計（daily_summaryを1文書読むだけ） ═══
+let _dayLoaded = false;
+let _daySummary = null;
+window.loadDay = async function() {
+    _dayLoaded = true;
+    const inp = document.getElementById('day-date');
+    if (!inp.value) inp.value = todayBizDate();
+    const body = document.getElementById('day-body');
+    body.innerHTML = '<div class="empty">読み込み中…</div>';
+    const t0 = performance.now();
+    try {
+        const snap = await getDoc(doc(db, 'stores/' + STORE + '/daily_summary', inp.value));
+        fmtLoad('day-loadinfo', t0);
+        if (!snap.exists()) {
+            _daySummary = null;
+            body.innerHTML = '<div class="empty">この営業日の集計はありません。<br><small>会計がまだ無いか、切替前の日付です（過去分は調査ツールの再構築で作れます）。</small></div>';
+            return;
+        }
+        const s = snap.data();
+        _daySummary = s;
+        body.innerHTML =
+            sumbandHtml(s) +
+            paymentChipsHtml(s.payment) +
+            skewerChipsHtml(s) +
+            hoursBarHtml(s.hours) +
+            '<div class="seccard"><div class="sechead">品目別売上（数量順）</div>' + itemsRankHtml(s.items) + '</div>' +
+            '<div class="btnrow"><button class="bigbtn orange" id="btn-print-day" onclick="printDayReport()">日計印刷</button></div>';
+    } catch(e) {
+        fmtLoad('day-loadinfo', t0);
+        body.innerHTML = `<div class="errbox">読み込み失敗: ${esc(e.message)}</div><div class="btnrow"><button class="bigbtn" onclick="loadDay()">再読み込み</button></div>`;
+    }
+};
+window.printDayReport = async function() {
+    if (!_daySummary) return alert('データなし');
+    const btn = document.getElementById('btn-print-day');
+    if (btn.disabled) return;
+    btn.disabled = true; btn.textContent = '送信中...';
+    try {
+        const s = _daySummary;
+        const d = new Date(s.date + 'T12:00:00');
+        const dateLabel = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}（${DOW[d.getDay()]}）`;
+        const items = Object.entries(s.items || {}).filter(([,v]) => v.qty !== 0)
+            .sort((a,b) => b[1].qty - a[1].qty)
+            .map(([name, v]) => ({ name, qty: v.qty, amount: v.amount }));
+        await queuePrint({
+            type: 'report-day', dateLabel,
+            total: s.total || 0, guests: s.guests || 0, count: s.count || 0,
+            motsuCount: s.motsu || 0, toriCount: s.sei || 0, items
+        });
+        showToast('日計を印刷しました');
+    } catch(e) {
+        alert('印刷送信に失敗しました: ' + e.message);
+    }
+    btn.disabled = false; btn.textContent = '日計印刷';
+};
+
+// ═══ 月計（daily_summaryを最大31文書読むだけ） ═══
+let _monthLoaded = false;
+let _monthData = null;
+window.loadMonth = async function() {
+    _monthLoaded = true;
+    const inp = document.getElementById('month-input');
+    if (!inp.value) {
+        const t = todayBizDate();
+        inp.value = t.slice(0, 7);
+    }
+    const body = document.getElementById('month-body');
+    body.innerHTML = '<div class="empty">読み込み中…</div>';
+    const t0 = performance.now();
+    try {
+        const prefix = inp.value;   // YYYY-MM
+        const qy = query(collection(db, 'stores/' + STORE + '/daily_summary'),
+            orderBy(documentId()), startAt(prefix + '-01'), endAt(prefix + '-31'));
+        const snap = await getDocs(qy);
+        const days = [];
+        snap.forEach(d => days.push(d.data()));
+        fmtLoad('month-loadinfo', t0);
+        if (days.length === 0) {
+            _monthData = null;
+            body.innerHTML = '<div class="empty">この月の集計はありません。<br><small>切替前の月は調査ツールの再構築で作れます。</small></div>';
+            return;
+        }
+        // 月合計
+        const m = computeMonthTotals(days);
+        _monthData = { days, m, ym: prefix };
+        // 曜日別平均
+        const dowSum = {}, dowCnt = {};
+        days.forEach(s => {
+            const dw = DOW[new Date(s.date + 'T12:00:00').getDay()];
+            dowSum[dw] = (dowSum[dw]||0) + (s.total||0);
+            dowCnt[dw] = (dowCnt[dw]||0) + 1;
+        });
+        const dowHtml = DOW.filter(dw => dowCnt[dw]).map(dw =>
+            `<div class="chip"><span class="c-lbl">${dw}曜平均（${dowCnt[dw]}日）</span><span class="c-val">${yen(Math.round(dowSum[dw]/dowCnt[dw]))}</span></div>`).join('');
+        // 日別リスト（新しい順・タップで明細へ）
+        const dayList = days.slice().sort((a,b) => b.date.localeCompare(a.date)).map(s => {
+            const dw = DOW[new Date(s.date + 'T12:00:00').getDay()];
+            return `<div class="dayrow" onclick="jumpToDetail('${s.date}')">
+              <div><div class="d-date">${s.date}（${dw}）</div><div class="d-meta">${s.count||0}組 / ${s.guests||0}名 / もつ${s.motsu||0}串・精${s.sei||0}串</div></div>
+              <div class="d-total">${yen(s.total)}</div></div>`;
+        }).join('');
+        body.innerHTML =
+            sumbandHtml(m) +
+            paymentChipsHtml(m.payment) +
+            skewerChipsHtml(m) +
+            '<div class="seccard"><div class="sechead">曜日別の平均売上</div><div class="chips" style="margin:10px 12px 12px;">' + dowHtml + '</div></div>' +
+            '<div class="seccard"><div class="sechead">日別（タップで明細へ）</div>' + dayList + '</div>' +
+            '<div class="seccard"><div class="sechead">品目別売上（月間・数量順）</div>' + itemsRankHtml(m.items) + '</div>' +
+            '<div class="btnrow"><button class="bigbtn orange" id="btn-print-month" onclick="printMonthReport()">月計印刷</button></div>';
+    } catch(e) {
+        fmtLoad('month-loadinfo', t0);
+        body.innerHTML = `<div class="errbox">読み込み失敗: ${esc(e.message)}</div><div class="btnrow"><button class="bigbtn" onclick="loadMonth()">再読み込み</button></div>`;
+    }
+};
+function computeMonthTotals(days) {
+    const m = { count: 0, guests: 0, subtotal: 0, tax: 0, total: 0, total10: 0, total8: 0,
+                motsu: 0, sei: 0, payment: {}, items: {} };
+    days.forEach(s => {
+        m.count += s.count||0; m.guests += s.guests||0; m.subtotal += s.subtotal||0;
+        m.tax += s.tax||0; m.total += s.total||0; m.total10 += s.total10||0; m.total8 += s.total8||0;
+        m.motsu += s.motsu||0; m.sei += s.sei||0;
+        Object.entries(s.payment || {}).forEach(([k,v]) => { m.payment[k] = (m.payment[k]||0) + v; });
+        Object.entries(s.items || {}).forEach(([k,v]) => {
+            if (!m.items[k]) m.items[k] = { qty: 0, amount: 0 };
+            m.items[k].qty += v.qty||0; m.items[k].amount += v.amount||0;
+        });
+    });
+    return m;
+}
+window.jumpToDetail = function(dateStr) {
+    document.getElementById('detail-date').value = dateStr;
+    showTab('detail');
+    loadDetail();
+};
+window.printMonthReport = async function() {
+    if (!_monthData) return alert('データなし');
+    const btn = document.getElementById('btn-print-month');
+    if (btn.disabled) return;
+    btn.disabled = true; btn.textContent = '送信中...';
+    try {
+        const { days, m, ym } = _monthData;
+        const [y, mo] = ym.split('-').map(Number);
+        const dailyBreakdown = days.slice().sort((a,b) => a.date.localeCompare(b.date)).map(s => {
+            const d = new Date(s.date + 'T12:00:00');
+            return { label: `${s.date.replace(/-/g,'/')}（${DOW[d.getDay()]}）`, count: s.count||0, guests: s.guests||0, total: s.total||0 };
+        });
+        const items = Object.entries(m.items || {}).filter(([,v]) => v.qty !== 0)
+            .sort((a,b) => b[1].qty - a[1].qty)
+            .map(([name, v]) => ({ name, qty: v.qty, amount: v.amount }));
+        await queuePrint({
+            type: 'report-month', yearMonth: `${y}年${mo}月`,
+            total: m.total, guests: m.guests, count: m.count,
+            motsuCount: m.motsu, toriCount: m.sei,
+            dailyBreakdown, items
+        });
+        showToast('月計を印刷しました');
+    } catch(e) {
+        alert('印刷送信に失敗しました: ' + e.message);
+    }
+    btn.disabled = false; btn.textContent = '月計印刷';
+};
+
+// ═══ 明細（営業日単位で売上を読む・削除→summary自動再構築） ═══
+let _detailLoaded = false;
+window.loadDetail = async function() {
+    _detailLoaded = true;
+    const inp = document.getElementById('detail-date');
+    if (!inp.value) inp.value = todayBizDate();
+    const body = document.getElementById('detail-body');
+    body.innerHTML = '<div class="empty">読み込み中…</div>';
+    const t0 = performance.now();
+    try {
+        const sales = await fetchSalesOfBizDate(inp.value);
+        fmtLoad('detail-loadinfo', t0);
+        if (sales.length === 0) { body.innerHTML = '<div class="empty">この営業日の会計はありません</div>'; return; }
+        let total = 0;
+        const rows = sales.map(s => {
+            total += s.total || 0;
+            const items = (s.items || []).map(i => {
+                const lp = i.price * i.qty;
+                const lt = lp >= 0 ? Math.floor(lp * (i.rate||0.10)) : -Math.floor(-lp * (i.rate||0.10));
+                const isCancel = i.qty < 0;
+                return `<div class="det-item"><span class="di-name${isCancel?' cancel':''}">${esc(i.name)}</span><span class="di-qty">×${i.qty}</span><span class="di-amt">${yen(lp+lt)}</span></div>`;
+            }).join('') || '<div class="det-item"><span class="di-name" style="color:var(--sub)">明細データなし</span></div>';
+            const itemCount = (s.items||[]).reduce((n,i)=>n+i.qty,0);
+            return `
+              <div class="salerow" data-id="${s.id}">
+                <div class="sr-top" onclick="toggleDetail(this)">
+                  <div class="sr-left">
+                    <span class="sr-time">${esc(s.checkout||'--:--')}</span>
+                    <span class="sr-table">${esc(s.tableId||'')}</span>
+                    <span class="sr-pay">${esc(s.paymentMethod||'現金')}</span>
+                  </div>
+                  <div class="sr-right">
+                    <span class="sr-total">${yen(s.total)}</span>
+                    <button class="sr-del" onclick="delSale(event, '${s.id}', '${inp.value}')">削除</button>
+                  </div>
+                </div>
+                <div class="detail">
+                  <div class="det-meta">入店 ${esc(s.checkin||'--:--')} ／ 客 ${s.guests||0}名 ／ ${itemCount}点</div>
+                  ${items}
+                  <div class="det-sum"><span>合計（税込）</span><span>${yen(s.total)}</span></div>
+                </div>
+              </div>`;
+        }).join('');
+        body.innerHTML = `<div class="seccard"><div class="sechead">${esc(inp.value)}　${sales.length}件 ／ 合計 ${yen(total)}</div>${rows}</div>`;
+    } catch(e) {
+        fmtLoad('detail-loadinfo', t0);
+        body.innerHTML = `<div class="errbox">読み込み失敗: ${esc(e.message)}</div><div class="btnrow"><button class="bigbtn" onclick="loadDetail()">再読み込み</button></div>`;
+    }
+};
+window.toggleDetail = function(el){ el.parentElement.classList.toggle('open'); };
+
+// 削除 → その営業日のsummaryを残った売上から作り直す（ズレを構造的に防ぐ）
+window.delSale = async function(ev, id, dateStr){
+    ev.stopPropagation();
+    if (!confirm('この会計を削除します。よろしいですか？\n（取り消せません。日次集計も自動で作り直します）')) return;
+    try {
+        await deleteDoc(doc(db, 'stores/' + STORE + '/sales', id));
+    } catch(e) {
+        showToast('削除に失敗しました: ' + e.message);
+        return;
+    }
+    try {
+        await rebuildSummary(dateStr);
+        showToast('削除して集計を作り直しました');
+    } catch(e) {
+        showToast('削除済み・集計の再構築に失敗: ' + e.message);
+    }
+    loadDetail();
+    _dayLoaded = false; _monthLoaded = false;  // 次に開いたとき読み直す
+};
+async function rebuildSummary(dateStr) {
+    const sales = await fetchSalesOfBizDate(dateStr);
+    const ref = doc(db, 'stores/' + STORE + '/daily_summary', dateStr);
+    if (sales.length === 0) { await deleteDoc(ref); return; }
+    const sum = computeSummaryFromSales(sales, dateStr);
+    sum.updatedAt = serverTimestamp();
+    await setDoc(ref, sum);   // 上書き（mergeしない）：消えた品目キーを残さない
+}
+
+// ═══ 弥生出力（暦月・会計1件ごとに税率分解。従来ロジックを移植） ═══
+window.exportYayoiCSV = async function() {
+    const inp = document.getElementById('yayoi-month');
+    if (!inp.value) { alert('対象月を選択してください'); return; }
+    const [selY, selM] = inp.value.split('-').map(Number);
+    let sales;
+    try {
+        const start = new Date(selY, selM - 1, 1);
+        const end = new Date(selY, selM, 0, 23, 59, 59, 999);
+        const qy = query(collection(db, 'stores/' + STORE + '/sales'),
+            where('timestamp', '>=', Timestamp.fromDate(start)),
+            where('timestamp', '<=', Timestamp.fromDate(end)),
+            orderBy('timestamp', 'asc'));
+        const snap = await getDocs(qy);
+        sales = [];
+        snap.forEach(d => sales.push(d.data()));
+    } catch(e) {
+        alert('売上の読み込みに失敗しました: ' + e.message);
+        return;
+    }
+    if (sales.length === 0) return alert('データなし');
+
+    const debitMap = {
+        '現金':     { 科目: '現金',   補助: '' },
+        'クレジット': { 科目: '売掛金', 補助: 'クレジット' },
+        'QR決済':   { 科目: '売掛金', 補助: 'QR決済' },
+        '電子マネー': { 科目: '売掛金', 補助: '電子マネー' },
+    };
+    const yayoiHeader = '！弥生インポートファイル' + ','.repeat(19);
+    const columnHeader = [
+        '取引日付', '借方科目', '借方補助', '借方税区分', '借方金額',
+        '貸方科目', '貸方補助', '貸方税区分', '貸方金額',
+        '摘要', '番号', 'タグ', 'メモ', '付箋１', '付箋２', '生成元'
+    ].map(v => `"${v}"`).join(',');
+    const makeRow = (dateStr, debit, taxKbn, amount, summary) => [
+        dateStr, debit.科目, debit.補助, '対象外', amount,
+        '売上高', '', taxKbn, amount, summary,
+        '', '', '', '', '', ''
+    ].map(v => `"${v}"`).join(',');
+
+    const rows = [];
+    sales.forEach(s => {
+        const d = s.timestamp.toDate();
+        const dateStr = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+        const pm = s.paymentMethod || '現金';
+        const debit = debitMap[pm] || debitMap['現金'];
+        const tableLabel = ['テイクアウト','無人'].includes(s.tableId) ? s.tableId : `${s.tableId}番テーブル`;
+
+        let total10 = 0, total8 = 0;
+        if (s.items && s.items.length > 0) {
+            s.items.forEach(item => {
+                const lp = item.price * item.qty;
+                const lt = lp >= 0 ? Math.floor(lp * item.rate) : -Math.floor(-lp * item.rate);
+                if (item.rate === 0.08) { total8 += lp + lt; } else { total10 += lp + lt; }
+            });
+        } else {
+            if (s.tableId === 'テイクアウト' || s.tableId === '無人') { total8 = s.total; } else { total10 = s.total; }
+        }
+
+        if (total10 > 0) rows.push(makeRow(dateStr, debit, '課税売上10%', total10, `三船売上(10%) ${pm} ${tableLabel}`));
+        if (total8  > 0) rows.push(makeRow(dateStr, debit, '課税売上8%(軽減)', total8, `三船売上(8%軽減) ${pm} ${tableLabel}`));
+        if (total10 === 0 && total8 === 0 && s.total > 0) rows.push(makeRow(dateStr, debit, '課税売上10%', s.total, `三船売上 ${pm} ${tableLabel}`));
+    });
+
+    const csv = '\uFEFF' + yayoiHeader + '\n' + columnHeader + '\n' + rows.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `三船_弥生仕訳_${selY}年${selM}月.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+};
+
+// ═══ ログイン（uriage.htmlと同じ簡易パスワード方式・同じ保存キーを継続使用） ═══
+const DEFAULT_PASS = '00';
+window.doLogin = function(){
+    const v = document.getElementById('pass-input').value;
+    const saved = localStorage.getItem('uriagePass') || DEFAULT_PASS;
+    if (v === saved) {
+        sessionStorage.setItem('kanriAuthed','1');
+        document.getElementById('login-view').style.display = 'none';
+        document.getElementById('main-view').style.display = 'block';
+        loadDay();
+    } else {
+        alert('パスワードが違います');
+    }
+};
+document.getElementById('pass-input').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+if (sessionStorage.getItem('kanriAuthed') === '1') {
+    document.getElementById('login-view').style.display = 'none';
+    document.getElementById('main-view').style.display = 'block';
+    loadDay();
+}
+</script>
+</body>
+</html>
