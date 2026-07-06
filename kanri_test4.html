@@ -8,6 +8,24 @@
 <meta http-equiv="Expires" content="0">
 <title>三船 経営管理【テスト4】</title>
 
+<script>
+(function(){
+  var K_VERSION = '2026-07-06-kanri-02';
+  window.__K_VERSION = K_VERSION;
+  try {
+    var saved = localStorage.getItem('__mifuneKanriVersion');
+    if (saved !== K_VERSION) {
+      localStorage.setItem('__mifuneKanriVersion', K_VERSION);
+      if (window.caches && caches.keys) { caches.keys().then(function(ns){ ns.forEach(function(n){ caches.delete(n); }); }).catch(function(){}); }
+      if (!sessionStorage.getItem('__reloadedKanri_' + K_VERSION)) {
+        sessionStorage.setItem('__reloadedKanri_' + K_VERSION, '1');
+        location.reload();
+      }
+    }
+  } catch(e) {}
+})();
+</script>
+
 <style>
 :root {
   --bg: #f4f5f7;
@@ -154,7 +172,8 @@ header {
 </head>
 <body>
 
-<div class="testband">【テスト4】mifune_test3 検証環境</div>
+<div class="testband" id="k-testband">【テスト4】mifune_test3 検証環境</div>
+<script>document.getElementById('k-testband').textContent += '｜' + (window.__K_VERSION || '');</script>
 
 <!-- ログイン画面 -->
 <div id="login-view" class="login-wrap">
@@ -754,6 +773,14 @@ if (sessionStorage.getItem('kanriAuthed') === '1') {
     document.getElementById('main-view').style.display = 'block';
     loadDay();
 }
+
+// ▼ 画面に戻ってきたら現在のタブを自動で最新に更新（開きっぱなしで数字が古いままになる問題の対策）
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && sessionStorage.getItem('kanriAuthed') === '1') refreshCurrent();
+});
+window.addEventListener('pageshow', (e) => {
+    if (e.persisted) { location.reload(); }
+});
 </script>
 </body>
 </html>
