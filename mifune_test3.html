@@ -1358,7 +1358,7 @@ async function showAdmin(mode) {
             try { return await _timeout(makeFetch(), 5); }
             catch(e1) {
                 if (_mySeq !== window._adminSeq) throw e1;
-                list.innerHTML = '<p style="text-align:center; padding:50px; color:#999;">接続を起こしています…（自動再試行中）</p>';
+                if (!list.querySelector('.sale-card')) list.innerHTML = '<p style="text-align:center; padding:50px; color:#999;">接続を起こしています…（自動再試行中）</p>';
                 return await _timeout(makeFetch(), 10);
             }
         };
@@ -1367,14 +1367,22 @@ async function showAdmin(mode) {
             const inp = document.getElementById('admin-month');
             if (!inp.value) inp.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
             const [y, m] = inp.value.split('-').map(Number);
+            // 前回の結果があれば即表示（体感ゼロ秒）→裏で最新を取得して差し替え
+            const _ckM = 'salesCache_m_' + inp.value;
+            try { const _cv = localStorage.getItem(_ckM); if (_cv) { renderMonthSales(JSON.parse(_cv), m); const _pa0 = document.getElementById('payment-summary-area'); if (_pa0) _pa0.innerHTML += '<span style="margin-left:10px; color:#e6a800; font-size:11px;">最新に更新中…</span>'; } } catch(_e) {}
             _sales = await _fetchWithRetry(() => window.getSalesMonth(y, m));
             if (_mySeq !== window._adminSeq) return; // 後から来た呼び出しに譲る
+            try { localStorage.setItem(_ckM, JSON.stringify(_sales)); } catch(_e) {}
             renderMonthSales(_sales, m);
         } else {
             const inp = document.getElementById('admin-date');
             if (!inp.value) inp.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+            // 前回の結果があれば即表示（体感ゼロ秒）→裏で最新を取得して差し替え
+            const _ckD = 'salesCache_d_' + inp.value;
+            try { const _cv = localStorage.getItem(_ckD); if (_cv) { renderDaySales(JSON.parse(_cv)); const _pa0 = document.getElementById('payment-summary-area'); if (_pa0) _pa0.innerHTML += '<span style="margin-left:10px; color:#e6a800; font-size:11px;">最新に更新中…</span>'; } } catch(_e) {}
             _sales = await _fetchWithRetry(() => window.getSalesDayByDate(new Date(inp.value + 'T12:00:00')));
             if (_mySeq !== window._adminSeq) return;
+            try { localStorage.setItem(_ckD, JSON.stringify(_sales)); } catch(_e) {}
             renderDaySales(_sales);
         }
         // 読み込み時間の実測を表示（体感の答え合わせ用）
@@ -1383,7 +1391,12 @@ async function showAdmin(mode) {
         if (_pa) _pa.innerHTML += `<span style="margin-left:10px; color:#999; font-size:11px;">読込 ${_sec}秒</span>`;
     } catch(e) {
         if (_mySeq !== window._adminSeq) return;
-        list.innerHTML = `<p style="text-align:center; padding:30px; color:var(--danger);">読み込み失敗: ${e.message}</p><p style="text-align:center;"><button onclick="showAdmin('${mode}')" style="padding:12px 24px; border:none; border-radius:10px; background:var(--primary); color:#fff; font-weight:bold; font-size:15px;">再読み込み</button></p>`;
+        if (list.querySelector('.sale-card')) {
+            const _pa1 = document.getElementById('payment-summary-area');
+            if (_pa1) _pa1.innerHTML += `<span style="margin-left:10px; color:var(--danger); font-size:11px;">最新の取得に失敗（前回の内容を表示中）</span><button onclick="showAdmin('${mode}')" style="margin-left:8px; padding:4px 10px; border:none; border-radius:6px; background:var(--primary); color:#fff; font-size:11px;">再読込</button>`;
+        } else {
+            list.innerHTML = `<p style="text-align:center; padding:30px; color:var(--danger);">読み込み失敗: ${e.message}</p><p style="text-align:center;"><button onclick="showAdmin('${mode}')" style="padding:12px 24px; border:none; border-radius:10px; background:var(--primary); color:#fff; font-weight:bold; font-size:15px;">再読み込み</button></p>`;
+        }
     }
 }
 // 日計：その日の売上のみ。削除機能なし（訂正はuriage.htmlで）
@@ -2220,12 +2233,14 @@ async function payCo() {
   if (doPrint) {
     if (typeof window.queuePrint === 'function') {
       try {
-        const receiptItems = [];
+        let receiptItems = [];
         hist.forEach(i => {
           const ex = receiptItems.find(r => r.name === i.name && r.price === i.price && r.rate === i.rate);
           if (ex) ex.qty += i.qty;
           else receiptItems.push({ name:i.name, qty:i.qty, price:i.price, rate:i.rate });
         });
+        // 全数取消で相殺された品（数量0）はレシートに印字しない（2026/07/06 紙テストで「0点 ¥0」行の印字を確認→除外）
+        receiptItems = receiptItems.filter(r => r.qty !== 0);
         await window.queuePrint({
           type: 'receipt', tableNo: currentTable, guests: g, checkinTime: c,
           items: receiptItems,
