@@ -2233,12 +2233,14 @@ async function payCo() {
   if (doPrint) {
     if (typeof window.queuePrint === 'function') {
       try {
-        const receiptItems = [];
+        let receiptItems = [];
         hist.forEach(i => {
           const ex = receiptItems.find(r => r.name === i.name && r.price === i.price && r.rate === i.rate);
           if (ex) ex.qty += i.qty;
           else receiptItems.push({ name:i.name, qty:i.qty, price:i.price, rate:i.rate });
         });
+        // 全数取消で相殺された品（数量0）はレシートに印字しない（2026/07/06 紙テストで「0点 ¥0」行の印字を確認→除外）
+        receiptItems = receiptItems.filter(r => r.qty !== 0);
         await window.queuePrint({
           type: 'receipt', tableNo: currentTable, guests: g, checkinTime: c,
           items: receiptItems,
