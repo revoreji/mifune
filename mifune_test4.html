@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-06-t4s1-04';
+  var T4_VERSION = '2026-07-08-t4s5-01';
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -477,6 +477,43 @@ async function autoKitchenPrint(tableId, mobileOrders, tag) { tag = tag || 'M';
 }
 // ▲▲▲ モバイルオーダー自動キッチン印刷 ▲▲▲
 
+// ▼▼▼ 会計前の伝票照合（テスト4ステージ4）▼▼▼
+// 会計確認画面を開いたとき、この卓の厨房伝票の正味（印刷−取消伝票）と
+// これから請求する内容を品目単位で照合し、ズレていたら警告を出す。
+// 警告のみで会計はブロックしない（口頭注文の手打ち等、正当な差もあるため）。
+window.checkTicketMatch = async (tableId, hist) => {
+    const now = new Date();
+    const dateStr = window.bizDate(now);
+    const start = new Date(dateStr + 'T05:00:00');
+    const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+    const qy = query(collection(db, "stores/mifune_test3/printQueue"),
+        where('createdAt', '>=', Timestamp.fromDate(start)),
+        where('createdAt', '<', Timestamp.fromDate(end)));
+    const snap = await getDocs(qy);
+    const ticket = {};
+    snap.forEach(d => {
+        const j = d.data();
+        if (j.type !== 'kitchen' || j.tableId !== tableId) return;
+        let nm = String(j.itemName || ''); let q = j.itemQty || 0;
+        if (nm.indexOf('【取消】') === 0) { nm = nm.slice(4); q = -q; }
+        ticket[nm] = (ticket[nm] || 0) + q;
+    });
+    const bill = {};
+    (hist || []).forEach(i => {
+        if (i.price === 0 && String(i.name).indexOf('客数変更') === 0) return;
+        bill[i.name] = (bill[i.name] || 0) + i.qty;
+    });
+    const names = [...new Set([...Object.keys(ticket), ...Object.keys(bill)])];
+    const diffs = [];
+    names.forEach(nm => {
+        const t = ticket[nm] || 0, b = bill[nm] || 0;
+        if (t !== b) diffs.push({ name: nm, ticket: t, bill: b });
+    });
+    const itemCount = Object.values(bill).reduce((s, v) => s + v, 0);
+    return { diffs, itemCount };
+};
+// ▲▲▲ 会計前の伝票照合 ▲▲▲
+
 // ▼▼▼ 日次集計 daily_summary（テスト4ステージ1：追加のみ・既存の会計フローは無変更）▼▼▼
 // 営業日＝朝5時区切り。kanriページ・調査ツールと共通定義（変更時は3ファイル同時に直すこと）
 window.bizDate = function(d) {
@@ -527,26 +564,36 @@ async function updateDailySummary(sale) {
 }
 // ▲▲▲ 日次集計 ▲▲▲
 
+// 会計の確定（ステージ3：サーバーのhistoryを正として確定する）
+// 理由: 手元の控え（localStorage）土台の会計は、同期していない端末から会計すると
+// 「その端末が見ていた世界」だけで金額が確定する（7/6にiPhone×Macで実再現）。
+// 注文の追記方式と同じ原則を会計にも貫く。読めない/保存できないなら会計を中断し、
+// 卓は消さない（再試行できる）。成功時は {hist, guests, checkin} を返しレシートもこの値で印字する。
 window.saveSaleToCloud = async (tableId, paymentMethod) => {
-const hist = JSON.parse(localStorage.getItem('history_' + tableId) || '[]');
-if(hist.length === 0) return;
-const guests = parseInt(localStorage.getItem('guests_' + tableId)) || 0;
-const checkin = localStorage.getItem('checkin_' + tableId) || "--:--";
+// 1. サーバーから卓の最新を読む（8秒で見切り→例外→会計中断）
+const snap = await Promise.race([
+    window.fetchTableFresh(tableId),
+    new Promise((_, rej) => setTimeout(() => rej(new Error('卓の読み直しタイムアウト（電波を確認して再試行）')), 8000))
+]);
+const hist = snap.exists() ? (snap.data().history || []) : [];
+if (hist.length === 0) return null;
+const guests = snap.exists() ? (parseInt(snap.data().guests) || 0) : 0;
+const checkin = snap.exists() ? (snap.data().checkin || "--:--") : "--:--";
 let subtotal = 0, tax = 0;
-hist.forEach(i => { subtotal += i.price * i.qty; tax += Math.floor(i.price * i.qty * i.rate); });
+hist.forEach(i => { const lp = i.price * i.qty; subtotal += lp; tax += (lp >= 0 ? Math.floor(lp * i.rate) : -Math.floor(-lp * i.rate)); });
 
-try {
-    const saleData = {
-        tableId: tableId, guests: guests, checkin: checkin,
-        checkout: new Date().getHours().toString().padStart(2, '0') + ":" + new Date().getMinutes().toString().padStart(2, '0'),
-        items: hist, subtotal: subtotal, tax: tax, total: subtotal + tax,
-        paymentMethod: paymentMethod || '現金',
-        timestamp: Timestamp.now()
-    };
-    await addDoc(collection(db, "stores/mifune_test3/sales"), saleData);
-    // 日次集計へ増分を追記（失敗しても会計は成立・kanri/調査ツールの再構築で修復可能）
-    try { await updateDailySummary(saleData); } catch(e2) { console.warn("日次集計の更新失敗（会計は成立）:", e2.message); }
-} catch (e) { console.warn("売上保存失敗:", e.message); }
+// 2. 売上を保存（失敗したら例外→会計中断・卓は消さない）
+const saleData = {
+    tableId: tableId, guests: guests, checkin: checkin,
+    checkout: new Date().getHours().toString().padStart(2, '0') + ":" + new Date().getMinutes().toString().padStart(2, '0'),
+    items: hist, subtotal: subtotal, tax: tax, total: subtotal + tax,
+    paymentMethod: paymentMethod || '現金',
+    timestamp: Timestamp.now()
+};
+await addDoc(collection(db, "stores/mifune_test3/sales"), saleData);
+// 日次集計へ増分を追記（失敗しても会計は成立・kanri/調査ツールの再構築で修復可能）
+try { await updateDailySummary(saleData); } catch(e2) { console.warn("日次集計の更新失敗（会計は成立）:", e2.message); }
+// 3. 卓の後始末（売上保存が成功してから消す）
 try { await deleteDoc(doc(db, "stores/mifune_test3/tables", tableId)); } catch(e) { console.warn("テーブル削除失敗:", e.message); }
 await clearCountdown(tableId, true);
 renderIndex();
@@ -557,6 +604,7 @@ if (customs.includes(tableId)) {
 }
 // 全席: localStorageのデータをクリア（再利用時に残らないように）
 ['history_','cart_','guests_','checkin_'].forEach(k => localStorage.removeItem(k + tableId));
+return { hist, guests, checkin };
 };
 
 // ▼ 売上の期間指定取得（全件ダウンロード廃止：選んだ期間だけ読むので営業日数が増えても速度不変）
@@ -711,7 +759,7 @@ window.printStandaloneRyoshu = async function() {
   </div>
 </div>
 
-<div style="position:fixed;top:0;left:0;right:0;background:#1b5e20;color:#fff;text-align:center;font-size:12px;font-weight:bold;padding:3px 0;z-index:9998;pointer-events:none;" id="t4-banner">【テスト4 ステージ1】mifune_test3</div>
+<div style="position:fixed;top:0;left:0;right:0;background:#1b5e20;color:#fff;text-align:center;font-size:12px;font-weight:bold;padding:3px 0;z-index:9998;pointer-events:none;" id="t4-banner">【テスト4 ステージ4】mifune_test3</div>
 <script>document.getElementById('t4-banner').textContent += '｜' + (window.__T4_VERSION || 'v不明');</script>
 <div id="view-index" class="view active"><header><div class="admin-btn" id="admin-btn-label" onclick="location.href='kanri_test4.html'">経営管理</div><span>三船 席選択</span><div style="display:flex;gap:4px;align-items:center;"><div class="reload-btn" onclick="window.openStandaloneRyoshuusho()" title="領収書発行">📄</div><div class="reload-btn" onclick="openPrinterSettings()" title="プリンター設定">⚙</div><div class="reload-btn" onclick="location.reload()">↻</div></div></header><div class="grid-tables" id="table-grid"></div></div>
 
@@ -803,6 +851,7 @@ window.printStandaloneRyoshu = async function() {
     <div class="co-left">
       <div class="co-panel-label">注文明細</div>
       <div class="co-items" id="co-items-list"></div>
+      <div id="ticket-check-banner" style="display:none;margin:0 16px 4px;padding:10px 12px;border-radius:10px;font-size:13px;line-height:1.5;"></div>
       <div class="co-total-area">
         <div class="co-total-row"><span>小計</span><span id="co-subtotal-l">¥0</span></div>
         <div class="co-total-row"><span>消費税</span><span id="co-tax-l">¥0</span></div>
@@ -1276,10 +1325,28 @@ let currentTable = "", currentCart = [], tempGuestCount = "0";
 const isTestMode = true;
 
 function hideAll() { document.querySelectorAll('.view').forEach(v => v.style.display = 'none'); }
+// ▼▼▼ S5: 席選択タップ対策 ▼▼▼
+// 卓を開いている間の全画面ベール（連打防止＋「反応していない」不安の解消）
+function showTableVeil(tId) {
+  let v = document.getElementById('table-veil');
+  if (!v) {
+    v = document.createElement('div');
+    v.id = 'table-veil';
+    v.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.78);z-index:9999;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:bold;color:#444;';
+    document.body.appendChild(v);
+  }
+  v.textContent = '卓 ' + tId + ' を開いています…';
+  v.style.display = 'flex';
+}
+function hideTableVeil() {
+  const v = document.getElementById('table-veil');
+  if (v) v.style.display = 'none';
+}
+// ▲▲▲ S5 ▲▲▲
 function renderIndex() {
   const g = document.getElementById('table-grid'); if(!g) return;
   const customs = getCustomTableNames();
-  g.innerHTML = getTablesL().map(t => {
+  const html = getTablesL().map(t => {
     const h = JSON.parse(localStorage.getItem('history_'+t) || '[]');
     const total = h.reduce((s, i) => s + Math.floor(i.price*i.qty*(1+i.rate)), 0);
     const isCustom = customs.includes(t);
@@ -1291,6 +1358,10 @@ function renderIndex() {
     return `<div class="table-btn ${total>0?'occupied':''}" onclick="onTableClick('${t}')"><b>${t}</b><span class="price-badge">${total>0?'¥'+total.toLocaleString():'空席'}</span>${cdBadge}${delBtn}</div>`;
   }).join('') +
   `<div class="table-btn" style="border:2px dashed #ccc; background:transparent; color:#bbb;" onclick="openAddTableModal()"><span style="font-size:28px;">＋</span><span style="font-size:11px; margin-top:4px;">席追加</span></div>`;
+  // S5: 内容が前回と同じなら再描画しない（snapshot連打でボタンが消えてタップが吸い込まれる事故の防止）
+  if (window._prevGridHtml === html) return;
+  window._prevGridHtml = html;
+  g.innerHTML = html;
 }
 function openAddTableModal() {
   document.getElementById('new-table-name').value = '';
@@ -1395,10 +1466,17 @@ function checkAdminAuth() { if(window.currentUser) showAdmin('day'); else { hide
 function handleLogin() { window.loginOwner(); }
 window.handleLogin = handleLogin;
 async function onTableClick(tId) {
+    if (window._tableOpening) return;   // S5: 開いている最中の連打・二重タップは無視
+    window._tableOpening = true;
+    showTableVeil(tId);                 // S5: タップの瞬間にベール表示（反応を即見せる）
     currentTable = tId;
     // 卓を開く瞬間にサーバーから最新を読み直す（古い控えのまま操作が始まる事故の防止）
     try {
-        const snap = await window.fetchTableFresh(tId);
+        // S5: 5秒で見切り→手元の控えで続行（ゾンビ接続でぶら下がって「無反応」に見える事故の防止）
+        const snap = await Promise.race([
+            window.fetchTableFresh(tId),
+            new Promise((_, rej) => setTimeout(() => rej(new Error('卓の読み直しタイムアウト(5秒)')), 5000))
+        ]);
         if (snap.exists()) {
             const d = snap.data();
             localStorage.setItem('history_' + tId, JSON.stringify(d.history || []));
@@ -1410,6 +1488,8 @@ async function onTableClick(tId) {
             localStorage.removeItem('checkin_' + tId);
         }
     } catch(e) { console.warn('卓の読み直し失敗（手元の控えで続行）:', e.message); }
+    hideTableVeil();                    // S5: 画面遷移の直前にベール解除
+    window._tableOpening = false;
     const hist = JSON.parse(localStorage.getItem('history_' + tId) || '[]');
     const guests = parseInt(localStorage.getItem('guests_' + tId)) || 0;
     if(hist.length > 0 || guests > 0) showMenu(); else showGuestInput();
@@ -2160,6 +2240,42 @@ function showCheckout() {
   setCoReceipt('receipt');
   selectPayment('現金');
   hideAll(); document.getElementById('view-checkout').style.display = 'flex';
+  // 伝票照合（ステージ4）：裏で走らせ、結果だけバナーに出す。会計操作は一切待たせない
+  runTicketCheck(hist);
+}
+// 会計前の伝票照合バナー（警告のみ・会計はブロックしない）
+async function runTicketCheck(hist) {
+  const el = document.getElementById('ticket-check-banner');
+  if (!el || !window.checkTicketMatch) return;
+  const myTable = currentTable;
+  el.style.display = 'block';
+  el.style.background = '#f4f5f7'; el.style.color = '#888'; el.style.border = 'none';
+  el.textContent = '伝票と照合中…';
+  try {
+    const r = await Promise.race([
+      window.checkTicketMatch(myTable, hist),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('照合タイムアウト')), 6000))
+    ]);
+    if (currentTable !== myTable) return; // 画面が別の卓に変わっていたら何もしない
+    if (r.diffs.length === 0) {
+      el.style.background = '#e8f5e9'; el.style.color = '#2e7d32';
+      el.textContent = '✓ 厨房伝票と一致（' + r.itemCount + '点）';
+    } else {
+      el.style.background = '#fdecea'; el.style.color = '#b71c1c'; el.style.border = '2px solid #d64545';
+      let html = '<b>⚠ 伝票と会計が合いません</b><br>';
+      r.diffs.forEach(d => {
+        const gap = d.ticket - d.bill;
+        html += '・' + d.name + '：伝票' + d.ticket + ' → 会計' + d.bill +
+                (gap > 0 ? '（<b>' + gap + '個 足りない</b>）' : '（' + (-gap) + '個 多い）') + '<br>';
+      });
+      html += '<span style="font-size:11px;color:#888;">卓を開き直すと最新になります。確認のうえ、そのまま会計もできます。</span>';
+      el.innerHTML = html;
+    }
+  } catch(e) {
+    if (currentTable !== myTable) return;
+    el.style.background = '#f4f5f7'; el.style.color = '#aaa';
+    el.textContent = '伝票との照合ができませんでした（' + e.message + '）※会計はそのまま行えます';
+  }
 }
 function updateFooter() { document.getElementById('cart-count').innerText = currentCart.reduce((s, i) => s + i.qty, 0); const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]'); const total = hist.reduce((s, i) => s + Math.floor(i.price*i.qty*(1+i.rate)), 0); document.getElementById('display-current-total').innerText = "税込合計: ¥" + total.toLocaleString(); }
 function openReceiptChoice() { payCo(); }
@@ -2309,14 +2425,28 @@ async function payCo() {
     _coBtn.style.opacity = '0.6';
     _coBtn.textContent = '処理中...';
   }
+  // 会計の確定（サーバーの履歴を正として保存。失敗したら中断して再試行できるようにする）
+  let _saleResult = null;
   try {
-    if (window.saveSaleToCloud) await window.saveSaleToCloud(currentTable, currentPaymentMethod);
-  } catch(e) { console.warn('saveSaleToCloud失敗:', e); }
+    _saleResult = await window.saveSaleToCloud(currentTable, currentPaymentMethod);
+  } catch(e) {
+    console.warn('saveSaleToCloud失敗:', e);
+    alert('会計の保存に失敗しました。もう一度お試しください: ' + (e && e.message ? e.message : e));
+    window._coProcessing = false;
+    if (_coBtn) { _coBtn.disabled = false; _coBtn.style.opacity = '1'; _coBtn.textContent = '会計を確定する'; }
+    return;
+  }
+  if (!_saleResult) {
+    alert('この卓に注文がありません');
+    window._coProcessing = false;
+    showIndex();
+    return;
+  }
   if (doPrint) {
     if (typeof window.queuePrint === 'function') {
       try {
         let receiptItems = [];
-        hist.forEach(i => {
+        _saleResult.hist.forEach(i => {
           const ex = receiptItems.find(r => r.name === i.name && r.price === i.price && r.rate === i.rate);
           if (ex) ex.qty += i.qty;
           else receiptItems.push({ name:i.name, qty:i.qty, price:i.price, rate:i.rate });
@@ -2324,7 +2454,7 @@ async function payCo() {
         // 全数取消で相殺された品（数量0）はレシートに印字しない（2026/07/06 紙テストで「0点 ¥0」行の印字を確認→除外）
         receiptItems = receiptItems.filter(r => r.qty !== 0);
         await window.queuePrint({
-          type: 'receipt', tableNo: currentTable, guests: g, checkinTime: c,
+          type: 'receipt', tableNo: currentTable, guests: _saleResult.guests, checkinTime: _saleResult.checkin,
           items: receiptItems,
           paymentMethod: currentPaymentMethod,
           cashReceived: currentPaymentMethod === '現金' ? parseInt(coReceivedStr||'0') : 0,
