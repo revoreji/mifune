@@ -10,7 +10,7 @@
 
 <script>
 (function(){
-  var K_VERSION = '2026-07-08-kanri-03';
+  var K_VERSION = '2026-07-08-kanri-04';
   window.__K_VERSION = K_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneKanriVersion');
@@ -194,6 +194,7 @@ header {
     <div class="tab active" id="tab-day" onclick="showTab('day')">日計</div>
     <div class="tab" id="tab-month" onclick="showTab('month')">月計</div>
     <div class="tab" id="tab-detail" onclick="showTab('detail')">明細</div>
+    <div class="tab" id="tab-orderlog" onclick="showTab('orderlog')">注文ログ</div>
     <div class="tab" id="tab-export" onclick="showTab('export')">出力</div>
   </div>
 
@@ -226,6 +227,21 @@ header {
     <div class="loadinfo" id="detail-loadinfo"></div>
     <div class="notebox">明細の削除は会計の訂正用です。削除するとこの営業日の日次集計も自動で作り直されます。</div>
     <div id="detail-body"><div class="empty">読み込み中…</div></div>
+  </div>
+
+  <!-- ══ 注文ログ ══ -->
+  <div id="view-orderlog" style="display:none;">
+    <div class="toolbar">
+      <label>営業日</label>
+      <input type="date" id="orderlog-date" onchange="loadOrderLog()">
+      <label>卓</label>
+      <select id="orderlog-table" onchange="renderOrderLog()" style="padding:6px 10px;border:1px solid #ddd;border-radius:8px;font-size:14px;">
+        <option value="">全卓</option>
+      </select>
+    </div>
+    <div class="loadinfo" id="orderlog-loadinfo"></div>
+    <div class="notebox">送信された注文の生記録です（端末付き・読み取り専用）。卓のデータが消えたときは、ここから品目を確認してPOSで打ち直せます。</div>
+    <div id="orderlog-body"><div class="empty">読み込み中…</div></div>
   </div>
 
   <!-- ══ 出力 ══ -->
@@ -424,18 +440,20 @@ function skewerChipsHtml(s) {
 let currentTab = 'day';
 window.showTab = function(tab) {
     currentTab = tab;
-    ['day','month','detail','export'].forEach(t => {
+    ['day','month','detail','orderlog','export'].forEach(t => {
         document.getElementById('view-' + t).style.display = (t === tab) ? 'block' : 'none';
         document.getElementById('tab-' + t).classList.toggle('active', t === tab);
     });
     if (tab === 'day' && !_dayLoaded) loadDay();
     if (tab === 'month' && !_monthLoaded) loadMonth();
     if (tab === 'detail' && !_detailLoaded) loadDetail();
+    if (tab === 'orderlog' && !_orderlogLoaded) loadOrderLog();
 };
 window.refreshCurrent = function() {
     if (currentTab === 'day') loadDay();
     else if (currentTab === 'month') loadMonth();
     else if (currentTab === 'detail') loadDetail();
+    else if (currentTab === 'orderlog') loadOrderLog();
 };
 
 // ═══ 会計リストの共通描画（日計=閲覧のみ／明細=削除ボタン付き） ═══
@@ -645,6 +663,73 @@ window.printMonthReport = async function() {
         alert('印刷送信に失敗しました: ' + e.message);
     }
     btn.disabled = false; btn.textContent = '月計印刷';
+};
+
+// ═══ 注文ログ（createdAtで営業日窓を読む・読み取り専用） ═══
+let _orderlogLoaded = false;
+let _orderlogData = [];
+window.loadOrderLog = async function() {
+    _orderlogLoaded = true;
+    const inp = document.getElementById('orderlog-date');
+    if (!inp.value) inp.value = todayBizDate();
+    const body = document.getElementById('orderlog-body');
+    body.innerHTML = '<div class="empty">読み込み中…</div>';
+    const t0 = performance.now();
+    try {
+        const start = new Date(inp.value + 'T05:00:00');
+        const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+        const snap = await getDocs(query(collection(db, 'stores/' + STORE + '/order_log'),
+            where('createdAt', '>=', Timestamp.fromDate(start)),
+            where('createdAt', '<', Timestamp.fromDate(end))));
+        fmtLoad('orderlog-loadinfo', t0);
+        _orderlogData = [];
+        snap.forEach(d => {
+            const o = d.data();
+            _orderlogData.push({
+                time: o.time || '--:--',
+                tableId: o.tableId || '?',
+                items: o.items || [],
+                deviceId: o.deviceId || '',
+                ms: (o.createdAt && typeof o.createdAt.toMillis === 'function') ? o.createdAt.toMillis() : 0
+            });
+        });
+        _orderlogData.sort((a, b) => a.ms - b.ms);
+        // 卓の絞り込みプルダウンを実データから作る（選択は維持）
+        const sel = document.getElementById('orderlog-table');
+        const prev = sel.value;
+        const tables = [...new Set(_orderlogData.map(o => o.tableId))].sort();
+        sel.innerHTML = '<option value="">全卓</option>' + tables.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
+        if (tables.includes(prev)) sel.value = prev;
+        renderOrderLog();
+    } catch(e) {
+        fmtLoad('orderlog-loadinfo', t0);
+        body.innerHTML = `<div class="errbox">読み込み失敗: ${esc(e.message)}</div><div class="btnrow"><button class="bigbtn" onclick="loadOrderLog()">再読み込み</button></div>`;
+    }
+};
+window.renderOrderLog = function() {
+    const body = document.getElementById('orderlog-body');
+    const filt = document.getElementById('orderlog-table').value;
+    const list = filt ? _orderlogData.filter(o => o.tableId === filt) : _orderlogData;
+    if (list.length === 0) { body.innerHTML = '<div class="empty">この営業日の注文ログはありません</div>'; return; }
+    let sendCount = 0, itemCount = 0;
+    const rows = list.map(o => {
+        sendCount++;
+        const itemsTxt = o.items.map(i => {
+            itemCount += i.qty;
+            const cancel = i.qty < 0;
+            return `<span style="${cancel ? 'color:#b71c1c;text-decoration:line-through;' : ''}">${esc(i.name)}×${i.qty}</span>`;
+        }).join('、 ');
+        return `
+          <div style="padding:9px 12px;border-bottom:1px solid #f0f0f0;">
+            <div style="display:flex;gap:10px;align-items:center;font-size:13px;">
+              <b>${esc(o.time)}</b>
+              <span class="sr-table">${esc(o.tableId)}</span>
+              <span style="color:var(--sub);font-size:11px;">${esc(o.deviceId)}</span>
+            </div>
+            <div style="font-size:13px;margin-top:3px;line-height:1.6;">${itemsTxt}</div>
+          </div>`;
+    }).join('');
+    body.innerHTML = `<div class="seccard"><div class="sechead">${filt ? esc(filt) + '卓' : '全卓'}　送信${sendCount}回 ／ ${itemCount}点</div>${rows}</div>`;
 };
 
 // ═══ 明細（営業日単位で売上を読む・削除→summary自動再構築） ═══
