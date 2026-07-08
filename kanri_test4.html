@@ -10,7 +10,7 @@
 
 <script>
 (function(){
-  var K_VERSION = '2026-07-06-kanri-02';
+  var K_VERSION = '2026-07-08-kanri-03';
   window.__K_VERSION = K_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneKanriVersion');
@@ -438,6 +438,41 @@ window.refreshCurrent = function() {
     else if (currentTab === 'detail') loadDetail();
 };
 
+// ═══ 会計リストの共通描画（日計=閲覧のみ／明細=削除ボタン付き） ═══
+function saleRowsHtml(sales, dateStr, withDelete) {
+    let total = 0;
+    const rows = sales.map(s => {
+        total += s.total || 0;
+        const items = (s.items || []).map(i => {
+            const lp = i.price * i.qty;
+            const lt = lp >= 0 ? Math.floor(lp * (i.rate||0.10)) : -Math.floor(-lp * (i.rate||0.10));
+            const isCancel = i.qty < 0;
+            return `<div class="det-item"><span class="di-name${isCancel?' cancel':''}">${esc(i.name)}</span><span class="di-qty">×${i.qty}</span><span class="di-amt">${yen(lp+lt)}</span></div>`;
+        }).join('') || '<div class="det-item"><span class="di-name" style="color:var(--sub)">明細データなし</span></div>';
+        const itemCount = (s.items||[]).reduce((n,i)=>n+i.qty,0);
+        const delBtn = withDelete ? `<button class="sr-del" onclick="delSale(event, '${s.id}', '${dateStr}')">削除</button>` : '';
+        return `
+          <div class="salerow" data-id="${s.id}">
+            <div class="sr-top" onclick="toggleDetail(this)">
+              <div class="sr-left">
+                <span class="sr-time">${esc(s.checkout||'--:--')}</span>
+                <span class="sr-table">${esc(s.tableId||'')}</span>
+                <span class="sr-pay">${esc(s.paymentMethod||'現金')}</span>
+              </div>
+              <div class="sr-right">
+                <span class="sr-total">${yen(s.total)}</span>${delBtn}
+              </div>
+            </div>
+            <div class="detail">
+              <div class="det-meta">入店 ${esc(s.checkin||'--:--')} ／ 客 ${s.guests||0}名 ／ ${itemCount}点</div>
+              ${items}
+              <div class="det-sum"><span>合計（税込）</span><span>${yen(s.total)}</span></div>
+            </div>
+          </div>`;
+    }).join('');
+    return { rows, total };
+}
+
 // ═══ 日計（daily_summaryを1文書読むだけ） ═══
 let _dayLoaded = false;
 let _daySummary = null;
@@ -449,11 +484,22 @@ window.loadDay = async function() {
     body.innerHTML = '<div class="empty">読み込み中…</div>';
     const t0 = performance.now();
     try {
-        const snap = await getDoc(doc(db, 'stores/' + STORE + '/daily_summary', inp.value));
+        // 集計文書と会計リストを並列で読む（リストが失敗しても集計は表示する）
+        const [snap, sales] = await Promise.all([
+            getDoc(doc(db, 'stores/' + STORE + '/daily_summary', inp.value)),
+            fetchSalesOfBizDate(inp.value).catch(e => { console.warn('会計リスト読込失敗:', e.message); return null; })
+        ]);
         fmtLoad('day-loadinfo', t0);
+        const salesCard = (sales && sales.length > 0)
+            ? '<div class="seccard"><div class="sechead">卓別会計　' + sales.length + '件（タップで明細）</div>' + saleRowsHtml(sales, inp.value, false).rows + '</div>'
+            : (sales === null ? '<div class="errbox">会計リストの読み込みに失敗しました（集計は表示できています）</div>' : '');
         if (!snap.exists()) {
             _daySummary = null;
-            body.innerHTML = '<div class="empty">この営業日の集計はありません。<br><small>会計がまだ無いか、切替前の日付です（過去分は調査ツールの再構築で作れます）。</small></div>';
+            if (sales && sales.length > 0) {
+                body.innerHTML = '<div class="empty">この営業日の集計文書はまだありません（切替前の日付）。会計リストのみ表示します。</div>' + salesCard;
+            } else {
+                body.innerHTML = '<div class="empty">この営業日の集計はありません。<br><small>会計がまだ無いか、切替前の日付です（過去分は調査ツールの再構築で作れます）。</small></div>';
+            }
             return;
         }
         const s = snap.data();
@@ -461,6 +507,7 @@ window.loadDay = async function() {
         body.innerHTML =
             sumbandHtml(s) +
             paymentChipsHtml(s.payment) +
+            salesCard +
             skewerChipsHtml(s) +
             hoursBarHtml(s.hours) +
             '<div class="seccard"><div class="sechead">品目別売上（数量順）</div>' + itemsRankHtml(s.items) + '</div>' +
@@ -613,37 +660,8 @@ window.loadDetail = async function() {
         const sales = await fetchSalesOfBizDate(inp.value);
         fmtLoad('detail-loadinfo', t0);
         if (sales.length === 0) { body.innerHTML = '<div class="empty">この営業日の会計はありません</div>'; return; }
-        let total = 0;
-        const rows = sales.map(s => {
-            total += s.total || 0;
-            const items = (s.items || []).map(i => {
-                const lp = i.price * i.qty;
-                const lt = lp >= 0 ? Math.floor(lp * (i.rate||0.10)) : -Math.floor(-lp * (i.rate||0.10));
-                const isCancel = i.qty < 0;
-                return `<div class="det-item"><span class="di-name${isCancel?' cancel':''}">${esc(i.name)}</span><span class="di-qty">×${i.qty}</span><span class="di-amt">${yen(lp+lt)}</span></div>`;
-            }).join('') || '<div class="det-item"><span class="di-name" style="color:var(--sub)">明細データなし</span></div>';
-            const itemCount = (s.items||[]).reduce((n,i)=>n+i.qty,0);
-            return `
-              <div class="salerow" data-id="${s.id}">
-                <div class="sr-top" onclick="toggleDetail(this)">
-                  <div class="sr-left">
-                    <span class="sr-time">${esc(s.checkout||'--:--')}</span>
-                    <span class="sr-table">${esc(s.tableId||'')}</span>
-                    <span class="sr-pay">${esc(s.paymentMethod||'現金')}</span>
-                  </div>
-                  <div class="sr-right">
-                    <span class="sr-total">${yen(s.total)}</span>
-                    <button class="sr-del" onclick="delSale(event, '${s.id}', '${inp.value}')">削除</button>
-                  </div>
-                </div>
-                <div class="detail">
-                  <div class="det-meta">入店 ${esc(s.checkin||'--:--')} ／ 客 ${s.guests||0}名 ／ ${itemCount}点</div>
-                  ${items}
-                  <div class="det-sum"><span>合計（税込）</span><span>${yen(s.total)}</span></div>
-                </div>
-              </div>`;
-        }).join('');
-        body.innerHTML = `<div class="seccard"><div class="sechead">${esc(inp.value)}　${sales.length}件 ／ 合計 ${yen(total)}</div>${rows}</div>`;
+        const r = saleRowsHtml(sales, inp.value, true);
+        body.innerHTML = `<div class="seccard"><div class="sechead">${esc(inp.value)}　${sales.length}件 ／ 合計 ${yen(r.total)}</div>${r.rows}</div>`;
     } catch(e) {
         fmtLoad('detail-loadinfo', t0);
         body.innerHTML = `<div class="errbox">読み込み失敗: ${esc(e.message)}</div><div class="btnrow"><button class="bigbtn" onclick="loadDetail()">再読み込み</button></div>`;
