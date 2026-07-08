@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-08-t4s5-03';
+  var T4_VERSION = '2026-07-08-t4s6-01';
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -2244,6 +2244,34 @@ function showCheckout() {
   hideAll(); document.getElementById('view-checkout').style.display = 'flex';
   // 伝票照合（ステージ4）：裏で走らせ、結果だけバナーに出す。会計操作は一切待たせない
   runTicketCheck(hist);
+  // S6: 裏でサーバーの最新を読み直し、表示とズレていたら会計画面を描き直す
+  // （2台同時注文の同期遅れ中に、古い合計のままお客様に金額を伝える事故の防止。
+  //   請求自体はS3でサーバー正だが、表示も一致させる）
+  refreshCheckoutFromServer();
+}
+async function refreshCheckoutFromServer() {
+  const myTable = currentTable;
+  try {
+    const snap = await Promise.race([
+      window.fetchTableFresh(myTable),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('読み直しタイムアウト(5秒)')), 5000))
+    ]);
+    if (currentTable !== myTable) return;   // 別の卓に切り替わっていたら何もしない
+    if (window._coProcessing) return;       // 会計確定の処理中は表示を触らない
+    const fresh = snap.exists() ? (snap.data().history || []) : [];
+    const local = JSON.parse(localStorage.getItem('history_' + myTable) || '[]');
+    if (JSON.stringify(fresh) === JSON.stringify(local)) return;  // ズレなし＝何もしない
+    // サーバーが真実。控えを更新して会計画面を描き直す（照合バナーも走り直る）
+    localStorage.setItem('history_' + myTable, JSON.stringify(fresh));
+    if (snap.exists()) {
+      localStorage.setItem('guests_' + myTable, snap.data().guests || 0);
+      localStorage.setItem('checkin_' + myTable, snap.data().checkin || '--:--');
+    }
+    const v = document.getElementById('view-checkout');
+    if (v && v.style.display !== 'none') showCheckout();
+  } catch(e) {
+    console.warn('会計画面の読み直し失敗（表示は控えのまま・請求はサーバー値で確定します）:', e.message);
+  }
 }
 // 会計前の伝票照合バナー（警告のみ・会計はブロックしない）
 async function runTicketCheck(hist) {
