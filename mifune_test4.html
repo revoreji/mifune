@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-08-t4s6-01';
+  var T4_VERSION = '2026-07-08-t4s7-01';
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -311,6 +311,9 @@ window.updateTableMeta = (tId, guests, checkin) => setDoc(doc(db, "stores/mifune
 function startTablesListener() {
   return onSnapshot(collection(db, "stores/mifune_test3/tables"), (snapshot) => {
 if(window.isEditing) return;
+// S7: サーバー確定のsnapshotだけを信じる。接続確立前のキャッシュ由来snapshot（空のことがある）で
+// 「クラウドに無い卓」と誤判定して全卓のlocalStorageを消してしまう事故の防止
+if (snapshot.metadata.fromCache) return;
 const tablesList = ['C-a', 'C-b', 'C-c', '01', '02', '03', '04', '05', '06', '07', 'テイクアウト', '無人'];
 const cloudIds = snapshot.docs.map(d => d.id);
 tablesList.forEach(tId => {
