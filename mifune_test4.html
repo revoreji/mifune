@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-08-t4s7-01';
+  var T4_VERSION = '2026-07-08-t4s7-02';
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -850,11 +850,11 @@ window.printStandaloneRyoshu = async function() {
     </div>
     <span id="co-info-label" style="font-size:12px; color:#888;"></span>
   </header>
+  <div id="ticket-check-banner" style="display:none;margin:8px 16px 4px;padding:10px 12px;border-radius:10px;font-size:13px;line-height:1.5;"></div>
   <div class="co-body">
     <div class="co-left">
       <div class="co-panel-label">注文明細</div>
       <div class="co-items" id="co-items-list"></div>
-      <div id="ticket-check-banner" style="display:none;margin:0 16px 4px;padding:10px 12px;border-radius:10px;font-size:13px;line-height:1.5;"></div>
       <div class="co-total-area">
         <div class="co-total-row"><span>小計</span><span id="co-subtotal-l">¥0</span></div>
         <div class="co-total-row"><span>消費税</span><span id="co-tax-l">¥0</span></div>
