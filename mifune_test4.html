@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-08-t4s5-02';
+  var T4_VERSION = '2026-07-08-t4s5-03';
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -1328,6 +1328,25 @@ function hideAll() { document.querySelectorAll('.view').forEach(v => v.style.dis
 // ▼▼▼ S5: 席選択タップ対策 ▼▼▼
 // （表示なし版: 連打ガード＋5秒タイムアウト＋差分描画のみ。ベールは重く感じるため撤去）
 // ▲▲▲ S5 ▲▲▲
+// ▼▼▼ S5-3: iOSズーム抑止（メタタグとtouch-actionはiOS実機で効かないためJSで防ぐ）▼▼▼
+// ピンチズーム: Safari独自のgestureイベントを止める
+document.addEventListener('gesturestart', function(e){ e.preventDefault(); });
+document.addEventListener('gesturechange', function(e){ e.preventDefault(); });
+// ダブルタップズーム: 300ms以内の2回目タップを止める。
+// ただしボタン類（onclick持ち）は除外＝数量＋連打などの業務高速タップは殺さない
+(function(){
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', function(e){
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) {
+      const interactive = e.target.closest('[onclick], button, input, select, textarea, a');
+      if (!interactive) e.preventDefault();
+    }
+    lastTouchEnd = now;
+  }, { passive: false });
+})();
+document.addEventListener('dblclick', function(e){ e.preventDefault(); }, { passive: false });
+// ▲▲▲ S5-3 ▲▲▲
 function renderIndex() {
   const g = document.getElementById('table-grid'); if(!g) return;
   const customs = getCustomTableNames();
