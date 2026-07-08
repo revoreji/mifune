@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-08-t4s7-02';
+  var T4_VERSION = '2026-07-08-t4s8-01';
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -489,8 +489,21 @@ window.checkTicketMatch = async (tableId, hist) => {
     const dateStr = window.bizDate(now);
     const start = new Date(dateStr + 'T05:00:00');
     const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+    // S8: 組（回転）の境界＝この卓の当営業日の最後の会計timestamp。
+    // それ以降に作られた伝票だけを数える（会計がなければ営業日開始5時から）。
+    // 前の組の伝票が「足りない」側に乗って回転のたびに偽の赤が出るのを防ぐ。
+    // 調査ツール第10版の組単位突合と同じ境界定義。
+    let boundary = Timestamp.fromDate(start);
+    const salesSnap = await getDocs(query(collection(db, "stores/mifune_test3/sales"),
+        where('timestamp', '>=', Timestamp.fromDate(start)),
+        where('timestamp', '<', Timestamp.fromDate(end))));
+    salesSnap.forEach(d => {
+        const s = d.data();
+        if (s.tableId !== tableId || !s.timestamp || typeof s.timestamp.toMillis !== 'function') return;
+        if (s.timestamp.toMillis() > boundary.toMillis()) boundary = s.timestamp;
+    });
     const qy = query(collection(db, "stores/mifune_test3/printQueue"),
-        where('createdAt', '>=', Timestamp.fromDate(start)),
+        where('createdAt', '>', boundary),
         where('createdAt', '<', Timestamp.fromDate(end)));
     const snap = await getDocs(qy);
     const ticket = {};
