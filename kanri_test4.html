@@ -10,7 +10,7 @@
 
 <script>
 (function(){
-  var K_VERSION = '2026-07-08-kanri-09';
+  var K_VERSION = '2026-07-09-kanri-10';
   window.__K_VERSION = K_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneKanriVersion');
@@ -321,7 +321,7 @@ function saleSummaryDelta(s) {
     (s.items || []).forEach(i => {
         const lp = i.price * i.qty;
         const lt = lp >= 0 ? Math.floor(lp * i.rate) : -Math.floor(-lp * i.rate);
-        if (i.rate === 0.08) d.total8 += lp + lt; else d.total10 += lp + lt;
+        if (i.rate === 0.08 || i.rate === 0) d.total8 += lp + lt; else d.total10 += lp + lt;   // rate 0=テイクアウト/無人（内税8%・税込額）
         const sk = skewerCount(i.name, i.qty);
         d.motsu += sk.motsu; d.sei += sk.sei;
         const key = sanitizeKey(i.name);
@@ -879,7 +879,7 @@ window.exportYayoiCSV = async function() {
             s.items.forEach(item => {
                 const lp = item.price * item.qty;
                 const lt = lp >= 0 ? Math.floor(lp * item.rate) : -Math.floor(-lp * item.rate);
-                if (item.rate === 0.08) { total8 += lp + lt; } else { total10 += lp + lt; }
+                if (item.rate === 0.08 || item.rate === 0) { total8 += lp + lt; } else { total10 += lp + lt; }   // rate 0=テイクアウト/無人（内税8%）
             });
         } else {
             if (s.tableId === 'テイクアウト' || s.tableId === '無人') { total8 = s.total; } else { total10 = s.total; }
