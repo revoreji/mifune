@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-09-t4s10-01';
+  var T4_VERSION = '2026-07-09-t4s11-01';
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -357,6 +357,11 @@ if (mobileOrders.length > 0) {
 
 });
 renderIndex(); updateFooter();
+// S11: 会計画面を開いている間に同卓へ追加が来たら、表示を追いかけて差し替える（S6の常時化）
+try {
+    const _coV = document.getElementById('view-checkout');
+    if (_coV && _coV.style.display !== 'none' && typeof refreshCheckoutFromServer === 'function') refreshCheckoutFromServer();
+} catch(e) {}
 }, (error) => {
   console.warn('tablesリスナーエラー、3秒後に再接続:', error);
   setTimeout(() => startTablesListener(), 3000);
@@ -602,6 +607,19 @@ const snap = await Promise.race([
 ]);
 const hist = snap.exists() ? (snap.data().history || []) : [];
 if (hist.length === 0) return null;
+// S11: 最終ゲート——画面に見せていた内容とサーバーが食い違っていたら、この会計は作らない。
+// （見せた金額と記録される金額が違う会計＝レジ現金と帳簿のズレを構造的に禁止。
+//   控えを最新化して例外→呼び出し側で会計画面が描き直され、正しい金額で再確認できる）
+const _coV = document.getElementById('view-checkout');
+if (_coV && _coV.style.display !== 'none' && window._coDisplayedHist && JSON.stringify(hist) !== window._coDisplayedHist) {
+    localStorage.setItem('history_' + tableId, JSON.stringify(hist));
+    if (snap.exists()) {
+        localStorage.setItem('guests_' + tableId, snap.data().guests || 0);
+        localStorage.setItem('checkin_' + tableId, snap.data().checkin || '--:--');
+    }
+    if (typeof showCheckout === 'function') try { showCheckout(); } catch(e) {}
+    throw new Error('注文が追加され金額が変わりました。表示を最新にしました。金額を確認してもう一度確定してください');
+}
 const guests = snap.exists() ? (parseInt(snap.data().guests) || 0) : 0;
 const checkin = snap.exists() ? (snap.data().checkin || "--:--") : "--:--";
 let subtotal = 0, tax = 0;
@@ -2247,6 +2265,7 @@ function showCheckout() {
   const _cb = document.getElementById('co-confirm-btn');
   if (_cb) { _cb.style.opacity = '1'; _cb.textContent = '会計を確定する'; }
   const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]');
+  window._coDisplayedHist = JSON.stringify(hist);   // S11: 確定時に「見せた内容＝記録する内容」を検証するための写し
   const g    = localStorage.getItem('guests_'+currentTable) || 0;
   const c    = localStorage.getItem('checkin_'+currentTable) || '--:--';
   document.getElementById('co-table-label').textContent = currentTable + '番席';
