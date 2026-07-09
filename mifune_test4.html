@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-09-t4s9-01';
+  var T4_VERSION = '2026-07-09-t4s10-01';
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -442,7 +442,7 @@ window.saveOrderLog = async (tableId, items) => {
             tableId: tableId,
             date: dateStr,
             time: timeStr,
-            items: items.map(i => ({ name: i.name, price: i.price, qty: i.qty, rate: i.rate || 0.10 })),
+            items: items.map(i => ({ name: i.name, price: i.price, qty: i.qty, rate: (typeof i.rate === 'number' ? i.rate : 0.10) })),
             deviceId: window._deviceId || 'unknown',
             deviceUA: (navigator.userAgent || '').slice(0, 80),
             createdAt: serverTimestamp()
@@ -457,7 +457,7 @@ async function autoKitchenPrint(tableId, mobileOrders, tag) { tag = tag || 'M';
     const newLines = [];
     mobileOrders.forEach(order => {
         order.items.forEach(item => {
-            newLines.push({ name: item.name, price: item.price, qty: item.qty, rate: item.rate || 0.10 });
+            newLines.push({ name: item.name, price: item.price, qty: item.qty, rate: (typeof item.rate === 'number' ? item.rate : 0.10) });
             // キッチン伝票をCloudPRNTキューに追加
             window.queuePrint({
                 type: 'kitchen',
@@ -560,7 +560,7 @@ window.saleSummaryDelta = function(s) {
     (s.items || []).forEach(i => {
         const lp = i.price * i.qty;
         const lt = lp >= 0 ? Math.floor(lp * i.rate) : -Math.floor(-lp * i.rate);
-        if (i.rate === 0.08) d.total8 += lp + lt; else d.total10 += lp + lt;
+        if (i.rate === 0.08 || i.rate === 0) d.total8 += lp + lt; else d.total10 += lp + lt;   // rate 0=テイクアウト/無人（内税8%・税込額）
         const sk = window.skewerCount(i.name, i.qty);
         d.motsu += sk.motsu; d.sei += sk.sei;
         const key = window.sanitizeKey(i.name);
