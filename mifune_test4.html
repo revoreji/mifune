@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-08-t4s8-01';
+  var T4_VERSION = '2026-07-09-t4s9-01';
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -492,16 +492,25 @@ window.checkTicketMatch = async (tableId, hist) => {
     // S8: 組（回転）の境界＝この卓の当営業日の最後の会計timestamp。
     // それ以降に作られた伝票だけを数える（会計がなければ営業日開始5時から）。
     // 前の組の伝票が「足りない」側に乗って回転のたびに偽の赤が出るのを防ぐ。
-    // 調査ツール第10版の組単位突合と同じ境界定義。
+    // S9: 明細削除された会計（deleted_sales＝墓標）も組の区切りとして扱う。
+    // 削除で境界が消えると、精算済みの伝票が現在の組へ流れ込んで偽の赤が出るため。
+    // 調査ツール第11版の組単位突合と同じ境界定義。
     let boundary = Timestamp.fromDate(start);
-    const salesSnap = await getDocs(query(collection(db, "stores/mifune_test3/sales"),
-        where('timestamp', '>=', Timestamp.fromDate(start)),
-        where('timestamp', '<', Timestamp.fromDate(end))));
-    salesSnap.forEach(d => {
+    const [salesSnap, delSnap] = await Promise.all([
+        getDocs(query(collection(db, "stores/mifune_test3/sales"),
+            where('timestamp', '>=', Timestamp.fromDate(start)),
+            where('timestamp', '<', Timestamp.fromDate(end)))),
+        getDocs(query(collection(db, "stores/mifune_test3/deleted_sales"),
+            where('timestamp', '>=', Timestamp.fromDate(start)),
+            where('timestamp', '<', Timestamp.fromDate(end)))).catch(() => null)
+    ]);
+    const useBoundary = d => {
         const s = d.data();
         if (s.tableId !== tableId || !s.timestamp || typeof s.timestamp.toMillis !== 'function') return;
         if (s.timestamp.toMillis() > boundary.toMillis()) boundary = s.timestamp;
-    });
+    };
+    salesSnap.forEach(useBoundary);
+    if (delSnap) delSnap.forEach(useBoundary);
     const qy = query(collection(db, "stores/mifune_test3/printQueue"),
         where('createdAt', '>', boundary),
         where('createdAt', '<', Timestamp.fromDate(end)));
