@@ -10,7 +10,7 @@
 
 <script>
 (function(){
-  var K_VERSION = '2026-07-08-kanri-07';
+  var K_VERSION = '2026-07-08-kanri-08';
   window.__K_VERSION = K_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneKanriVersion');
@@ -48,7 +48,7 @@ body {
 }
 
 /* テスト環境バナー */
-.testband { background: #1b5e20; color: #fff; text-align: center; font-size:14px; font-weight: 700; padding: 3px 0; }
+.testband { background: #1b5e20; color: #fff; text-align: center; font-size:16px; font-weight: 700; padding: 3px 0; }
 
 /* ヘッダー */
 header {
@@ -63,10 +63,10 @@ header {
 
 /* ログイン */
 .login-wrap { max-width: 360px; margin: 80px auto; padding: 0 20px; text-align: center; }
-.login-wrap h2 { font-size:20px; margin-bottom: 24px; }
-.login-wrap input { width: 100%; padding: 16px; font-size:20px; border: 2px solid var(--line);
+.login-wrap h2 { font-size:22px; margin-bottom: 24px; }
+.login-wrap input { width: 100%; padding: 16px; font-size:22px; border: 2px solid var(--line);
   border-radius: 12px; margin-bottom: 16px; text-align: center; }
-.login-wrap button { width: 100%; padding: 15px; font-size:18px; font-weight: 700; color: #fff;
+.login-wrap button { width: 100%; padding: 15px; font-size:20px; font-weight: 700; color: #fff;
   background: var(--accent); border: none; border-radius: 12px; cursor: pointer; }
 
 /* タブ */
@@ -76,41 +76,41 @@ header {
 .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
 /* ツールバー（日付・月選択） */
-.toolbar { padding: 12px 16px 4px; display: flex; align-items: center; gap: 10px; }
-.toolbar label { font-size:15px; color: var(--sub); white-space: nowrap; }
-.toolbar input, .toolbar select { flex: 1; padding: 10px 12px; font-size:17px; border: 1px solid var(--line);
+.toolbar { padding: 12px 16px 4px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.toolbar label { font-size:17px; color: var(--sub); white-space: nowrap; }
+.toolbar input, .toolbar select { flex: 1; padding: 10px 12px; font-size:19px; border: 1px solid var(--line);
   border-radius: 10px; background: #fff; min-width: 0; }
-.loadinfo { font-size:13px; color: var(--sub); text-align: right; padding: 2px 18px 0; min-height: 15px; }
+.loadinfo { font-size:15px; color: var(--sub); text-align: right; padding: 2px 18px 0; min-height: 15px; }
 
 /* サマリーバンド */
 .sumband { margin: 8px 16px 4px; background: var(--ink); color: #fff; border-radius: 14px;
   padding: 16px; display: flex; justify-content: space-around; text-align: center; }
-.sumband .lbl { font-size:13px; opacity: 0.7; }
-.sumband .val { font-size:23px; font-weight: 700; margin-top: 2px; }
-.sumband .val small { font-size:14px; font-weight: 500; opacity: 0.8; }
+.sumband .lbl { font-size:15px; opacity: 0.7; }
+.sumband .val { font-size:25px; font-weight: 700; margin-top: 2px; }
+.sumband .val small { font-size:16px; font-weight: 500; opacity: 0.8; }
 
 /* チップ列（支払方法・串数・税率） */
 .chips { margin: 8px 16px 0; display: flex; flex-wrap: wrap; gap: 8px; }
 .chip { flex: 1; min-width: 130px; background: var(--card); border: 1px solid var(--line);
   border-radius: 12px; padding: 10px 13px; display: flex; justify-content: space-between; align-items: center; }
-.chip .c-lbl { font-size:14px; color: var(--sub); }
-.chip .c-val { font-size:17px; font-weight: 700; }
+.chip .c-lbl { font-size:16px; color: var(--sub); }
+.chip .c-val { font-size:19px; font-weight: 700; }
 
 /* セクションカード */
 .seccard { background: var(--card); border: 1px solid var(--line); border-radius: 14px; margin: 12px 16px; overflow: hidden; }
-.sechead { padding: 12px 16px; font-size:15px; font-weight: 700; color: var(--sub); border-bottom: 1px solid var(--line);
+.sechead { padding: 12px 16px; font-size:17px; font-weight: 700; color: var(--sub); border-bottom: 1px solid var(--line);
   letter-spacing: 0.05em; }
 
 /* 時間帯バー */
-.hourrow { display: flex; align-items: center; gap: 8px; padding: 4px 16px; font-size:14px; }
+.hourrow { display: flex; align-items: center; gap: 8px; padding: 4px 16px; font-size:16px; }
 .hourrow .h-lbl { width: 34px; color: var(--sub); font-weight: 700; text-align: right; }
 .hourrow .h-bar { flex: 1; height: 14px; background: #f0f1f3; border-radius: 7px; overflow: hidden; }
 .hourrow .h-fill { height: 100%; background: var(--accent); border-radius: 7px; }
 .hourrow .h-val { width: 72px; text-align: right; font-weight: 700; }
 
 /* ランキング表 */
-.ranktable { width: 100%; border-collapse: collapse; font-size:15px; }
-.ranktable th { text-align: left; font-size:13px; color: var(--sub); padding: 8px 12px; border-bottom: 1px solid var(--line); background: #fafbfc; }
+.ranktable { width: 100%; border-collapse: collapse; font-size:17px; }
+.ranktable th { text-align: left; font-size:15px; color: var(--sub); padding: 8px 12px; border-bottom: 1px solid var(--line); background: #fafbfc; }
 .ranktable td { padding: 8px 12px; border-bottom: 1px solid #f2f3f5; }
 .ranktable td.num { text-align: right; font-weight: 700; white-space: nowrap; }
 .ranktable tr:last-child td { border-bottom: none; }
@@ -120,53 +120,53 @@ header {
   border-bottom: 1px solid #f2f3f5; cursor: pointer; }
 .dayrow:last-child { border-bottom: none; }
 .dayrow:active { background: #fafafa; }
-.dayrow .d-date { font-size:16px; font-weight: 700; }
-.dayrow .d-meta { font-size:13px; color: var(--sub); margin-top: 2px; }
-.dayrow .d-total { font-size:18px; font-weight: 700; color: var(--accent); }
+.dayrow .d-date { font-size:18px; font-weight: 700; }
+.dayrow .d-meta { font-size:15px; color: var(--sub); margin-top: 2px; }
+.dayrow .d-total { font-size:20px; font-weight: 700; color: var(--accent); }
 
 /* 明細（会計リスト） */
 .salerow { padding: 13px 16px; border-bottom: 1px solid var(--line); background: #fff; }
 .salerow:last-child { border-bottom: none; }
 .sr-top { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
 .sr-left { display: flex; align-items: baseline; gap: 10px; }
-.sr-time { font-size:17px; font-weight: 700; }
-.sr-table { font-size:14px; color: var(--sub); background: #eef0f3; padding: 2px 8px; border-radius: 6px; }
-.sr-pay { font-size:13px; color: var(--sub); }
+.sr-time { font-size:19px; font-weight: 700; }
+.sr-table { font-size:16px; color: var(--sub); background: #eef0f3; padding: 2px 8px; border-radius: 6px; }
+.sr-pay { font-size:15px; color: var(--sub); }
 .sr-right { display: flex; align-items: center; gap: 12px; }
-.sr-total { font-size:18px; font-weight: 700; }
+.sr-total { font-size:20px; font-weight: 700; }
 .sr-del { background: var(--danger-soft); color: var(--danger); border: none; border-radius: 8px;
-  padding: 6px 12px; font-size:14px; font-weight: 700; cursor: pointer; }
+  padding: 6px 12px; font-size:16px; font-weight: 700; cursor: pointer; }
 .sr-del:active { background: var(--danger); color: #fff; }
 .detail { display: none; margin-top: 11px; padding: 11px 12px; background: #fbfbfc;
   border: 1px solid var(--line); border-radius: 10px; }
 .salerow.open .detail { display: block; }
-.det-item { display: flex; justify-content: space-between; font-size:15px; padding: 4px 0; }
+.det-item { display: flex; justify-content: space-between; font-size:17px; padding: 4px 0; }
 .det-item .di-name { color: var(--ink); }
 .det-item .di-name.cancel { color: var(--danger); text-decoration: line-through; }
 .det-item .di-qty { color: var(--sub); margin: 0 8px 0 6px; }
 .det-item .di-amt { font-weight: 600; white-space: nowrap; }
-.det-sum { display: flex; justify-content: space-between; font-size:15px; padding-top: 8px;
+.det-sum { display: flex; justify-content: space-between; font-size:17px; padding-top: 8px;
   margin-top: 6px; border-top: 1px dashed var(--line); color: var(--sub); }
-.det-meta { font-size:13px; color: var(--sub); margin-bottom: 8px; }
+.det-meta { font-size:15px; color: var(--sub); margin-bottom: 8px; }
 
 /* ボタン */
 .btnrow { display: flex; gap: 10px; margin: 12px 16px; }
-.bigbtn { flex: 1; padding: 14px 0; border: none; border-radius: 12px; font-size:16px; font-weight: 700;
+.bigbtn { flex: 1; padding: 14px 0; border: none; border-radius: 12px; font-size:18px; font-weight: 700;
   color: #fff; background: var(--blue); cursor: pointer; }
 .bigbtn.orange { background: var(--accent); }
 .bigbtn.green { background: var(--green); }
 .bigbtn:disabled { background: #bbb; }
 
-.empty { text-align: center; color: var(--sub); padding: 50px 20px; font-size:16px; }
+.empty { text-align: center; color: var(--sub); padding: 50px 20px; font-size:18px; }
 .errbox { margin: 12px 16px; padding: 14px; background: var(--danger-soft); color: var(--danger);
-  border-radius: 12px; font-size:15px; font-weight: 600; }
+  border-radius: 12px; font-size:17px; font-weight: 600; }
 .notebox { margin: 8px 16px; padding: 10px 14px; background: var(--accent-soft); color: #9a6a2e;
-  border-radius: 10px; font-size:14px; }
+  border-radius: 10px; font-size:16px; }
 
 /* トースト */
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
   background: var(--ink); color: #fff; padding: 12px 22px; border-radius: 999px;
-  font-size:16px; font-weight: 600; opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 200; }
+  font-size:18px; font-weight: 600; opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 200; }
 .toast.show { opacity: 1; }
 </style>
 </head>
@@ -235,7 +235,7 @@ header {
       <label>営業日</label>
       <input type="date" id="orderlog-date" onchange="loadOrderLog()">
       <label>卓</label>
-      <select id="orderlog-table" onchange="renderOrderLog()" style="padding:6px 10px;border:1px solid #ddd;border-radius:8px;font-size:16px;">
+      <select id="orderlog-table" onchange="renderOrderLog()" style="padding:6px 10px;border:1px solid #ddd;border-radius:8px;font-size:18px;">
         <option value="">全卓</option>
       </select>
     </div>
@@ -725,15 +725,15 @@ window.renderOrderLog = function() {
         }).join('、 ');
         return `
           <div style="padding:8px 12px;border-bottom:1px solid #f0f0f0;">
-            <div style="display:flex;gap:10px;align-items:center;font-size:15px;">
+            <div style="display:flex;gap:10px;align-items:center;font-size:17px;">
               <b>${esc(o.time)}</b>
-              <span style="color:var(--sub);font-size:13px;">${esc(o.deviceId)}</span>
+              <span style="color:var(--sub);font-size:15px;">${esc(o.deviceId)}</span>
             </div>
-            <div style="font-size:15px;margin-top:3px;line-height:1.6;">${itemsTxt}</div>
+            <div style="font-size:17px;margin-top:3px;line-height:1.6;">${itemsTxt}</div>
           </div>`;
     };
     const groupHead = (label, sub) =>
-        `<div style="background:#f2f4f7;padding:6px 12px;font-size:14px;font-weight:bold;color:#555;border-bottom:1px solid #e8e8e8;">${label}${sub ? `<span style="font-weight:normal;color:#888;margin-left:8px;">${sub}</span>` : ''}</div>`;
+        `<div style="background:#f2f4f7;padding:6px 12px;font-size:16px;font-weight:bold;color:#555;border-bottom:1px solid #e8e8e8;">${label}${sub ? `<span style="font-weight:normal;color:#888;margin-left:8px;">${sub}</span>` : ''}</div>`;
     const tables = filt ? [filt] : [...new Set([...logs.map(o => o.tableId), ...salesAll.map(s => s.tableId)])].sort();
     let html = '';
     tables.forEach(t => {
@@ -752,7 +752,7 @@ window.renderOrderLog = function() {
             sec += groupHead(`${idx + 1}組目`, `会計 ${esc(s.checkout || '--:--')} ／ ¥${(s.total || 0).toLocaleString()} ／ 客${s.guests || 0}名`);
             sec += g.rows.length > 0
                 ? g.rows.map(rowHtml).join('')
-                : '<div style="padding:8px 12px;color:#b71c1c;font-size:14px;border-bottom:1px solid #f0f0f0;">⚠ この組の注文ログがありません（記録抜けの可能性）</div>';
+                : '<div style="padding:8px 12px;color:#b71c1c;font-size:16px;border-bottom:1px solid #f0f0f0;">⚠ この組の注文ログがありません（記録抜けの可能性）</div>';
         });
         if (open.rows.length > 0) {
             sec += groupHead('未会計（営業中）', '');
