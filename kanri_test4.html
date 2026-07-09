@@ -10,7 +10,7 @@
 
 <script>
 (function(){
-  var K_VERSION = '2026-07-08-kanri-08';
+  var K_VERSION = '2026-07-08-kanri-09';
   window.__K_VERSION = K_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneKanriVersion');
@@ -792,7 +792,18 @@ window.delSale = async function(ev, id, dateStr){
     ev.stopPropagation();
     if (!confirm('この会計を削除します。よろしいですか？\n（取り消せません。日次集計も自動で作り直します）')) return;
     try {
-        await deleteDoc(doc(db, 'stores/' + STORE + '/sales', id));
+        // 削除の前に写し（墓標）をdeleted_salesへ残す：
+        // ①夜の突合が「訂正による差」と「本物の事故」を区別できる ②誰がいつ何を消したかの監査記録
+        const ref = doc(db, 'stores/' + STORE + '/sales', id);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+            const tomb = snap.data();
+            tomb.deletedAt = serverTimestamp();
+            tomb.deletedBy = _deviceId;
+            tomb.originalSaleId = id;
+            await setDoc(doc(db, 'stores/' + STORE + '/deleted_sales', id), tomb);
+        }
+        await deleteDoc(ref);
     } catch(e) {
         showToast('削除に失敗しました: ' + e.message);
         return;
