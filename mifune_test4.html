@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-09-t4s13-01';
+  var T4_VERSION = '2026-07-10-t4s14-01';
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -2221,7 +2221,7 @@ async function execCancel(doPrint) {
     const t = _cancelTarget;
     try {
         const cancelLine = { name: t.name, price: t.price, qty: -t.qty, rate: t.rate, cancel: true };
-        if (doPrint) {
+        if (doPrint && !NO_TICKET_TABLES.includes(currentTable)) {   // S14: 伝票なし運用卓は取消伝票もなし
             await window.queuePrint({ type: 'kitchen', tableId: currentTable, tag: 'H', itemName: '【取消】' + t.name, itemQty: t.qty });
         }
         await appendOrderToCloud(currentTable, [cancelLine]);
@@ -2354,6 +2354,13 @@ async function runTicketCheck(hist) {
   const el = document.getElementById('ticket-check-banner');
   if (!el || !window.checkTicketMatch) return;
   const myTable = currentTable;
+  // S14: 伝票なし運用卓は照合対象外（伝票が存在しないのが正常なので、赤を出さず案内だけ）
+  if (NO_TICKET_TABLES.includes(myTable)) {
+    el.style.display = 'block';
+    el.style.background = '#f4f5f7'; el.style.color = '#888'; el.style.border = 'none';
+    el.textContent = 'この席は伝票なし運用です（照合はありません）';
+    return;
+  }
   el.style.display = 'block';
   el.style.background = '#f4f5f7'; el.style.color = '#888'; el.style.border = 'none';
   el.textContent = '伝票と照合中…';
@@ -2402,6 +2409,9 @@ async function testPay() {
     showIndex();
 }
 
+// S14: 伝票なし運用卓。イベント席は厨房プリンタのない現場を想定し、伝票を刷らず記録だけ残す。
+// （送信・取消・照合バナーの3箇所がこの定義を共有。変更時は調査ツールのNO_TICKET_TABLESも同時修正）
+const NO_TICKET_TABLES = ['イベント'];
 async function sendToKitchen() {
 if(currentCart.length === 0) return;
 // 二度押し防止：押した瞬間にボタンを無効化して色を変える
@@ -2414,7 +2424,8 @@ if (_sendBtn) {
     _sendBtn.textContent = '送信中...';
 }
 try {
-    // 1. printQueueに直接書き込み（CloudPRNT用）
+    // 1. printQueueに直接書き込み（CloudPRNT用）。S14: 伝票なし運用卓はスキップ
+    if (!NO_TICKET_TABLES.includes(currentTable)) {
     for (const item of currentCart) {
         await window.queuePrint({
             type: 'kitchen',
@@ -2423,6 +2434,7 @@ try {
             itemName: item.name,
             itemQty: item.qty
         });
+    }
     }
     // 2. 履歴に追記（サーバーの今の履歴に新しい品だけを足す・上書きしない）
     await appendOrderToCloud(currentTable, currentCart);
