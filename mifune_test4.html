@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-09-t4s12-01';
+  var T4_VERSION = '2026-07-09-t4s13-01';
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -2253,7 +2253,39 @@ function renderHistoryUI() {
             : `<span style="color:#bbb; font-size:12px;">取消済</span>`;
         return `<div class="list-row"><div><b>${i.name}</b> x${i.qty}<br><small>税込¥${(lp+lt).toLocaleString()}</small></div><div>${cancelBtn}</div></div>`;
     }).join('') || 'なし';
-    document.getElementById('history-summary').innerHTML = `<div style="color:#666; font-size:13px;">入店: ${localStorage.getItem('checkin_'+currentTable)} / 客: ${localStorage.getItem('guests_'+currentTable)}名</div><div>税込計: <b style="font-size:24px; color:var(--primary);">¥${(sub + tax).toLocaleString()}</b></div>`;
+    // S13: 注文が1件もない卓（客数入力だけの放置卓）には正規の退席出口を出す
+    const emptyBtn = (hist.length === 0)
+        ? `<button style="margin-top:8px; padding:10px 16px; border:2px solid #999; border-radius:8px; background:#fff; color:#555; font-weight:bold;" onclick="resetEmptyTable()">空席に戻す（注文なし）</button>`
+        : '';
+    document.getElementById('history-summary').innerHTML = `<div style="color:#666; font-size:13px;">入店: ${localStorage.getItem('checkin_'+currentTable)} / 客: ${localStorage.getItem('guests_'+currentTable)}名</div><div>税込計: <b style="font-size:24px; color:var(--primary);">¥${(sub + tax).toLocaleString()}</b></div>${emptyBtn}`;
+}
+// S13: 注文ゼロの卓を空席へ戻す（売上レコードは作らない＝売上ゼロが事実だから）。
+// 実行前にサーバーを読み直し、他端末が注文を入れていたら中止する。
+async function resetEmptyTable() {
+    const tId = currentTable;
+    if (!confirm(tId + ' 番席を空席に戻します。\n（注文が無いため会計は発生しません）よろしいですか？')) return;
+    try {
+        const snap = await Promise.race([
+            window.fetchTableFresh(tId),
+            new Promise((_, rej) => setTimeout(() => rej(new Error('サーバー確認タイムアウト（電波を確認して再試行）')), 5000))
+        ]);
+        const serverHist = snap.exists() ? (snap.data().history || []) : [];
+        if (serverHist.length > 0) {
+            // 他端末が注文を入れていた——空席には戻さず、控えを最新化して表示し直す
+            localStorage.setItem('history_' + tId, JSON.stringify(serverHist));
+            renderHistoryUI();
+            alert('この卓には注文が入っています（他の端末から追加された可能性）。通常の会計をしてください。');
+            return;
+        }
+        await window.cloudDelete(tId);
+        localStorage.removeItem('history_' + tId);
+        localStorage.removeItem('guests_' + tId);
+        localStorage.removeItem('checkin_' + tId);
+        window.isEditing = false;
+        showIndex();
+    } catch(e) {
+        alert('空席に戻せませんでした: ' + e.message);
+    }
 }
 function exitEditing() { window.isEditing = false; showMenu(); }
 function showOrderHistory() { window.isEditing = true; hideAll(); document.getElementById('view-history').style.display = 'flex'; var _htb=document.getElementById('history-table-banner'); if(_htb){ _htb.innerHTML = '<span style="font-size:34px;font-weight:900;letter-spacing:2px;">' + currentTable + '番卓</span><span style="font-size:15px;font-weight:bold;margin-left:10px;">の会計・取消</span>'; } renderHistoryUI(); }
