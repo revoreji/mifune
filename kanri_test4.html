@@ -10,7 +10,7 @@
 
 <script>
 (function(){
-  var K_VERSION = '2026-07-10-kanri-13';
+  var K_VERSION = '2026-07-09-kanri-03';
   window.__K_VERSION = K_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneKanriVersion');
@@ -48,7 +48,7 @@ body {
 }
 
 /* テスト環境バナー */
-.testband { background: #1b5e20; color: #fff; text-align: center; font-size:16px; font-weight: 700; padding: 3px 0; }
+.testband { background: #1b5e20; color: #fff; text-align: center; font-size: 12px; font-weight: 700; padding: 3px 0; }
 
 /* ヘッダー */
 header {
@@ -56,61 +56,61 @@ header {
   padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;
   position: sticky; top: 0; z-index: 50; gap: 8px;
 }
-.h-title { font-size:19px; font-weight: 700; letter-spacing: 0.02em; white-space: nowrap; }
-.backlink { text-decoration: none; color: var(--blue); font-size:16px; font-weight: 700; white-space: nowrap; }
+.h-title { font-size: 17px; font-weight: 700; letter-spacing: 0.02em; white-space: nowrap; }
+.backlink { text-decoration: none; color: var(--blue); font-size: 14px; font-weight: 700; white-space: nowrap; }
 .reload { border: 1px solid var(--line); background: #fff; color: var(--accent);
-  border-radius: 8px; padding: 7px 12px; font-size:15px; font-weight: 700; cursor: pointer; }
+  border-radius: 8px; padding: 7px 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
 
 /* ログイン */
 .login-wrap { max-width: 360px; margin: 80px auto; padding: 0 20px; text-align: center; }
-.login-wrap h2 { font-size:22px; margin-bottom: 24px; }
-.login-wrap input { width: 100%; padding: 16px; font-size:22px; border: 2px solid var(--line);
+.login-wrap h2 { font-size: 18px; margin-bottom: 24px; }
+.login-wrap input { width: 100%; padding: 16px; font-size: 18px; border: 2px solid var(--line);
   border-radius: 12px; margin-bottom: 16px; text-align: center; }
-.login-wrap button { width: 100%; padding: 15px; font-size:20px; font-weight: 700; color: #fff;
+.login-wrap button { width: 100%; padding: 15px; font-size: 16px; font-weight: 700; color: #fff;
   background: var(--accent); border: none; border-radius: 12px; cursor: pointer; }
 
 /* タブ */
 .tabs { display: flex; background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: 53px; z-index: 40; }
-.tab { flex: 1; padding: 13px 0; text-align: center; font-size:16px; font-weight: 700; color: var(--sub);
+.tab { flex: 1; padding: 13px 0; text-align: center; font-size: 14px; font-weight: 700; color: var(--sub);
   cursor: pointer; border-bottom: 3px solid transparent; }
 .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
 /* ツールバー（日付・月選択） */
-.toolbar { padding: 12px 16px 4px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.toolbar label { font-size:17px; color: var(--sub); white-space: nowrap; }
-.toolbar input, .toolbar select { flex: 1; padding: 10px 12px; font-size:19px; border: 1px solid var(--line);
+.toolbar { padding: 12px 16px 4px; display: flex; align-items: center; gap: 10px; }
+.toolbar label { font-size: 13px; color: var(--sub); white-space: nowrap; }
+.toolbar input, .toolbar select { flex: 1; padding: 10px 12px; font-size: 15px; border: 1px solid var(--line);
   border-radius: 10px; background: #fff; min-width: 0; }
-.loadinfo { font-size:15px; color: var(--sub); text-align: right; padding: 2px 18px 0; min-height: 15px; }
+.loadinfo { font-size: 11px; color: var(--sub); text-align: right; padding: 2px 18px 0; min-height: 15px; }
 
 /* サマリーバンド */
 .sumband { margin: 8px 16px 4px; background: var(--ink); color: #fff; border-radius: 14px;
   padding: 16px; display: flex; justify-content: space-around; text-align: center; }
-.sumband .lbl { font-size:15px; opacity: 0.7; }
-.sumband .val { font-size:25px; font-weight: 700; margin-top: 2px; }
-.sumband .val small { font-size:16px; font-weight: 500; opacity: 0.8; }
+.sumband .lbl { font-size: 11px; opacity: 0.7; }
+.sumband .val { font-size: 21px; font-weight: 700; margin-top: 2px; }
+.sumband .val small { font-size: 12px; font-weight: 500; opacity: 0.8; }
 
 /* チップ列（支払方法・串数・税率） */
 .chips { margin: 8px 16px 0; display: flex; flex-wrap: wrap; gap: 8px; }
 .chip { flex: 1; min-width: 130px; background: var(--card); border: 1px solid var(--line);
   border-radius: 12px; padding: 10px 13px; display: flex; justify-content: space-between; align-items: center; }
-.chip .c-lbl { font-size:16px; color: var(--sub); }
-.chip .c-val { font-size:19px; font-weight: 700; }
+.chip .c-lbl { font-size: 12px; color: var(--sub); }
+.chip .c-val { font-size: 15px; font-weight: 700; }
 
 /* セクションカード */
 .seccard { background: var(--card); border: 1px solid var(--line); border-radius: 14px; margin: 12px 16px; overflow: hidden; }
-.sechead { padding: 12px 16px; font-size:17px; font-weight: 700; color: var(--sub); border-bottom: 1px solid var(--line);
+.sechead { padding: 12px 16px; font-size: 13px; font-weight: 700; color: var(--sub); border-bottom: 1px solid var(--line);
   letter-spacing: 0.05em; }
 
 /* 時間帯バー */
-.hourrow { display: flex; align-items: center; gap: 8px; padding: 4px 16px; font-size:16px; }
+.hourrow { display: flex; align-items: center; gap: 8px; padding: 4px 16px; font-size: 12px; }
 .hourrow .h-lbl { width: 34px; color: var(--sub); font-weight: 700; text-align: right; }
 .hourrow .h-bar { flex: 1; height: 14px; background: #f0f1f3; border-radius: 7px; overflow: hidden; }
 .hourrow .h-fill { height: 100%; background: var(--accent); border-radius: 7px; }
 .hourrow .h-val { width: 72px; text-align: right; font-weight: 700; }
 
 /* ランキング表 */
-.ranktable { width: 100%; border-collapse: collapse; font-size:17px; }
-.ranktable th { text-align: left; font-size:15px; color: var(--sub); padding: 8px 12px; border-bottom: 1px solid var(--line); background: #fafbfc; }
+.ranktable { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ranktable th { text-align: left; font-size: 11px; color: var(--sub); padding: 8px 12px; border-bottom: 1px solid var(--line); background: #fafbfc; }
 .ranktable td { padding: 8px 12px; border-bottom: 1px solid #f2f3f5; }
 .ranktable td.num { text-align: right; font-weight: 700; white-space: nowrap; }
 .ranktable tr:last-child td { border-bottom: none; }
@@ -120,53 +120,53 @@ header {
   border-bottom: 1px solid #f2f3f5; cursor: pointer; }
 .dayrow:last-child { border-bottom: none; }
 .dayrow:active { background: #fafafa; }
-.dayrow .d-date { font-size:18px; font-weight: 700; }
-.dayrow .d-meta { font-size:15px; color: var(--sub); margin-top: 2px; }
-.dayrow .d-total { font-size:20px; font-weight: 700; color: var(--accent); }
+.dayrow .d-date { font-size: 14px; font-weight: 700; }
+.dayrow .d-meta { font-size: 11px; color: var(--sub); margin-top: 2px; }
+.dayrow .d-total { font-size: 16px; font-weight: 700; color: var(--accent); }
 
 /* 明細（会計リスト） */
 .salerow { padding: 13px 16px; border-bottom: 1px solid var(--line); background: #fff; }
 .salerow:last-child { border-bottom: none; }
 .sr-top { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
 .sr-left { display: flex; align-items: baseline; gap: 10px; }
-.sr-time { font-size:19px; font-weight: 700; }
-.sr-table { font-size:16px; color: var(--sub); background: #eef0f3; padding: 2px 8px; border-radius: 6px; }
-.sr-pay { font-size:15px; color: var(--sub); }
+.sr-time { font-size: 15px; font-weight: 700; }
+.sr-table { font-size: 12px; color: var(--sub); background: #eef0f3; padding: 2px 8px; border-radius: 6px; }
+.sr-pay { font-size: 11px; color: var(--sub); }
 .sr-right { display: flex; align-items: center; gap: 12px; }
-.sr-total { font-size:20px; font-weight: 700; }
+.sr-total { font-size: 16px; font-weight: 700; }
 .sr-del { background: var(--danger-soft); color: var(--danger); border: none; border-radius: 8px;
-  padding: 6px 12px; font-size:16px; font-weight: 700; cursor: pointer; }
+  padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }
 .sr-del:active { background: var(--danger); color: #fff; }
 .detail { display: none; margin-top: 11px; padding: 11px 12px; background: #fbfbfc;
   border: 1px solid var(--line); border-radius: 10px; }
 .salerow.open .detail { display: block; }
-.det-item { display: flex; justify-content: space-between; font-size:17px; padding: 4px 0; }
+.det-item { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
 .det-item .di-name { color: var(--ink); }
 .det-item .di-name.cancel { color: var(--danger); text-decoration: line-through; }
 .det-item .di-qty { color: var(--sub); margin: 0 8px 0 6px; }
 .det-item .di-amt { font-weight: 600; white-space: nowrap; }
-.det-sum { display: flex; justify-content: space-between; font-size:17px; padding-top: 8px;
+.det-sum { display: flex; justify-content: space-between; font-size: 13px; padding-top: 8px;
   margin-top: 6px; border-top: 1px dashed var(--line); color: var(--sub); }
-.det-meta { font-size:15px; color: var(--sub); margin-bottom: 8px; }
+.det-meta { font-size: 11px; color: var(--sub); margin-bottom: 8px; }
 
 /* ボタン */
 .btnrow { display: flex; gap: 10px; margin: 12px 16px; }
-.bigbtn { flex: 1; padding: 14px 0; border: none; border-radius: 12px; font-size:18px; font-weight: 700;
+.bigbtn { flex: 1; padding: 14px 0; border: none; border-radius: 12px; font-size: 14px; font-weight: 700;
   color: #fff; background: var(--blue); cursor: pointer; }
 .bigbtn.orange { background: var(--accent); }
 .bigbtn.green { background: var(--green); }
 .bigbtn:disabled { background: #bbb; }
 
-.empty { text-align: center; color: var(--sub); padding: 50px 20px; font-size:18px; }
+.empty { text-align: center; color: var(--sub); padding: 50px 20px; font-size: 14px; }
 .errbox { margin: 12px 16px; padding: 14px; background: var(--danger-soft); color: var(--danger);
-  border-radius: 12px; font-size:17px; font-weight: 600; }
+  border-radius: 12px; font-size: 13px; font-weight: 600; }
 .notebox { margin: 8px 16px; padding: 10px 14px; background: var(--accent-soft); color: #9a6a2e;
-  border-radius: 10px; font-size:16px; }
+  border-radius: 10px; font-size: 12px; }
 
 /* トースト */
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
   background: var(--ink); color: #fff; padding: 12px 22px; border-radius: 999px;
-  font-size:18px; font-weight: 600; opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 200; }
+  font-size: 14px; font-weight: 600; opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 200; }
 .toast.show { opacity: 1; }
 </style>
 </head>
@@ -191,15 +191,21 @@ header {
   </header>
 
   <div class="tabs">
-    <div class="tab active" id="tab-day" onclick="showTab('day')">日計</div>
+    <div class="tab active" id="tab-live" onclick="showTab('live')">ライブ</div>
+    <div class="tab" id="tab-day" onclick="showTab('day')">日計</div>
     <div class="tab" id="tab-month" onclick="showTab('month')">月計</div>
     <div class="tab" id="tab-detail" onclick="showTab('detail')">明細</div>
-    <div class="tab" id="tab-orderlog" onclick="showTab('orderlog')">注文ログ</div>
     <div class="tab" id="tab-export" onclick="showTab('export')">出力</div>
   </div>
 
+  <!-- ══ ライブ（リアルタイム） ══ -->
+  <div id="view-live">
+    <div class="loadinfo" id="live-loadinfo"></div>
+    <div id="live-body"><div class="empty">接続中…</div></div>
+  </div>
+
   <!-- ══ 日計 ══ -->
-  <div id="view-day">
+  <div id="view-day" style="display:none;">
     <div class="toolbar">
       <label>営業日</label>
       <input type="date" id="day-date" onchange="loadDay()">
@@ -229,21 +235,6 @@ header {
     <div id="detail-body"><div class="empty">読み込み中…</div></div>
   </div>
 
-  <!-- ══ 注文ログ ══ -->
-  <div id="view-orderlog" style="display:none;">
-    <div class="toolbar">
-      <label>営業日</label>
-      <input type="date" id="orderlog-date" onchange="loadOrderLog()">
-      <label>卓</label>
-      <select id="orderlog-table" onchange="renderOrderLog()" style="padding:6px 10px;border:1px solid #ddd;border-radius:8px;font-size:18px;">
-        <option value="">全卓</option>
-      </select>
-    </div>
-    <div class="loadinfo" id="orderlog-loadinfo"></div>
-    <div class="notebox">送信された注文の生記録です（端末付き・読み取り専用）。卓のデータが消えたときは、ここから品目を確認してPOSで打ち直せます。</div>
-    <div id="orderlog-body"><div class="empty">読み込み中…</div></div>
-  </div>
-
   <!-- ══ 出力 ══ -->
   <div id="view-export" style="display:none;">
     <div class="seccard">
@@ -266,7 +257,7 @@ header {
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, initializeFirestore, collection, doc, getDoc, getDocs, setDoc, deleteDoc, addDoc, query, where, orderBy, startAt, endAt, documentId, Timestamp, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, deleteDoc, addDoc, query, where, orderBy, startAt, endAt, documentId, Timestamp, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD_mz3-1_fHWNBNWDRt6ZWXmi1ptcrvXCM",
@@ -277,7 +268,7 @@ const firebaseConfig = {
   appId: "1:91184668244:web:22e34995fe0f69d1e9d7c1"
 };
 const app = initializeApp(firebaseConfig);
-const db = initializeFirestore(app, { experimentalForceLongPolling: true }); // iOSの接続ぶら下がり対策（POSと同一設定）
+const db = getFirestore(app);
 
 // ═══════════════════════════════════════════════════════════
 // 店舗ID（本番化するときはここ1箇所を 'mifune' に変えるだけ）
@@ -321,7 +312,7 @@ function saleSummaryDelta(s) {
     (s.items || []).forEach(i => {
         const lp = i.price * i.qty;
         const lt = lp >= 0 ? Math.floor(lp * i.rate) : -Math.floor(-lp * i.rate);
-        if (i.rate === 0.08 || i.rate === 0) d.total8 += lp + lt; else d.total10 += lp + lt;   // rate 0=テイクアウト/無人（内税8%・税込額）
+        if (i.rate === 0.08) d.total8 += lp + lt; else d.total10 += lp + lt;
         const sk = skewerCount(i.name, i.qty);
         d.motsu += sk.motsu; d.sei += sk.sei;
         const key = sanitizeKey(i.name);
@@ -437,58 +428,101 @@ function skewerChipsHtml(s) {
 }
 
 // ═══ タブ切替 ═══
-let currentTab = 'day';
+let currentTab = 'live';
 window.showTab = function(tab) {
     currentTab = tab;
-    ['day','month','detail','orderlog','export'].forEach(t => {
+    ['live','day','month','detail','export'].forEach(t => {
         document.getElementById('view-' + t).style.display = (t === tab) ? 'block' : 'none';
         document.getElementById('tab-' + t).classList.toggle('active', t === tab);
     });
+    if (tab === 'live') startLive(); else stopLive();
     if (tab === 'day' && !_dayLoaded) loadDay();
     if (tab === 'month' && !_monthLoaded) loadMonth();
     if (tab === 'detail' && !_detailLoaded) loadDetail();
-    if (tab === 'orderlog' && !_orderlogLoaded) loadOrderLog();
 };
 window.refreshCurrent = function() {
-    if (currentTab === 'day') loadDay();
+    if (currentTab === 'live') { /* ライブは常時自動更新のため何もしない */ }
+    else if (currentTab === 'day') loadDay();
     else if (currentTab === 'month') loadMonth();
     else if (currentTab === 'detail') loadDetail();
-    else if (currentTab === 'orderlog') loadOrderLog();
 };
 
-// ═══ 会計リストの共通描画（日計=閲覧のみ／明細=削除ボタン付き） ═══
-function saleRowsHtml(sales, dateStr, withDelete) {
-    let total = 0;
-    const rows = sales.map(s => {
-        total += s.total || 0;
-        const items = (s.items || []).map(i => {
-            const lp = i.price * i.qty;
-            const lt = lp >= 0 ? Math.floor(lp * (i.rate||0.10)) : -Math.floor(-lp * (i.rate||0.10));
-            const isCancel = i.qty < 0;
-            return `<div class="det-item"><span class="di-name${isCancel?' cancel':''}">${esc(i.name)}</span><span class="di-qty">×${i.qty}</span><span class="di-amt">${yen(lp+lt)}</span></div>`;
-        }).join('') || '<div class="det-item"><span class="di-name" style="color:var(--sub)">明細データなし</span></div>';
-        const itemCount = (s.items||[]).reduce((n,i)=>n+i.qty,0);
-        const delBtn = withDelete ? `<button class="sr-del" onclick="delSale(event, '${s.id}', '${dateStr}')">削除</button>` : '';
-        return `
-          <div class="salerow" data-id="${s.id}">
-            <div class="sr-top" onclick="toggleDetail(this)">
-              <div class="sr-left">
-                <span class="sr-time">${esc(s.checkout||'--:--')}</span>
-                <span class="sr-table">${esc(s.tableId||'')}</span>
-                <span class="sr-pay">${esc(s.paymentMethod||'現金')}</span>
-              </div>
-              <div class="sr-right">
-                <span class="sr-total">${yen(s.total)}</span>${delBtn}
-              </div>
-            </div>
-            <div class="detail">
-              <div class="det-meta">入店 ${esc(s.checkin||'--:--')} ／ 客 ${s.guests||0}名 ／ ${itemCount}点</div>
-              ${items}
-              <div class="det-sum"><span>合計（税込）</span><span>${yen(s.total)}</span></div>
-            </div>
-          </div>`;
-    }).join('');
-    return { rows, total };
+// ═══ ライブ（リアルタイム売上：確定＋店内＋合計見込み） ═══
+const LIVE_EXCLUDE_TABLES = ['03'];   // テスト用の卓（実店舗に席がない）
+let _liveUnsub = null;
+let _liveSales = [], _liveTables = [];
+function startLive() {
+    if (_liveUnsub) return;   // 既に監視中
+    const dateStr = bizDate(new Date());
+    const start = new Date(dateStr + 'T05:00:00');
+    const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+    document.getElementById('live-loadinfo').textContent = '営業日 ' + dateStr + '（会計・注文と同時に自動更新）';
+    const salesQy = query(collection(db, 'stores/' + STORE + '/sales'),
+        where('timestamp', '>=', Timestamp.fromDate(start)),
+        where('timestamp', '<', Timestamp.fromDate(end)),
+        orderBy('timestamp', 'desc'));
+    const u1 = onSnapshot(salesQy, snap => {
+        _liveSales = [];
+        snap.forEach(d => _liveSales.push(d.data()));
+        renderLive();
+    }, err => { document.getElementById('live-body').innerHTML = '<div class="errbox">監視エラー: ' + esc(err.message) + '</div>'; });
+    const u2 = onSnapshot(collection(db, 'stores/' + STORE + '/tables'), snap => {
+        _liveTables = [];
+        snap.forEach(d => {
+            if (d.id === '_system' || LIVE_EXCLUDE_TABLES.includes(d.id)) return;
+            const x = d.data();
+            let sub = 0, tax = 0, items = 0;
+            (x.history || []).forEach(i => {
+                const lp = i.price * i.qty; sub += lp;
+                tax += (lp >= 0 ? Math.floor(lp * (i.rate || 0.10)) : -Math.floor(-lp * (i.rate || 0.10)));
+                items += i.qty;
+            });
+            if (items !== 0 || (x.guests || 0) > 0) _liveTables.push({ id: d.id, guests: x.guests || 0, checkin: x.checkin || '--:--', items, total: sub + tax });
+        });
+        renderLive();
+    }, err => { console.warn('tables監視エラー:', err.message); });
+    _liveUnsub = () => { u1(); u2(); };
+}
+function stopLive() {
+    if (_liveUnsub) { _liveUnsub(); _liveUnsub = null; }
+}
+function renderLive() {
+    const body = document.getElementById('live-body');
+    if (!body || currentTab !== 'live') return;
+    let total = 0, guests = 0;
+    const payment = {};
+    _liveSales.forEach(s => {
+        total += s.total || 0; guests += s.guests || 0;
+        const pm = s.paymentMethod || '現金';
+        payment[pm] = (payment[pm] || 0) + (s.total || 0);
+    });
+    const per = guests > 0 ? Math.round(total / guests) : 0;
+    const openTotal = _liveTables.reduce((s, t) => s + t.total, 0);
+    const openGuests = _liveTables.reduce((s, t) => s + t.guests, 0);
+    const grand = total + openTotal;
+    let html = `<div class="sumband" style="align-items:center;">
+      <div><div class="lbl">確定売上</div><div class="val">${yen(total)}</div><div class="lbl">${_liveSales.length}組 ${guests}名${per ? ' / 単価' + yen(per) : ''}</div></div>
+      <div><div class="lbl">店内（未会計）</div><div class="val" style="color:#ffcc80;">${yen(openTotal)}</div><div class="lbl">${_liveTables.length}卓 ${openGuests}名</div></div>
+      <div style="border-left:1px solid rgba(255,255,255,.25);padding-left:12px;"><div class="lbl">合計見込み</div><div class="val" style="font-size:25px;color:#a5d6a7;">${yen(grand)}</div></div>
+    </div>`;
+    html += paymentChipsHtml(payment);
+    if (_liveTables.length) {
+        html += '<div class="seccard"><div class="sechead">営業中の卓</div>';
+        _liveTables.sort((a,b) => a.id.localeCompare(b.id)).forEach(t => {
+            html += `<div class="dayrow" style="cursor:default;"><div><div class="d-date">${esc(t.id)}</div><div class="d-meta">入店 ${esc(t.checkin)} / ${t.guests}名 / ${t.items}点</div></div><div class="d-total">${yen(t.total)}</div></div>`;
+        });
+        html += '</div>';
+    }
+    if (_liveSales.length) {
+        html += '<div class="seccard"><div class="sechead">会計フィード（新しい順）</div>';
+        _liveSales.forEach(s => {
+            html += `<div class="dayrow" style="cursor:default;"><div><div class="d-date">${esc(s.checkout || '--:--')}　${esc(s.tableId || '')}</div><div class="d-meta">${s.guests || 0}名 / ${esc(s.paymentMethod || '現金')}</div></div><div class="d-total">${yen(s.total)}</div></div>`;
+        });
+        html += '</div>';
+    } else {
+        html += '<div class="empty">まだ会計はありません（会計が入ると自動で表示されます）</div>';
+    }
+    body.innerHTML = html;
 }
 
 // ═══ 日計（daily_summaryを1文書読むだけ） ═══
@@ -502,22 +536,11 @@ window.loadDay = async function() {
     body.innerHTML = '<div class="empty">読み込み中…</div>';
     const t0 = performance.now();
     try {
-        // 集計文書と会計リストを並列で読む（リストが失敗しても集計は表示する）
-        const [snap, sales] = await Promise.all([
-            getDoc(doc(db, 'stores/' + STORE + '/daily_summary', inp.value)),
-            fetchSalesOfBizDate(inp.value).catch(e => { console.warn('会計リスト読込失敗:', e.message); return null; })
-        ]);
+        const snap = await getDoc(doc(db, 'stores/' + STORE + '/daily_summary', inp.value));
         fmtLoad('day-loadinfo', t0);
-        const salesCard = (sales && sales.length > 0)
-            ? '<div class="seccard"><div class="sechead">卓別会計　' + sales.length + '件（タップで明細）</div>' + saleRowsHtml(sales, inp.value, false).rows + '</div>'
-            : (sales === null ? '<div class="errbox">会計リストの読み込みに失敗しました（集計は表示できています）</div>' : '');
         if (!snap.exists()) {
             _daySummary = null;
-            if (sales && sales.length > 0) {
-                body.innerHTML = '<div class="empty">この営業日の集計文書はまだありません（切替前の日付）。会計リストのみ表示します。</div>' + salesCard;
-            } else {
-                body.innerHTML = '<div class="empty">この営業日の集計はありません。<br><small>会計がまだ無いか、切替前の日付です（過去分は調査ツールの再構築で作れます）。</small></div>';
-            }
+            body.innerHTML = '<div class="empty">この営業日の集計はありません。<br><small>会計がまだ無いか、切替前の日付です（過去分は調査ツールの再構築で作れます）。</small></div>';
             return;
         }
         const s = snap.data();
@@ -525,7 +548,6 @@ window.loadDay = async function() {
         body.innerHTML =
             sumbandHtml(s) +
             paymentChipsHtml(s.payment) +
-            salesCard +
             skewerChipsHtml(s) +
             hoursBarHtml(s.hours) +
             '<div class="seccard"><div class="sechead">品目別売上（数量順）</div>' + itemsRankHtml(s.items) + '</div>' +
@@ -665,111 +687,6 @@ window.printMonthReport = async function() {
     btn.disabled = false; btn.textContent = '月計印刷';
 };
 
-// ═══ 注文ログ（createdAtで営業日窓を読む・会計＝組ごとに区切って表示・読み取り専用） ═══
-let _orderlogLoaded = false;
-let _orderlogData = [];
-let _orderlogSales = [];
-window.loadOrderLog = async function() {
-    _orderlogLoaded = true;
-    const inp = document.getElementById('orderlog-date');
-    if (!inp.value) inp.value = todayBizDate();
-    const body = document.getElementById('orderlog-body');
-    body.innerHTML = '<div class="empty">読み込み中…</div>';
-    const t0 = performance.now();
-    try {
-        const start = new Date(inp.value + 'T05:00:00');
-        const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
-        // 注文ログと会計を並列で読む（会計timestampが組の境界になる）
-        const [snap, sales] = await Promise.all([
-            getDocs(query(collection(db, 'stores/' + STORE + '/order_log'),
-                where('createdAt', '>=', Timestamp.fromDate(start)),
-                where('createdAt', '<', Timestamp.fromDate(end)))),
-            fetchSalesOfBizDate(inp.value).catch(e => { console.warn('会計読込失敗:', e.message); return []; })
-        ]);
-        fmtLoad('orderlog-loadinfo', t0);
-        _orderlogSales = sales.filter(s => s.timestamp && typeof s.timestamp.toMillis === 'function');
-        _orderlogData = [];
-        snap.forEach(d => {
-            const o = d.data();
-            _orderlogData.push({
-                time: o.time || '--:--',
-                tableId: o.tableId || '?',
-                items: o.items || [],
-                deviceId: o.deviceId || '',
-                ms: (o.createdAt && typeof o.createdAt.toMillis === 'function') ? o.createdAt.toMillis() : 0
-            });
-        });
-        _orderlogData.sort((a, b) => a.ms - b.ms);
-        // 卓の絞り込みプルダウンを実データから作る（選択は維持）
-        const sel = document.getElementById('orderlog-table');
-        const prev = sel.value;
-        const tables = [...new Set([..._orderlogData.map(o => o.tableId), ..._orderlogSales.map(s => s.tableId)])].sort();
-        sel.innerHTML = '<option value="">全卓</option>' + tables.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
-        if (tables.includes(prev)) sel.value = prev;
-        renderOrderLog();
-    } catch(e) {
-        fmtLoad('orderlog-loadinfo', t0);
-        body.innerHTML = `<div class="errbox">読み込み失敗: ${esc(e.message)}</div><div class="btnrow"><button class="bigbtn" onclick="loadOrderLog()">再読み込み</button></div>`;
-    }
-};
-window.renderOrderLog = function() {
-    const body = document.getElementById('orderlog-body');
-    const filt = document.getElementById('orderlog-table').value;
-    const logs = filt ? _orderlogData.filter(o => o.tableId === filt) : _orderlogData;
-    const salesAll = filt ? _orderlogSales.filter(s => s.tableId === filt) : _orderlogSales;
-    if (logs.length === 0 && salesAll.length === 0) { body.innerHTML = '<div class="empty">この営業日の注文ログはありません</div>'; return; }
-    const rowHtml = (o) => {
-        const itemsTxt = o.items.map(i => {
-            const cancel = i.qty < 0;
-            return `<span style="${cancel ? 'color:#b71c1c;text-decoration:line-through;' : ''}">${esc(i.name)}×${i.qty}</span>`;
-        }).join('、 ');
-        return `
-          <div style="padding:8px 12px;border-bottom:1px solid #f0f0f0;">
-            <div style="display:flex;gap:10px;align-items:center;font-size:17px;">
-              <b>${esc(o.time)}</b>
-              <span style="color:var(--sub);font-size:15px;">${esc(o.deviceId)}</span>
-            </div>
-            <div style="font-size:17px;margin-top:3px;line-height:1.6;">${itemsTxt}</div>
-          </div>`;
-    };
-    const groupHead = (label, sub) =>
-        `<div style="background:#f2f4f7;padding:6px 12px;font-size:16px;font-weight:bold;color:#555;border-bottom:1px solid #e8e8e8;">${label}${sub ? `<span style="font-weight:normal;color:#888;margin-left:8px;">${sub}</span>` : ''}</div>`;
-    // kanri-12: 卓カードの並び＝入店順（その卓の当営業日で最初に動いた時刻の早い順）。
-    // 卓の中身（組分け・会計ヘッダ）は従来どおり。
-    const firstMs = {};
-    logs.forEach(o => { if (!(o.tableId in firstMs) || o.ms < firstMs[o.tableId]) firstMs[o.tableId] = o.ms; });
-    salesAll.forEach(s => { const t = s.timestamp.toMillis(); if (!(s.tableId in firstMs) || t < firstMs[s.tableId]) firstMs[s.tableId] = t; });
-    const tables = filt ? [filt] : [...new Set([...logs.map(o => o.tableId), ...salesAll.map(s => s.tableId)])]
-        .sort((a, b) => (firstMs[a] || 0) - (firstMs[b] || 0));
-    let html = '';
-    tables.forEach(t => {
-        const tLogs = logs.filter(o => o.tableId === t);
-        const tSales = salesAll.filter(s => s.tableId === t).sort((a, b) => a.timestamp.toMillis() - b.timestamp.toMillis());
-        const groups = tSales.map(s => ({ sale: s, rows: [] }));
-        const open = { sale: null, rows: [] };
-        tLogs.forEach(o => {
-            const g = groups.find(g => o.ms <= g.sale.timestamp.toMillis());
-            (g || open).rows.push(o);
-        });
-        let sec = '';
-        groups.forEach((g, idx) => {
-            const s = g.sale;
-            sec += groupHead(`${idx + 1}組目`, `会計 ${esc(s.checkout || '--:--')} ／ ¥${(s.total || 0).toLocaleString()} ／ 客${s.guests || 0}名`);
-            sec += g.rows.length > 0
-                ? g.rows.map(rowHtml).join('')
-                : '<div style="padding:8px 12px;color:#b71c1c;font-size:16px;border-bottom:1px solid #f0f0f0;">⚠ この組の注文ログがありません（記録抜けの可能性）</div>';
-        });
-        if (open.rows.length > 0) {
-            sec += groupHead('未会計（営業中）', '');
-            sec += open.rows.map(rowHtml).join('');
-        }
-        const sendCount = tLogs.length;
-        const itemCount = tLogs.reduce((n2, o) => n2 + o.items.reduce((m2, i) => m2 + i.qty, 0), 0);
-        html += `<div class="seccard"><div class="sechead">${esc(t)}卓　送信${sendCount}回 ／ ${itemCount}点 ／ 会計${tSales.length}件</div>${sec}</div>`;
-    });
-    body.innerHTML = html;
-};
-
 // ═══ 明細（営業日単位で売上を読む・削除→summary自動再構築） ═══
 let _detailLoaded = false;
 window.loadDetail = async function() {
@@ -783,8 +700,37 @@ window.loadDetail = async function() {
         const sales = await fetchSalesOfBizDate(inp.value);
         fmtLoad('detail-loadinfo', t0);
         if (sales.length === 0) { body.innerHTML = '<div class="empty">この営業日の会計はありません</div>'; return; }
-        const r = saleRowsHtml(sales, inp.value, true);
-        body.innerHTML = `<div class="seccard"><div class="sechead">${esc(inp.value)}　${sales.length}件 ／ 合計 ${yen(r.total)}</div>${r.rows}</div>`;
+        let total = 0;
+        const rows = sales.map(s => {
+            total += s.total || 0;
+            const items = (s.items || []).map(i => {
+                const lp = i.price * i.qty;
+                const lt = lp >= 0 ? Math.floor(lp * (i.rate||0.10)) : -Math.floor(-lp * (i.rate||0.10));
+                const isCancel = i.qty < 0;
+                return `<div class="det-item"><span class="di-name${isCancel?' cancel':''}">${esc(i.name)}</span><span class="di-qty">×${i.qty}</span><span class="di-amt">${yen(lp+lt)}</span></div>`;
+            }).join('') || '<div class="det-item"><span class="di-name" style="color:var(--sub)">明細データなし</span></div>';
+            const itemCount = (s.items||[]).reduce((n,i)=>n+i.qty,0);
+            return `
+              <div class="salerow" data-id="${s.id}">
+                <div class="sr-top" onclick="toggleDetail(this)">
+                  <div class="sr-left">
+                    <span class="sr-time">${esc(s.checkout||'--:--')}</span>
+                    <span class="sr-table">${esc(s.tableId||'')}</span>
+                    <span class="sr-pay">${esc(s.paymentMethod||'現金')}</span>
+                  </div>
+                  <div class="sr-right">
+                    <span class="sr-total">${yen(s.total)}</span>
+                    <button class="sr-del" onclick="delSale(event, '${s.id}', '${inp.value}')">削除</button>
+                  </div>
+                </div>
+                <div class="detail">
+                  <div class="det-meta">入店 ${esc(s.checkin||'--:--')} ／ 客 ${s.guests||0}名 ／ ${itemCount}点</div>
+                  ${items}
+                  <div class="det-sum"><span>合計（税込）</span><span>${yen(s.total)}</span></div>
+                </div>
+              </div>`;
+        }).join('');
+        body.innerHTML = `<div class="seccard"><div class="sechead">${esc(inp.value)}　${sales.length}件 ／ 合計 ${yen(total)}</div>${rows}</div>`;
     } catch(e) {
         fmtLoad('detail-loadinfo', t0);
         body.innerHTML = `<div class="errbox">読み込み失敗: ${esc(e.message)}</div><div class="btnrow"><button class="bigbtn" onclick="loadDetail()">再読み込み</button></div>`;
@@ -797,18 +743,7 @@ window.delSale = async function(ev, id, dateStr){
     ev.stopPropagation();
     if (!confirm('この会計を削除します。よろしいですか？\n（取り消せません。日次集計も自動で作り直します）')) return;
     try {
-        // 削除の前に写し（墓標）をdeleted_salesへ残す：
-        // ①夜の突合が「訂正による差」と「本物の事故」を区別できる ②誰がいつ何を消したかの監査記録
-        const ref = doc(db, 'stores/' + STORE + '/sales', id);
-        const snap = await getDoc(ref);
-        if (snap.exists()) {
-            const tomb = snap.data();
-            tomb.deletedAt = serverTimestamp();
-            tomb.deletedBy = _deviceId;
-            tomb.originalSaleId = id;
-            await setDoc(doc(db, 'stores/' + STORE + '/deleted_sales', id), tomb);
-        }
-        await deleteDoc(ref);
+        await deleteDoc(doc(db, 'stores/' + STORE + '/sales', id));
     } catch(e) {
         showToast('削除に失敗しました: ' + e.message);
         return;
@@ -884,7 +819,7 @@ window.exportYayoiCSV = async function() {
             s.items.forEach(item => {
                 const lp = item.price * item.qty;
                 const lt = lp >= 0 ? Math.floor(lp * item.rate) : -Math.floor(-lp * item.rate);
-                if (item.rate === 0.08 || item.rate === 0) { total8 += lp + lt; } else { total10 += lp + lt; }   // rate 0=テイクアウト/無人（内税8%）
+                if (item.rate === 0.08) { total8 += lp + lt; } else { total10 += lp + lt; }
             });
         } else {
             if (s.tableId === 'テイクアウト' || s.tableId === '無人') { total8 = s.total; } else { total10 = s.total; }
@@ -914,7 +849,7 @@ window.doLogin = function(){
         sessionStorage.setItem('kanriAuthed','1');
         document.getElementById('login-view').style.display = 'none';
         document.getElementById('main-view').style.display = 'block';
-        loadDay();
+        showTab('live');
     } else {
         alert('パスワードが違います');
     }
@@ -923,7 +858,7 @@ document.getElementById('pass-input').addEventListener('keydown', e => { if(e.ke
 if (sessionStorage.getItem('kanriAuthed') === '1') {
     document.getElementById('login-view').style.display = 'none';
     document.getElementById('main-view').style.display = 'block';
-    loadDay();
+    showTab('live');
 }
 
 // ▼ 画面に戻ってきたら現在のタブを自動で最新に更新（開きっぱなしで数字が古いままになる問題の対策）
