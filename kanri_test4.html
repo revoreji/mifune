@@ -10,7 +10,7 @@
 
 <script>
 (function(){
-  var K_VERSION = '2026-07-09-kanri-10';
+  var K_VERSION = '2026-07-10-kanri-11';
   window.__K_VERSION = K_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneKanriVersion');
@@ -716,53 +716,36 @@ window.renderOrderLog = function() {
     const body = document.getElementById('orderlog-body');
     const filt = document.getElementById('orderlog-table').value;
     const logs = filt ? _orderlogData.filter(o => o.tableId === filt) : _orderlogData;
-    const salesAll = filt ? _orderlogSales.filter(s => s.tableId === filt) : _orderlogSales;
-    if (logs.length === 0 && salesAll.length === 0) { body.innerHTML = '<div class="empty">この営業日の注文ログはありません</div>'; return; }
-    const rowHtml = (o) => {
+    const sales = (filt ? _orderlogSales.filter(s => s.tableId === filt) : _orderlogSales)
+        .map(s => ({ _sale: true, ms: s.timestamp.toMillis(), tableId: s.tableId || '?',
+                     total: s.total || 0, guests: s.guests || 0, paymentMethod: s.paymentMethod || '', checkout: s.checkout || '--:--' }));
+    if (logs.length === 0 && sales.length === 0) { body.innerHTML = '<div class="empty">この営業日の注文ログはありません</div>'; return; }
+    // kanri-11: 卓別グルーピングをやめ、入店順（時系列）一本に。会計＝退店は緑帯で時系列に挟まる
+    const merged = [...logs, ...sales].sort((a, b) => a.ms - b.ms);
+    const rows = merged.map(o => {
+        if (o._sale) {
+            return `
+          <div style="padding:8px 12px;background:#e8f5e9;border-bottom:1px solid #d8ecd9;font-size:14px;">
+            <b>${esc(o.checkout)}</b>　── 会計（退店） | <b>${esc(o.tableId)}</b> | ¥${o.total.toLocaleString()} | ${esc(o.paymentMethod)} | 客${o.guests}名 ──
+          </div>`;
+        }
         const itemsTxt = o.items.map(i => {
             const cancel = i.qty < 0;
             return `<span style="${cancel ? 'color:#b71c1c;text-decoration:line-through;' : ''}">${esc(i.name)}×${i.qty}</span>`;
         }).join('、 ');
         return `
           <div style="padding:8px 12px;border-bottom:1px solid #f0f0f0;">
-            <div style="display:flex;gap:10px;align-items:center;font-size:17px;">
+            <div style="display:flex;gap:10px;align-items:center;font-size:14px;">
               <b>${esc(o.time)}</b>
-              <span style="color:var(--sub);font-size:15px;">${esc(o.deviceId)}</span>
+              <span class="sr-table">${esc(o.tableId)}</span>
+              <span style="color:var(--sub);font-size:12px;">${esc(o.deviceId)}</span>
             </div>
-            <div style="font-size:17px;margin-top:3px;line-height:1.6;">${itemsTxt}</div>
+            <div style="font-size:14px;margin-top:3px;line-height:1.6;">${itemsTxt}</div>
           </div>`;
-    };
-    const groupHead = (label, sub) =>
-        `<div style="background:#f2f4f7;padding:6px 12px;font-size:16px;font-weight:bold;color:#555;border-bottom:1px solid #e8e8e8;">${label}${sub ? `<span style="font-weight:normal;color:#888;margin-left:8px;">${sub}</span>` : ''}</div>`;
-    const tables = filt ? [filt] : [...new Set([...logs.map(o => o.tableId), ...salesAll.map(s => s.tableId)])].sort();
-    let html = '';
-    tables.forEach(t => {
-        const tLogs = logs.filter(o => o.tableId === t);
-        const tSales = salesAll.filter(s => s.tableId === t).sort((a, b) => a.timestamp.toMillis() - b.timestamp.toMillis());
-        // 各注文を「その注文以降で最初に来る会計」の組へ割り当てる（S8・調査ツールと同じ境界定義）
-        const groups = tSales.map(s => ({ sale: s, rows: [] }));
-        const open = { sale: null, rows: [] };
-        tLogs.forEach(o => {
-            const g = groups.find(g => o.ms <= g.sale.timestamp.toMillis());
-            (g || open).rows.push(o);
-        });
-        let sec = '';
-        groups.forEach((g, idx) => {
-            const s = g.sale;
-            sec += groupHead(`${idx + 1}組目`, `会計 ${esc(s.checkout || '--:--')} ／ ¥${(s.total || 0).toLocaleString()} ／ 客${s.guests || 0}名`);
-            sec += g.rows.length > 0
-                ? g.rows.map(rowHtml).join('')
-                : '<div style="padding:8px 12px;color:#b71c1c;font-size:16px;border-bottom:1px solid #f0f0f0;">⚠ この組の注文ログがありません（記録抜けの可能性）</div>';
-        });
-        if (open.rows.length > 0) {
-            sec += groupHead('未会計（営業中）', '');
-            sec += open.rows.map(rowHtml).join('');
-        }
-        const sendCount = tLogs.length;
-        const itemCount = tLogs.reduce((n, o) => n + o.items.reduce((m, i) => m + i.qty, 0), 0);
-        html += `<div class="seccard"><div class="sechead">${esc(t)}卓　送信${sendCount}回 ／ ${itemCount}点 ／ 会計${tSales.length}件</div>${sec}</div>`;
-    });
-    body.innerHTML = html;
+    }).join('');
+    const sendCount = logs.length;
+    const itemCount = logs.reduce((n2, o) => n2 + o.items.reduce((m2, i) => m2 + i.qty, 0), 0);
+    body.innerHTML = `<div class="seccard"><div class="sechead">${filt ? esc(filt) + '卓' : '全卓'}　送信${sendCount}回 ／ ${itemCount}点 ／ 会計${sales.length}件</div>${rows}</div>`;
 };
 
 // ═══ 明細（営業日単位で売上を読む・削除→summary自動再構築） ═══
