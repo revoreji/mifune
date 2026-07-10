@@ -10,7 +10,7 @@
 
 <script>
 (function(){
-  var K_VERSION = '2026-07-10-kanri-12';
+  var K_VERSION = '2026-07-10-kanri-13';
   window.__K_VERSION = K_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneKanriVersion');
@@ -725,15 +725,15 @@ window.renderOrderLog = function() {
         }).join('、 ');
         return `
           <div style="padding:8px 12px;border-bottom:1px solid #f0f0f0;">
-            <div style="display:flex;gap:10px;align-items:center;font-size:14px;">
+            <div style="display:flex;gap:10px;align-items:center;font-size:17px;">
               <b>${esc(o.time)}</b>
-              <span style="color:var(--sub);font-size:12px;">${esc(o.deviceId)}</span>
+              <span style="color:var(--sub);font-size:15px;">${esc(o.deviceId)}</span>
             </div>
-            <div style="font-size:14px;margin-top:3px;line-height:1.6;">${itemsTxt}</div>
+            <div style="font-size:17px;margin-top:3px;line-height:1.6;">${itemsTxt}</div>
           </div>`;
     };
     const groupHead = (label, sub) =>
-        `<div style="background:#f2f4f7;padding:6px 12px;font-size:13px;font-weight:bold;color:#555;border-bottom:1px solid #e8e8e8;">${label}${sub ? `<span style="font-weight:normal;color:#888;margin-left:8px;">${sub}</span>` : ''}</div>`;
+        `<div style="background:#f2f4f7;padding:6px 12px;font-size:16px;font-weight:bold;color:#555;border-bottom:1px solid #e8e8e8;">${label}${sub ? `<span style="font-weight:normal;color:#888;margin-left:8px;">${sub}</span>` : ''}</div>`;
     // kanri-12: 卓カードの並び＝入店順（その卓の当営業日で最初に動いた時刻の早い順）。
     // 卓の中身（組分け・会計ヘッダ）は従来どおり。
     const firstMs = {};
@@ -757,7 +757,7 @@ window.renderOrderLog = function() {
             sec += groupHead(`${idx + 1}組目`, `会計 ${esc(s.checkout || '--:--')} ／ ¥${(s.total || 0).toLocaleString()} ／ 客${s.guests || 0}名`);
             sec += g.rows.length > 0
                 ? g.rows.map(rowHtml).join('')
-                : '<div style="padding:8px 12px;color:#b71c1c;font-size:13px;border-bottom:1px solid #f0f0f0;">⚠ この組の注文ログがありません（記録抜けの可能性）</div>';
+                : '<div style="padding:8px 12px;color:#b71c1c;font-size:16px;border-bottom:1px solid #f0f0f0;">⚠ この組の注文ログがありません（記録抜けの可能性）</div>';
         });
         if (open.rows.length > 0) {
             sec += groupHead('未会計（営業中）', '');
