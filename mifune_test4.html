@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-11-t4s15-02';
+  var T4_VERSION = '2026-07-11-t4s15-03';
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -189,6 +189,7 @@ footer { width: 100%; display: flex; flex-direction: column; z-index: 100; box-s
 #suggest-panel.open { display: flex; }
 #view-menu.searching .item-feed { display: none; }
 #view-menu.searching footer { display: none; }
+#view-menu.searching #btn-to-top { display: none !important; }
 #view-menu.searching #suggest-panel { flex: 1 1 auto; max-height: none !important; }
 .suggest-card3 { display: flex; align-items: center; gap: 10px; background: #fff; border-radius: 14px; padding: 12px 14px; box-shadow: 0 2px 10px rgba(0,0,0,.14); }
 .suggest-none { text-align: center; color: #fff; background: rgba(31,35,40,.75); border-radius: 12px; padding: 10px; font-size: 13px; font-weight: 700; }
