@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-11-t4s15-01';
+  var T4_VERSION = '2026-07-11-t4s15-02';
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -828,6 +828,7 @@ window.printStandaloneRyoshu = async function() {
 <div id="view-menu" class="view">
 <header><span class="back-btn" onclick="showIndex()">×</span><span id="display-table-id"></span>番席 <span onclick="openGuestEdit()" style="padding:4px 8px; border:1.5px dashed #bbb; border-radius:8px; cursor:pointer;">(<span id="display-guest-count"></span>名 ✎)</span><span style="margin-left:auto; font-size:11px; color:#666;">入店: <span id="display-checkin-time"></span></span></header>
 <div class="item-feed" id="item-feed"></div>
+<button id="btn-to-top" onclick="feedToTop()" style="display:none; position:absolute; right:14px; bottom:86px; z-index:50; padding:12px 18px; border:none; border-radius:24px; background:rgba(40,44,52,0.82); color:#fff; font-size:15px; font-weight:800; box-shadow:0 3px 10px rgba(0,0,0,0.25);">▲ TOPへ</button>
 <div id="suggest-panel"></div>
 <div id="toast-area3"></div>
 <div class="search-dock" id="search-dock">
@@ -2084,6 +2085,19 @@ function jumpToGenre() {
     const delta = g.getBoundingClientRect().top - feed.getBoundingClientRect().top;
     feed.scrollTo({ top: feed.scrollTop + delta, behavior: 'smooth' });
 }
+// S15-2: 下がった後の帰り道。ある程度スクロールしたら「▲ TOPへ」が浮かぶ
+function feedToTop() {
+    const feed = document.getElementById('item-feed');
+    if (feed) feed.scrollTo({ top: 0, behavior: 'smooth' });
+}
+document.addEventListener('DOMContentLoaded', function() {
+    const feed = document.getElementById('item-feed');
+    const btn = document.getElementById('btn-to-top');
+    if (!feed || !btn) return;
+    feed.addEventListener('scroll', function() {
+        btn.style.display = feed.scrollTop > 400 ? 'block' : 'none';
+    }, { passive: true });
+});
 // 検索（ひらがな⇔カタカナ同一視＋読みがな辞書。候補は入力欄の真上に湧く）
 function toKatakana(str) { return str.replace(/[\u3041-\u3096]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 0x60)); }
 function normSearch(str) { return toKatakana((str || '').trim().toLowerCase()); }
