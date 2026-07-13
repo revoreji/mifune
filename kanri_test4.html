@@ -10,7 +10,7 @@
 
 <script>
 (function(){
-  var K_VERSION = '2026-07-11-kanri-14';
+  var K_VERSION = '2026-07-11-kanri-15';
   window.__K_VERSION = K_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneKanriVersion');
@@ -657,7 +657,8 @@ window.printMonthReport = async function() {
             type: 'report-month', yearMonth: `${y}年${mo}月`,
             total: m.total, guests: m.guests, count: m.count,
             motsuCount: m.motsu, toriCount: m.sei,
-            dailyBreakdown, items
+            dailyBreakdown, items,
+            payment: m.payment || {}   // kanri-15: 月間の支払方法別内訳
         });
         showToast('月計を印刷しました');
     } catch(e) {
