@@ -10,7 +10,7 @@
 
 <script>
 (function(){
-  var K_VERSION = '2026-07-13-prod-kanri13';
+  var K_VERSION = '2026-07-13-prod-kanri15';
   window.__K_VERSION = K_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneKanriVersion');
@@ -547,7 +547,8 @@ window.printDayReport = async function() {
         await queuePrint({
             type: 'report-day', dateLabel,
             total: s.total || 0, guests: s.guests || 0, count: s.count || 0,
-            motsuCount: s.motsu || 0, toriCount: s.sei || 0, items
+            motsuCount: s.motsu || 0, toriCount: s.sei || 0, items,
+            payment: s.payment || {}   // kanri-14: 支払方法別内訳（現金/クレジット/QR/電子マネー）
         });
         showToast('日計を印刷しました');
     } catch(e) {
@@ -653,7 +654,8 @@ window.printMonthReport = async function() {
             type: 'report-month', yearMonth: `${y}年${mo}月`,
             total: m.total, guests: m.guests, count: m.count,
             motsuCount: m.motsu, toriCount: m.sei,
-            dailyBreakdown, items
+            dailyBreakdown, items,
+            payment: m.payment || {}   // kanri-15: 月間の支払方法別内訳
         });
         showToast('月計を印刷しました');
     } catch(e) {
