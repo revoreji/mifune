@@ -10,7 +10,7 @@
 
 <script>
 (function(){
-  var K_VERSION = '2026-07-11-kanri-15';
+  var K_VERSION = '2026-07-13-kanri-17';
   window.__K_VERSION = K_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneKanriVersion');
@@ -71,7 +71,7 @@ header {
 
 /* タブ */
 .tabs { display: flex; background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: 53px; z-index: 40; }
-.tab { flex: 1; padding: 13px 0; text-align: center; font-size:16px; font-weight: 700; color: var(--sub);
+.tab { flex: 1; padding: 13px 0; text-align: center; font-size:15px; font-weight: 700; color: var(--sub);
   cursor: pointer; border-bottom: 3px solid transparent; }
 .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
@@ -191,15 +191,22 @@ header {
   </header>
 
   <div class="tabs">
-    <div class="tab active" id="tab-day" onclick="showTab('day')">日計</div>
+    <div class="tab active" id="tab-live" onclick="showTab('live')">ライブ</div>
+    <div class="tab" id="tab-day" onclick="showTab('live')">日計</div>
     <div class="tab" id="tab-month" onclick="showTab('month')">月計</div>
     <div class="tab" id="tab-detail" onclick="showTab('detail')">明細</div>
     <div class="tab" id="tab-orderlog" onclick="showTab('orderlog')">注文ログ</div>
     <div class="tab" id="tab-export" onclick="showTab('export')">出力</div>
   </div>
 
+  <!-- ══ ライブ（リアルタイム） ══ -->
+  <div id="view-live">
+    <div class="loadinfo" id="live-loadinfo"></div>
+    <div id="live-body"><div class="empty">接続中…</div></div>
+  </div>
+
   <!-- ══ 日計 ══ -->
-  <div id="view-day">
+  <div id="view-day" style="display:none;">
     <div class="toolbar">
       <label>営業日</label>
       <input type="date" id="day-date" onchange="loadDay()">
@@ -266,7 +273,7 @@ header {
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, initializeFirestore, collection, doc, getDoc, getDocs, setDoc, deleteDoc, addDoc, query, where, orderBy, startAt, endAt, documentId, Timestamp, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, initializeFirestore, collection, doc, getDoc, getDocs, setDoc, deleteDoc, addDoc, query, where, orderBy, startAt, endAt, documentId, Timestamp, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD_mz3-1_fHWNBNWDRt6ZWXmi1ptcrvXCM",
@@ -437,20 +444,22 @@ function skewerChipsHtml(s) {
 }
 
 // ═══ タブ切替 ═══
-let currentTab = 'day';
+let currentTab = 'live';
 window.showTab = function(tab) {
     currentTab = tab;
-    ['day','month','detail','orderlog','export'].forEach(t => {
+    ['live','day','month','detail','orderlog','export'].forEach(t => {
         document.getElementById('view-' + t).style.display = (t === tab) ? 'block' : 'none';
         document.getElementById('tab-' + t).classList.toggle('active', t === tab);
     });
+    if (tab === 'live') startLive(); else stopLive();   // ライブはタブ滞在中だけ監視（離脱で停止）
     if (tab === 'day' && !_dayLoaded) loadDay();
     if (tab === 'month' && !_monthLoaded) loadMonth();
     if (tab === 'detail' && !_detailLoaded) loadDetail();
     if (tab === 'orderlog' && !_orderlogLoaded) loadOrderLog();
 };
 window.refreshCurrent = function() {
-    if (currentTab === 'day') loadDay();
+    if (currentTab === 'live') { stopLive(); startLive(); }
+    else if (currentTab === 'day') loadDay();
     else if (currentTab === 'month') loadMonth();
     else if (currentTab === 'detail') loadDetail();
     else if (currentTab === 'orderlog') loadOrderLog();
@@ -489,6 +498,84 @@ function saleRowsHtml(sales, dateStr, withDelete) {
           </div>`;
     }).join('');
     return { rows, total };
+}
+
+// ═══ ライブ（リアルタイム売上：確定＋店内＋合計見込み） ═══
+const LIVE_EXCLUDE_TABLES = ['03'];   // テスト用の卓（実店舗に席がない）
+let _liveUnsub = null;
+let _liveSales = [], _liveTables = [];
+function startLive() {
+    if (_liveUnsub) return;
+    const dateStr = bizDate(new Date());
+    const start = new Date(dateStr + 'T05:00:00');
+    const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+    document.getElementById('live-loadinfo').textContent = '営業日 ' + dateStr + '（会計・注文と同時に自動更新）';
+    const salesQy = query(collection(db, 'stores/' + STORE + '/sales'),
+        where('timestamp', '>=', Timestamp.fromDate(start)),
+        where('timestamp', '<', Timestamp.fromDate(end)),
+        orderBy('timestamp', 'desc'));
+    const u1 = onSnapshot(salesQy, snap => {
+        _liveSales = [];
+        snap.forEach(d => _liveSales.push(d.data()));
+        renderLive();
+    }, err => { document.getElementById('live-body').innerHTML = '<div class="errbox">監視エラー: ' + esc(err.message) + '</div>'; });
+    const u2 = onSnapshot(collection(db, 'stores/' + STORE + '/tables'), snap => {
+        _liveTables = [];
+        snap.forEach(d => {
+            if (d.id === '_system' || LIVE_EXCLUDE_TABLES.includes(d.id)) return;
+            const x = d.data();
+            let sub = 0, tax = 0, items = 0;
+            (x.history || []).forEach(i => {
+                const lp = i.price * i.qty; sub += lp;
+                tax += (lp >= 0 ? Math.floor(lp * (i.rate || 0.10)) : -Math.floor(-lp * (i.rate || 0.10)));
+                items += i.qty;
+            });
+            if (items !== 0 || (x.guests || 0) > 0) _liveTables.push({ id: d.id, guests: x.guests || 0, checkin: x.checkin || '--:--', items, total: sub + tax });
+        });
+        renderLive();
+    }, err => { console.warn('tables監視エラー:', err.message); });
+    _liveUnsub = () => { u1(); u2(); };
+}
+function stopLive() {
+    if (_liveUnsub) { _liveUnsub(); _liveUnsub = null; }
+}
+function renderLive() {
+    const body = document.getElementById('live-body');
+    if (!body || currentTab !== 'live') return;
+    let total = 0, guests = 0;
+    const payment = {};
+    _liveSales.forEach(s => {
+        total += s.total || 0; guests += s.guests || 0;
+        const pm = s.paymentMethod || '現金';
+        payment[pm] = (payment[pm] || 0) + (s.total || 0);
+    });
+    const per = guests > 0 ? Math.round(total / guests) : 0;
+    const openTotal = _liveTables.reduce((s, t) => s + t.total, 0);
+    const openGuests = _liveTables.reduce((s, t) => s + t.guests, 0);
+    const grand = total + openTotal;
+    let html = `<div class="sumband" style="align-items:center;">
+      <div><div class="lbl">確定売上</div><div class="val">${yen(total)}</div><div class="lbl">${_liveSales.length}組 ${guests}名${per ? ' / 単価' + yen(per) : ''}</div></div>
+      <div><div class="lbl">店内（未会計）</div><div class="val" style="color:#ffcc80;">${yen(openTotal)}</div><div class="lbl">${_liveTables.length}卓 ${openGuests}名</div></div>
+      <div style="border-left:1px solid rgba(255,255,255,.25);padding-left:12px;"><div class="lbl">合計見込み</div><div class="val" style="font-size:25px;color:#a5d6a7;">${yen(grand)}</div></div>
+    </div>`;
+    html += paymentChipsHtml(payment);
+    if (_liveTables.length) {
+        html += '<div class="seccard"><div class="sechead">営業中の卓</div>';
+        _liveTables.sort((a,b) => a.id.localeCompare(b.id)).forEach(t => {
+            html += `<div class="dayrow" style="cursor:default;"><div><div class="d-date">${esc(t.id)}</div><div class="d-meta">入店 ${esc(t.checkin)} / ${t.guests}名 / ${t.items}点</div></div><div class="d-total">${yen(t.total)}</div></div>`;
+        });
+        html += '</div>';
+    }
+    if (_liveSales.length) {
+        html += '<div class="seccard"><div class="sechead">会計フィード（新しい順）</div>';
+        _liveSales.forEach(s => {
+            html += `<div class="dayrow" style="cursor:default;"><div><div class="d-date">${esc(s.checkout || '--:--')}　${esc(s.tableId || '')}</div><div class="d-meta">${s.guests || 0}名 / ${esc(s.paymentMethod || '現金')}</div></div><div class="d-total">${yen(s.total)}</div></div>`;
+        });
+        html += '</div>';
+    } else {
+        html += '<div class="empty">まだ会計はありません（会計が入ると自動で表示されます）</div>';
+    }
+    body.innerHTML = html;
 }
 
 // ═══ 日計（daily_summaryを1文書読むだけ） ═══
