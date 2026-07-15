@@ -10,7 +10,7 @@
 
 <script>
 (function(){
-  var K_VERSION = '2026-07-13-kanri-17';
+  var K_VERSION = '2026-07-13-kanri-18';
   window.__K_VERSION = K_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneKanriVersion');
@@ -192,7 +192,7 @@ header {
 
   <div class="tabs">
     <div class="tab active" id="tab-live" onclick="showTab('live')">ライブ</div>
-    <div class="tab" id="tab-day" onclick="showTab('live')">日計</div>
+    <div class="tab" id="tab-day" onclick="showTab('day')">日計</div>
     <div class="tab" id="tab-month" onclick="showTab('month')">月計</div>
     <div class="tab" id="tab-detail" onclick="showTab('detail')">明細</div>
     <div class="tab" id="tab-orderlog" onclick="showTab('orderlog')">注文ログ</div>
@@ -1003,7 +1003,8 @@ window.doLogin = function(){
         sessionStorage.setItem('kanriAuthed','1');
         document.getElementById('login-view').style.display = 'none';
         document.getElementById('main-view').style.display = 'block';
-        loadDay();
+        startLive();   // kanri-18: 初期画面=ライブの監視開始
+        loadDay();     // 日計は裏で先読み（タブ切替を速く）
     } else {
         alert('パスワードが違います');
     }
@@ -1012,7 +1013,8 @@ document.getElementById('pass-input').addEventListener('keydown', e => { if(e.ke
 if (sessionStorage.getItem('kanriAuthed') === '1') {
     document.getElementById('login-view').style.display = 'none';
     document.getElementById('main-view').style.display = 'block';
-    loadDay();
+    startLive();   // kanri-18: 初期画面=ライブの監視開始
+    loadDay();     // 日計は裏で先読み
 }
 
 // ▼ 画面に戻ってきたら現在のタブを自動で最新に更新（開きっぱなしで数字が古いままになる問題の対策）
