@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-11-t4s15-03';
+  var T4_VERSION = '2026-07-13-t4s16-01';
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -202,7 +202,7 @@ footer { width: 100%; display: flex; flex-direction: column; z-index: 100; box-s
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, initializeFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, collection, addDoc, query, orderBy, getDocs, where, Timestamp, serverTimestamp, arrayUnion, runTransaction, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, initializeFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, collection, addDoc, query, orderBy, getDocs, where, Timestamp, serverTimestamp, arrayUnion, arrayRemove, runTransaction, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -220,7 +220,7 @@ const app = initializeApp(firebaseConfig);
 // ロングポーリング強制で、切れた接続に即気づいて張り直す方式に変える（Firestore公式の緩和策）
 const db = initializeFirestore(app, { experimentalForceLongPolling: true });
 const auth = getAuth(app);
-window.db = db; window._doc = doc; window._setDoc = setDoc; window._arrayUnion = arrayUnion; window._getDocs = getDocs; window._collection = collection;
+window.db = db; window._doc = doc; window._setDoc = setDoc; window._arrayUnion = arrayUnion; window._arrayRemove = arrayRemove; window._getDocs = getDocs; window._collection = collection;
 
 window.currentUser = null;
 window.isEditing = false;
@@ -642,9 +642,8 @@ try { await deleteDoc(doc(db, "stores/mifune_test3/tables", tableId)); } catch(e
 await clearCountdown(tableId, true);
 renderIndex();
 // カスタム席なら会計後に削除
-const customs = getCustomTableNames();
-if (customs.includes(tableId)) {
-  saveCustomTableNames(customs.filter(n => n !== tableId));
+if (getCustomTableNames().includes(tableId)) {
+  removeCustomTableName(tableId);   // S16: 追記方式（1件だけ引く）
 }
 // 全席: localStorageのデータをクリア（再利用時に残らないように）
 ['history_','cart_','guests_','checkin_'].forEach(k => localStorage.removeItem(k + tableId));
@@ -1227,10 +1226,17 @@ async function buildPopularCategory() {
 // ▲▲▲ 人気メニュー機能追加 ▲▲▲
 const baseTablesL = ['C-a', 'C-b', 'C-c', '01', '02', '03', '04', '05', '06', '07', 'テイクアウト', '無人', 'イベント'];
 function getCustomTableNames() { return JSON.parse(localStorage.getItem('customTables') || '[]'); }
-function saveCustomTableNames(arr) {
-  localStorage.setItem('customTables', JSON.stringify(arr));
-  // Firestoreに同期
-  window._setDoc(window._doc(db, 'stores/mifune_test3/_system', 'config'), { customTables: arr }, { merge: true }).catch(e => console.warn('customTables同期エラー:', e));
+// S16: カスタム席リストも追記方式（別系統t4s5の移植）。配列丸ごと書き戻しを廃止。
+// arrayUnion/arrayRemoveは「その1件を足す/引く」だけをサーバーに伝えるので、
+// 古いリストを持った端末が書いても他の席ボタンを消せない（historyの追記方式と同じ原則）
+function addCustomTableName(name) {
+  const c = getCustomTableNames();
+  if (!c.includes(name)) { c.push(name); localStorage.setItem('customTables', JSON.stringify(c)); }
+  window._setDoc(window._doc(db, 'stores/mifune_test3/_system', 'config'), { customTables: window._arrayUnion(name) }, { merge: true }).catch(e => console.warn('customTables同期エラー:', e.message));
+}
+function removeCustomTableName(name) {
+  localStorage.setItem('customTables', JSON.stringify(getCustomTableNames().filter(n => n !== name)));
+  window._setDoc(window._doc(db, 'stores/mifune_test3/_system', 'config'), { customTables: window._arrayRemove(name) }, { merge: true }).catch(e => console.warn('customTables同期エラー:', e.message));
 }
 function getTablesL() { return [...baseTablesL, ...getCustomTableNames()]; }
 const tablesL = baseTablesL; // 後方互換
@@ -1423,7 +1429,7 @@ function confirmAddTable() {
   const name = document.getElementById('new-table-name').value.trim();
   if(!name) return alert('名前を入力してください');
   if(getTablesL().includes(name)) return alert(`「${name}」はすでに存在します`);
-  const customs = getCustomTableNames(); customs.push(name); saveCustomTableNames(customs);
+  addCustomTableName(name);   // S16: 追記方式（1件だけ足す）
   closeAddTableModal(); renderIndex();
 }
 function removeCustomTable(tId, e) {
@@ -1434,7 +1440,7 @@ function removeCustomTable(tId, e) {
   } else {
     if (!confirm(`「${tId}」を削除しますか？`)) return;
   }
-  saveCustomTableNames(getCustomTableNames().filter(n => n !== tId));
+  removeCustomTableName(tId);   // S16: 追記方式
   ['history_','cart_','guests_','checkin_'].forEach(k => localStorage.removeItem(k+tId));
   renderIndex();
 }
@@ -1467,8 +1473,7 @@ async function forceClearTableData() {
   // このデバイスのlocalStorageをクリア
   ['history_','cart_','guests_','checkin_'].forEach(k => localStorage.removeItem(k+tId));
   // カスタム席リストからも削除（Firestore経由で他デバイスも自動クリア）
-  const updated = getCustomTableNames().filter(n => n !== tId);
-  saveCustomTableNames(updated);
+  removeCustomTableName(tId);   // S16: 追記方式
   document.getElementById('force-clear-table-name').value = '';
   alert(`「${tId}」を削除しました。他のデバイスは次回接続時に自動クリアされます。`);
   renderIndex();
