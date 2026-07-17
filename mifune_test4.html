@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-13-t4s16-01';
+  var T4_VERSION = '2026-07-15-t4s17-01';
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -672,27 +672,31 @@ window.getSalesDayByDate = (d) => {
 // deleteDaySales（日別まとめ削除）もPOSから撤去
 window.cloudDelete = async (tableId) => { await deleteDoc(doc(db, "stores/mifune_test3/tables", tableId)); };
 
-// 飲み放題開始をFirestoreに書き込み（serverTimestamp使用・updatedAtと同時書き込み）
-window.cloudSyncNomi = async (tableId) => {
+// 飲み放題の開始/延長をFirestoreに書き込み（S17: 統合・ガード付き）
+// サーバーを先に見て、開始済みなら開始時刻には絶対に触らず合計分数だけ更新する。
+// （メモリが空の端末＝リロード直後・後から参加の端末からの送信でタイマーが巻き戻る事故の防止）
+window.cloudSyncNomi = async (tableId, totalMinutes) => {
     try {
-        // 即座にメモリにセット（iOS対策）
-        window._nomiData[tableId] = { startMs: Date.now(), totalMinutes: NOMIHODAI_MINUTES };
+        totalMinutes = totalMinutes || NOMIHODAI_MINUTES;
+        const ref = doc(db, "stores/mifune_test3/tables", tableId);
+        const snap = await getDoc(ref);
+        const cur = snap.exists() ? snap.data() : {};
+        if (cur.nomihodaiStart && typeof cur.nomihodaiStart.toMillis === 'function') {
+            // 開始済み → 延長のみ（開始時刻は不変）
+            window._nomiData[tableId] = { startMs: cur.nomihodaiStart.toMillis(), totalMinutes };
+            startCountdownTick();
+            await setDoc(ref, { nomiTotalMinutes: totalMinutes, updatedAt: serverTimestamp() }, { merge: true });
+            return;
+        }
+        // 未開始 → 開始（メモリはサーバー基準の現在時刻で即セット）
+        window._nomiData[tableId] = { startMs: Date.now() - (window.deviceClockOffset || 0), totalMinutes };
         startCountdownTick();
-        await setDoc(doc(db, "stores/mifune_test3/tables", tableId), {
+        await setDoc(ref, {
             nomihodaiStart: serverTimestamp(),
-            nomiTotalMinutes: NOMIHODAI_MINUTES,
-            updatedAt: serverTimestamp()
-        }, { merge: true });
-    } catch(e) { console.warn('nomihodai開始書き込み失敗:', e.message); }
-};
-
-window.cloudSyncNomiEncho = async (tableId, totalMinutes) => {
-    try {
-        await setDoc(doc(db, "stores/mifune_test3/tables", tableId), {
             nomiTotalMinutes: totalMinutes,
             updatedAt: serverTimestamp()
         }, { merge: true });
-    } catch(e) { console.warn('nomihodai延長書き込み失敗:', e.message); }
+    } catch(e) { console.warn('nomihodai同期書き込み失敗:', e.message); }
 };
 
 // 飲み放題終了をFirestoreに書き込み
@@ -1262,12 +1266,10 @@ async function startCountdownIfNeeded(tableId) {
     if (!hist.some(i => NOMIHODAI_ITEMS.includes(i.name))) return;
     const enchoCnt = hist.filter(i => i.name === NOMIHODAI_ENCHO).reduce((s, i) => s + i.qty, 0);
     const totalMinutes = NOMIHODAI_MINUTES + enchoCnt * NOMIHODAI_ENCHO_MINUTES;
-    if (window._nomiData[tableId]) {
-        // 延長注文 → 合計時間をFirestoreに更新
-        if (window.cloudSyncNomiEncho) await window.cloudSyncNomiEncho(tableId, totalMinutes);
-        return;
-    }
-    if (window.cloudSyncNomi) await window.cloudSyncNomi(tableId);
+    // S17: 延長は自端末のバッジにも即反映（サーバーの反響を待たない）
+    if (window._nomiData[tableId]) window._nomiData[tableId].totalMinutes = totalMinutes;
+    // 開始か延長かの判定はサーバーが行う（cloudSyncNomi内のガード）。メモリの有無に依存しない
+    if (window.cloudSyncNomi) await window.cloudSyncNomi(tableId, totalMinutes);
 }
 
 // 会計時に呼ぶ
@@ -1280,7 +1282,9 @@ async function clearCountdown(tableId, skipCloud = false) {
 function getCountdownRemaining(tableId) {
     const d = window._nomiData[tableId];
     if (!d) return null;
-    const elapsed = Math.floor((Date.now() - d.startMs) / 1000);
+    // S17: startMsはサーバー時刻なので、端末時計をサーバー基準に補正してから引く
+    const serverNow = Date.now() - (window.deviceClockOffset || 0);
+    const elapsed = Math.floor((serverNow - d.startMs) / 1000);
     return d.totalMinutes * 60 - elapsed;
 }
 
