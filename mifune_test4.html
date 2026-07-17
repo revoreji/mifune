@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-15-t4s17-05';
+  var T4_VERSION = '2026-07-17-t4s17-07';
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -335,15 +335,19 @@ localStorage.setItem('checkin_'+tId, data.checkin || "--:--");
 
 // 飲み放題カウントダウン同期（メモリのみ）
 if (!docSnap.metadata.hasPendingWrites) {
-    if (data.nomihodaiStart) {
-        const newTotal = data.nomiTotalMinutes || NOMIHODAI_MINUTES;
-        // S17-05: 延長（合計増）を受信したらアラームを再武装。全端末が延長後の時間切れでも鳴る
+    // S17-06: 履歴が空の卓は残骸とみなして無視（幽霊バッジ防止）
+    // S17-07: 締切時刻（nomiDeadline）方式。旧形式（start+分数）の文書は導出して互換
+    if (data.nomihodaiStart && Array.isArray(data.history) && data.history.length > 0) {
+        let deadlineMs = null;
+        if (data.nomiDeadline && typeof data.nomiDeadline.toMillis === 'function') {
+            deadlineMs = data.nomiDeadline.toMillis();
+        } else {
+            deadlineMs = data.nomihodaiStart.toMillis() + (data.nomiTotalMinutes || NOMIHODAI_MINUTES) * 60000;
+        }
+        // S17-05: 締切が延びた＝延長を受信 → アラーム再武装（全端末）
         const prevNomi = window._nomiData[tId];
-        if (prevNomi && newTotal > prevNomi.totalMinutes && window.clearAlerted) window.clearAlerted(tId);
-        window._nomiData[tId] = {
-            startMs: data.nomihodaiStart.toMillis(),
-            totalMinutes: newTotal
-        };
+        if (prevNomi && deadlineMs > prevNomi.deadlineMs && window.clearAlerted) window.clearAlerted(tId);
+        window._nomiData[tId] = { deadlineMs };
     } else {
         delete window._nomiData[tId];
     }
@@ -678,25 +682,45 @@ window.cloudDelete = async (tableId) => { await deleteDoc(doc(db, "stores/mifune
 // 飲み放題の開始/延長をFirestoreに書き込み（S17: 統合・ガード付き）
 // サーバーを先に見て、開始済みなら開始時刻には絶対に触らず合計分数だけ更新する。
 // （メモリが空の端末＝リロード直後・後から参加の端末からの送信でタイマーが巻き戻る事故の防止）
-window.cloudSyncNomi = async (tableId, totalMinutes) => {
+window.cloudSyncNomi = async (tableId, enchoRounds) => {
     try {
-        totalMinutes = totalMinutes || NOMIHODAI_MINUTES;
+        enchoRounds = enchoRounds || 0;
         const ref = doc(db, "stores/mifune_test3/tables", tableId);
         const snap = await getDoc(ref);
         const cur = snap.exists() ? snap.data() : {};
-        if (cur.nomihodaiStart && typeof cur.nomihodaiStart.toMillis === 'function') {
-            // 開始済み → 延長のみ（開始時刻は不変）
-            window._nomiData[tableId] = { startMs: cur.nomihodaiStart.toMillis(), totalMinutes };
+        const started = cur.nomihodaiStart && typeof cur.nomihodaiStart.toMillis === 'function';
+        if (started) {
+            // S17-07: 締切方式。適用済み回数(nomiRounds)との差分だけ締切を動かす
+            let deadlineMs = (cur.nomiDeadline && typeof cur.nomiDeadline.toMillis === 'function')
+                ? cur.nomiDeadline.toMillis()
+                : cur.nomihodaiStart.toMillis() + (cur.nomiTotalMinutes || NOMIHODAI_MINUTES) * 60000;
+            const curRounds = cur.nomiRounds || 0;
+            if (enchoRounds > curRounds) {
+                // 延長: 基準は「残り時間があれば現在の締切、LO後なら今」＝押下起点30分
+                const base = Math.max(deadlineMs, Date.now());
+                deadlineMs = base + (enchoRounds - curRounds) * NOMIHODAI_ENCHO_MINUTES * 60000;
+                if (window.clearAlerted) window.clearAlerted(tableId);   // 延長→アラーム再武装
+            } else if (enchoRounds < curRounds) {
+                // 延長の取消: その分だけ締切を戻す
+                deadlineMs = deadlineMs - (curRounds - enchoRounds) * NOMIHODAI_ENCHO_MINUTES * 60000;
+            }
+            window._nomiData[tableId] = { deadlineMs };
             startCountdownTick();
-            await setDoc(ref, { nomiTotalMinutes: totalMinutes, updatedAt: serverTimestamp() }, { merge: true });
+            await setDoc(ref, {
+                nomiDeadline: Timestamp.fromMillis(deadlineMs),
+                nomiRounds: enchoRounds,
+                updatedAt: serverTimestamp()
+            }, { merge: true });
             return;
         }
-        // 未開始 → 開始
-        window._nomiData[tableId] = { startMs: Date.now(), totalMinutes };
+        // 未開始 → 開始（締切=今+85分）
+        const deadlineMs = Date.now() + NOMIHODAI_MINUTES * 60000;
+        window._nomiData[tableId] = { deadlineMs };
         startCountdownTick();
         await setDoc(ref, {
             nomihodaiStart: serverTimestamp(),
-            nomiTotalMinutes: totalMinutes,
+            nomiDeadline: Timestamp.fromMillis(deadlineMs),
+            nomiRounds: enchoRounds,
             updatedAt: serverTimestamp()
         }, { merge: true });
     } catch(e) { console.warn('nomihodai同期書き込み失敗:', e.message); }
@@ -705,7 +729,7 @@ window.cloudSyncNomi = async (tableId, totalMinutes) => {
 // 飲み放題終了をFirestoreに書き込み
 window.cloudSyncNomiClear = async (tableId) => {
     try {
-        await setDoc(doc(db, "stores/mifune_test3/tables", tableId), { nomihodaiStart: null, nomiTotalMinutes: null }, { merge: true });
+        await setDoc(doc(db, "stores/mifune_test3/tables", tableId), { nomihodaiStart: null, nomiTotalMinutes: null, nomiDeadline: null, nomiRounds: null }, { merge: true });
     } catch(e) { console.warn('nomihodaiクリア失敗:', e.message); }
 };
 
@@ -1272,15 +1296,8 @@ async function startCountdownIfNeeded(tableId) {
     // 延長の回数 ＝ 延長個数 ÷ 飲み放題人数（例: 2人で延長×2 → 1回 → +30分）
     const nomiCnt = hist.filter(i => NOMIHODAI_ITEMS.includes(i.name)).reduce((s, i) => s + i.qty, 0);
     const enchoRounds = Math.floor(enchoCnt / Math.max(1, nomiCnt));
-    const totalMinutes = NOMIHODAI_MINUTES + enchoRounds * NOMIHODAI_ENCHO_MINUTES;
-    // S17: 延長は自端末のバッジにも即反映（サーバーの反響を待たない）
-    if (window._nomiData[tableId]) {
-        // S17-05: 延長で時間が増えたらアラームを再武装（LO後の延長→延長分の時間切れでも鳴るように）
-        if (totalMinutes > window._nomiData[tableId].totalMinutes) clearAlerted(tableId);
-        window._nomiData[tableId].totalMinutes = totalMinutes;
-    }
-    // 開始か延長かの判定はサーバーが行う（cloudSyncNomi内のガード）。メモリの有無に依存しない
-    if (window.cloudSyncNomi) await window.cloudSyncNomi(tableId, totalMinutes);
+    // S17-07: 開始/延長/取消の判定と締切計算はcloudSyncNomiがサーバー基準で行う
+    if (window.cloudSyncNomi) await window.cloudSyncNomi(tableId, enchoRounds);
 }
 
 // 会計時に呼ぶ
@@ -1293,8 +1310,7 @@ async function clearCountdown(tableId, skipCloud = false) {
 function getCountdownRemaining(tableId) {
     const d = window._nomiData[tableId];
     if (!d) return null;
-    const elapsed = Math.floor((Date.now() - d.startMs) / 1000);
-    return d.totalMinutes * 60 - elapsed;
+    return Math.floor((d.deadlineMs - Date.now()) / 1000);
 }
 
 let alarmCtx = null;
