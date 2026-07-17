@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-15-t4s17-01';
+  var T4_VERSION = '2026-07-15-t4s17-02';
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -330,8 +330,12 @@ localStorage.setItem('guests_'+tId, data.guests || 0);
 localStorage.setItem('checkin_'+tId, data.checkin || "--:--");
 
 // updatedAtでデバイス時計とサーバー時計のズレを随時補正
+// S17-02: この式が時計ズレに一致するのは「たった今書かれた」文書だけ。
+// 初回スナップショットには何日も前のupdatedAtも流れてくるため、
+// ±5分以内の値だけを採用する（営業中は注文のたびに較正され続ける）
 if (data.updatedAt && typeof data.updatedAt.toMillis === 'function') {
-    window.deviceClockOffset = Date.now() - data.updatedAt.toMillis();
+    const off = Date.now() - data.updatedAt.toMillis();
+    if (Math.abs(off) < 5 * 60 * 1000) window.deviceClockOffset = off;
 }
 
 // 飲み放題カウントダウン同期（メモリのみ）
