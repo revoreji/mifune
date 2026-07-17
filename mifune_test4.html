@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-15-t4s17-02';
+  var T4_VERSION = '2026-07-15-t4s17-03';
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -329,14 +329,9 @@ localStorage.setItem('history_'+tId, JSON.stringify(data.history || []));
 localStorage.setItem('guests_'+tId, data.guests || 0);
 localStorage.setItem('checkin_'+tId, data.checkin || "--:--");
 
-// updatedAtでデバイス時計とサーバー時計のズレを随時補正
-// S17-02: この式が時計ズレに一致するのは「たった今書かれた」文書だけ。
-// 初回スナップショットには何日も前のupdatedAtも流れてくるため、
-// ±5分以内の値だけを採用する（営業中は注文のたびに較正され続ける）
-if (data.updatedAt && typeof data.updatedAt.toMillis === 'function') {
-    const off = Date.now() - data.updatedAt.toMillis();
-    if (Math.abs(off) < 5 * 60 * 1000) window.deviceClockOffset = off;
-}
+// S17-03: updatedAtによる時計ズレ推定は撤去（文書の古さと時計ズレは原理的に区別できず、
+// カウントダウンが「最後の更新からの経過分」だけ巻き戻る症状を作った）。
+// 現代の端末はNTPで時計同期されるため、端末時計をそのまま信頼する。
 
 // 飲み放題カウントダウン同期（メモリのみ）
 if (!docSnap.metadata.hasPendingWrites) {
@@ -692,8 +687,8 @@ window.cloudSyncNomi = async (tableId, totalMinutes) => {
             await setDoc(ref, { nomiTotalMinutes: totalMinutes, updatedAt: serverTimestamp() }, { merge: true });
             return;
         }
-        // 未開始 → 開始（メモリはサーバー基準の現在時刻で即セット）
-        window._nomiData[tableId] = { startMs: Date.now() - (window.deviceClockOffset || 0), totalMinutes };
+        // 未開始 → 開始
+        window._nomiData[tableId] = { startMs: Date.now(), totalMinutes };
         startCountdownTick();
         await setDoc(ref, {
             nomihodaiStart: serverTimestamp(),
@@ -1286,9 +1281,7 @@ async function clearCountdown(tableId, skipCloud = false) {
 function getCountdownRemaining(tableId) {
     const d = window._nomiData[tableId];
     if (!d) return null;
-    // S17: startMsはサーバー時刻なので、端末時計をサーバー基準に補正してから引く
-    const serverNow = Date.now() - (window.deviceClockOffset || 0);
-    const elapsed = Math.floor((serverNow - d.startMs) / 1000);
+    const elapsed = Math.floor((Date.now() - d.startMs) / 1000);
     return d.totalMinutes * 60 - elapsed;
 }
 
