@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-15-t4s17-03';
+  var T4_VERSION = '2026-07-15-t4s17-05';
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -336,9 +336,13 @@ localStorage.setItem('checkin_'+tId, data.checkin || "--:--");
 // 飲み放題カウントダウン同期（メモリのみ）
 if (!docSnap.metadata.hasPendingWrites) {
     if (data.nomihodaiStart) {
+        const newTotal = data.nomiTotalMinutes || NOMIHODAI_MINUTES;
+        // S17-05: 延長（合計増）を受信したらアラームを再武装。全端末が延長後の時間切れでも鳴る
+        const prevNomi = window._nomiData[tId];
+        if (prevNomi && newTotal > prevNomi.totalMinutes && window.clearAlerted) window.clearAlerted(tId);
         window._nomiData[tId] = {
             startMs: data.nomihodaiStart.toMillis(),
-            totalMinutes: data.nomiTotalMinutes || NOMIHODAI_MINUTES
+            totalMinutes: newTotal
         };
     } else {
         delete window._nomiData[tId];
@@ -1264,9 +1268,17 @@ async function startCountdownIfNeeded(tableId) {
     const hist = JSON.parse(localStorage.getItem('history_' + tableId) || '[]');
     if (!hist.some(i => NOMIHODAI_ITEMS.includes(i.name))) return;
     const enchoCnt = hist.filter(i => i.name === NOMIHODAI_ENCHO).reduce((s, i) => s + i.qty, 0);
-    const totalMinutes = NOMIHODAI_MINUTES + enchoCnt * NOMIHODAI_ENCHO_MINUTES;
+    // S17-04: 延長は人数分の個数で打つ（課金）が、時間は卓に1回＋30分。
+    // 延長の回数 ＝ 延長個数 ÷ 飲み放題人数（例: 2人で延長×2 → 1回 → +30分）
+    const nomiCnt = hist.filter(i => NOMIHODAI_ITEMS.includes(i.name)).reduce((s, i) => s + i.qty, 0);
+    const enchoRounds = Math.floor(enchoCnt / Math.max(1, nomiCnt));
+    const totalMinutes = NOMIHODAI_MINUTES + enchoRounds * NOMIHODAI_ENCHO_MINUTES;
     // S17: 延長は自端末のバッジにも即反映（サーバーの反響を待たない）
-    if (window._nomiData[tableId]) window._nomiData[tableId].totalMinutes = totalMinutes;
+    if (window._nomiData[tableId]) {
+        // S17-05: 延長で時間が増えたらアラームを再武装（LO後の延長→延長分の時間切れでも鳴るように）
+        if (totalMinutes > window._nomiData[tableId].totalMinutes) clearAlerted(tableId);
+        window._nomiData[tableId].totalMinutes = totalMinutes;
+    }
     // 開始か延長かの判定はサーバーが行う（cloudSyncNomi内のガード）。メモリの有無に依存しない
     if (window.cloudSyncNomi) await window.cloudSyncNomi(tableId, totalMinutes);
 }
