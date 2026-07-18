@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-17-t4s17-08';
+  var T4_VERSION = '2026-07-18-t4s17-09';
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -682,7 +682,7 @@ window.cloudDelete = async (tableId) => { await deleteDoc(doc(db, "stores/mifune
 // 飲み放題の開始/延長をFirestoreに書き込み（S17: 統合・ガード付き）
 // サーバーを先に見て、開始済みなら開始時刻には絶対に触らず合計分数だけ更新する。
 // （メモリが空の端末＝リロード直後・後から参加の端末からの送信でタイマーが巻き戻る事故の防止）
-window.cloudSyncNomi = async (tableId, enchoDelta) => {
+window.cloudSyncNomi = async (tableId, enchoDelta, hasNomiStart) => {
     try {
         enchoDelta = enchoDelta || 0;
         const ref = doc(db, "stores/mifune_test3/tables", tableId);
@@ -694,6 +694,20 @@ window.cloudSyncNomi = async (tableId, enchoDelta) => {
             let deadlineMs = (cur.nomiDeadline && typeof cur.nomiDeadline.toMillis === 'function')
                 ? cur.nomiDeadline.toMillis()
                 : cur.nomihodaiStart.toMillis() + (cur.nomiTotalMinutes || NOMIHODAI_MINUTES) * 60000;
+            // S17-09: LO後（締切超過）に飲み放題の開始品が来たら「2回転目」＝新しい85分で再スタート。
+            // 時間内の飲み放題追加は合流（時間はこちらで管理しない）＝従来どおり無視
+            if (hasNomiStart && Date.now() > deadlineMs) {
+                deadlineMs = Date.now() + NOMIHODAI_MINUTES * 60000;
+                if (window.clearAlerted) window.clearAlerted(tableId);   // 2回転目→アラーム再武装
+                window._nomiData[tableId] = { deadlineMs };
+                startCountdownTick();
+                await setDoc(ref, {
+                    nomihodaiStart: serverTimestamp(),
+                    nomiDeadline: Timestamp.fromMillis(deadlineMs),
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+                return;
+            }
             if (enchoDelta > 0) {
                 // 延長: 残り時間があれば締切に、LO後なら今から＋30分（押下起点）
                 deadlineMs = Math.max(deadlineMs, Date.now()) + enchoDelta * NOMIHODAI_ENCHO_MINUTES * 60000;
@@ -1288,11 +1302,12 @@ async function startCountdownIfNeeded(tableId, sentItems) {
     if (!hist.some(i => NOMIHODAI_ITEMS.includes(i.name))) return;
     // S17-08: 単純方式。延長は「1送信＝＋30分」。数量は課金用で、時間には一切使わない。
     // （履歴からの回数計算を全廃＝旧データの二重クレジットも原理ごと消滅）
-    let enchoDelta = 0;
+    let enchoDelta = 0, hasNomiStart = false;
     (sentItems || []).forEach(i => {
         if (i.name === NOMIHODAI_ENCHO) enchoDelta += (i.qty > 0 ? 1 : -1);
+        if (NOMIHODAI_ITEMS.includes(i.name) && i.qty > 0) hasNomiStart = true;
     });
-    if (window.cloudSyncNomi) await window.cloudSyncNomi(tableId, enchoDelta);
+    if (window.cloudSyncNomi) await window.cloudSyncNomi(tableId, enchoDelta, hasNomiStart);
 }
 
 // 会計時に呼ぶ
