@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-17-t4s17-07';
+  var T4_VERSION = '2026-07-17-t4s17-08';
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -489,7 +489,7 @@ async function autoKitchenPrint(tableId, mobileOrders, tag) { tag = tag || 'M';
     }
     // モバイル/ハンディ注文もorder_logに記録
     window.saveOrderLog(tableId, newLines);
-    await startCountdownIfNeeded(tableId);
+    await startCountdownIfNeeded(tableId, newLines);
 }
 // ▲▲▲ モバイルオーダー自動キッチン印刷 ▲▲▲
 
@@ -682,35 +682,31 @@ window.cloudDelete = async (tableId) => { await deleteDoc(doc(db, "stores/mifune
 // 飲み放題の開始/延長をFirestoreに書き込み（S17: 統合・ガード付き）
 // サーバーを先に見て、開始済みなら開始時刻には絶対に触らず合計分数だけ更新する。
 // （メモリが空の端末＝リロード直後・後から参加の端末からの送信でタイマーが巻き戻る事故の防止）
-window.cloudSyncNomi = async (tableId, enchoRounds) => {
+window.cloudSyncNomi = async (tableId, enchoDelta) => {
     try {
-        enchoRounds = enchoRounds || 0;
+        enchoDelta = enchoDelta || 0;
         const ref = doc(db, "stores/mifune_test3/tables", tableId);
         const snap = await getDoc(ref);
         const cur = snap.exists() ? snap.data() : {};
         const started = cur.nomihodaiStart && typeof cur.nomihodaiStart.toMillis === 'function';
         if (started) {
-            // S17-07: 締切方式。適用済み回数(nomiRounds)との差分だけ締切を動かす
+            // S17-08: 今回の送信に含まれた延長（±）だけ締切を動かす。履歴の総数は見ない
             let deadlineMs = (cur.nomiDeadline && typeof cur.nomiDeadline.toMillis === 'function')
                 ? cur.nomiDeadline.toMillis()
                 : cur.nomihodaiStart.toMillis() + (cur.nomiTotalMinutes || NOMIHODAI_MINUTES) * 60000;
-            const curRounds = cur.nomiRounds || 0;
-            if (enchoRounds > curRounds) {
-                // 延長: 基準は「残り時間があれば現在の締切、LO後なら今」＝押下起点30分
-                const base = Math.max(deadlineMs, Date.now());
-                deadlineMs = base + (enchoRounds - curRounds) * NOMIHODAI_ENCHO_MINUTES * 60000;
+            if (enchoDelta > 0) {
+                // 延長: 残り時間があれば締切に、LO後なら今から＋30分（押下起点）
+                deadlineMs = Math.max(deadlineMs, Date.now()) + enchoDelta * NOMIHODAI_ENCHO_MINUTES * 60000;
                 if (window.clearAlerted) window.clearAlerted(tableId);   // 延長→アラーム再武装
-            } else if (enchoRounds < curRounds) {
-                // 延長の取消: その分だけ締切を戻す
-                deadlineMs = deadlineMs - (curRounds - enchoRounds) * NOMIHODAI_ENCHO_MINUTES * 60000;
+            } else if (enchoDelta < 0) {
+                // 延長の取消
+                deadlineMs = deadlineMs + enchoDelta * NOMIHODAI_ENCHO_MINUTES * 60000;
             }
             window._nomiData[tableId] = { deadlineMs };
             startCountdownTick();
-            await setDoc(ref, {
-                nomiDeadline: Timestamp.fromMillis(deadlineMs),
-                nomiRounds: enchoRounds,
-                updatedAt: serverTimestamp()
-            }, { merge: true });
+            if (enchoDelta !== 0) {
+                await setDoc(ref, { nomiDeadline: Timestamp.fromMillis(deadlineMs), updatedAt: serverTimestamp() }, { merge: true });
+            }
             return;
         }
         // 未開始 → 開始（締切=今+85分）
@@ -720,7 +716,6 @@ window.cloudSyncNomi = async (tableId, enchoRounds) => {
         await setDoc(ref, {
             nomihodaiStart: serverTimestamp(),
             nomiDeadline: Timestamp.fromMillis(deadlineMs),
-            nomiRounds: enchoRounds,
             updatedAt: serverTimestamp()
         }, { merge: true });
     } catch(e) { console.warn('nomihodai同期書き込み失敗:', e.message); }
@@ -1288,16 +1283,16 @@ window._nomiData = {}; // 飲み放題データ（メモリ管理）
 window.deviceClockOffset = 0; // Date.now() - サーバー時刻（ms）
 
 // 注文確定時に呼ぶ
-async function startCountdownIfNeeded(tableId) {
+async function startCountdownIfNeeded(tableId, sentItems) {
     const hist = JSON.parse(localStorage.getItem('history_' + tableId) || '[]');
     if (!hist.some(i => NOMIHODAI_ITEMS.includes(i.name))) return;
-    const enchoCnt = hist.filter(i => i.name === NOMIHODAI_ENCHO).reduce((s, i) => s + i.qty, 0);
-    // S17-04: 延長は人数分の個数で打つ（課金）が、時間は卓に1回＋30分。
-    // 延長の回数 ＝ 延長個数 ÷ 飲み放題人数（例: 2人で延長×2 → 1回 → +30分）
-    const nomiCnt = hist.filter(i => NOMIHODAI_ITEMS.includes(i.name)).reduce((s, i) => s + i.qty, 0);
-    const enchoRounds = Math.floor(enchoCnt / Math.max(1, nomiCnt));
-    // S17-07: 開始/延長/取消の判定と締切計算はcloudSyncNomiがサーバー基準で行う
-    if (window.cloudSyncNomi) await window.cloudSyncNomi(tableId, enchoRounds);
+    // S17-08: 単純方式。延長は「1送信＝＋30分」。数量は課金用で、時間には一切使わない。
+    // （履歴からの回数計算を全廃＝旧データの二重クレジットも原理ごと消滅）
+    let enchoDelta = 0;
+    (sentItems || []).forEach(i => {
+        if (i.name === NOMIHODAI_ENCHO) enchoDelta += (i.qty > 0 ? 1 : -1);
+    });
+    if (window.cloudSyncNomi) await window.cloudSyncNomi(tableId, enchoDelta);
 }
 
 // 会計時に呼ぶ
@@ -2461,7 +2456,7 @@ async function testSend() {
     const sentItems = currentCart.slice();
     try { await appendOrderToCloud(currentTable, sentItems); } catch(e) { _sbRestore(); return alert("同期失敗（電波を確認して再送信してください）: " + e.message); }
     _sbRestore();
-    window.saveOrderLog(currentTable, sentItems); localStorage.removeItem('cart_'+currentTable); currentCart = []; await startCountdownIfNeeded(currentTable); hideAll(); document.getElementById('view-success').style.display = 'flex'; updateFooter(); }
+    window.saveOrderLog(currentTable, sentItems); localStorage.removeItem('cart_'+currentTable); currentCart = []; await startCountdownIfNeeded(currentTable, sentItems); hideAll(); document.getElementById('view-success').style.display = 'flex'; updateFooter(); }
 async function testPay() {
     if(window.saveSaleToCloud) await window.saveSaleToCloud(currentTable, currentPaymentMethod);
     showIndex();
@@ -2497,7 +2492,7 @@ try {
     // 2. 履歴に追記（サーバーの今の履歴に新しい品だけを足す・上書きしない）
     await appendOrderToCloud(currentTable, currentCart);
     window.saveOrderLog(currentTable, currentCart);
-    await startCountdownIfNeeded(currentTable);
+    await startCountdownIfNeeded(currentTable, currentCart);
     localStorage.removeItem('cart_'+currentTable); currentCart = [];
     hideAll(); document.getElementById('view-success').style.display = 'flex'; updateFooter();
 } catch(e) {
