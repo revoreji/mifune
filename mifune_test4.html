@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-18-t4s17-09';
+  var T4_VERSION = '2026-07-18-t4s18-01';
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -809,6 +809,76 @@ window.printStandaloneRyoshu = async function() {
 };
 // ▲ 独立領収書発行
 
+// ▼ レシート再発行（本日のsalesから選んでqueuePrintに再投入。データは一切書き換えない読み取り専用機能）
+window._reprintSales = [];       // 一覧表示中の売上（タップ時にindexで引く）
+window._reprintProcessing = false; // 二度押し防止
+
+window.openReceiptReprint = async function() {
+    document.getElementById('overlay-standalone-ryoshu').style.display = 'none';
+    const listEl = document.getElementById('reprint-list');
+    listEl.innerHTML = '<div style="text-align:center; color:#999; padding:30px 0;">読み込み中...</div>';
+    document.getElementById('overlay-receipt-reprint').style.display = 'flex';
+    try {
+        // 本日分のみ・新しい順（getSalesDayByDateはtimestamp desc）
+        const sales = await window.getSalesDayByDate(new Date());
+        window._reprintSales = sales;
+        if (sales.length === 0) {
+            listEl.innerHTML = '<div style="text-align:center; color:#999; padding:30px 0;">本日の会計はまだありません</div>';
+            return;
+        }
+        listEl.innerHTML = sales.map((s, idx) => {
+            const time = s.checkout || '--:--';
+            const pm = s.paymentMethod || '現金';
+            return `<div onclick="window.reprintReceipt(${idx})" style="display:flex; justify-content:space-between; align-items:center; padding:12px 10px; border-bottom:1px solid #eee; cursor:pointer;">
+                <div>
+                    <div style="font-size:15px; font-weight:bold;">${time}　${s.tableId || '?'}卓</div>
+                    <div style="font-size:12px; color:#888;">${pm}　${s.guests || 0}名</div>
+                </div>
+                <div style="font-size:17px; font-weight:bold; color:var(--primary);">¥${(s.total || 0).toLocaleString()}</div>
+            </div>`;
+        }).join('');
+    } catch(e) {
+        console.warn('再発行一覧の取得失敗:', e.message);
+        listEl.innerHTML = '<div style="text-align:center; color:var(--danger); padding:30px 0;">読み込みに失敗しました<br><span style="font-size:12px; color:#999;">電波を確認して開き直してください</span></div>';
+    }
+};
+
+window.reprintReceipt = async function(idx) {
+    if (window._reprintProcessing) return; // 二度押し防止（同じ伝票が2枚出る事故の防止）
+    const s = window._reprintSales[idx];
+    if (!s) return;
+    if (!confirm(`${s.checkout || ''} ${s.tableId || ''}卓 ¥${(s.total || 0).toLocaleString()} のレシートを再発行しますか？`)) return;
+    window._reprintProcessing = true;
+    try {
+        // 会計時（payCo）と同じ集計：同名・同価格・同税率を合算し、全数取消で相殺された品（数量0）は印字しない
+        let receiptItems = [];
+        (s.items || []).forEach(i => {
+            const ex = receiptItems.find(r => r.name === i.name && r.price === i.price && r.rate === i.rate);
+            if (ex) ex.qty += i.qty;
+            else receiptItems.push({ name: i.name, qty: i.qty, price: i.price, rate: i.rate });
+        });
+        receiptItems = receiptItems.filter(r => r.qty !== 0);
+        // cashReceivedはsalesに保存していないため0（キャッシュレス会計と同じく お預り/お釣り行なしで印字）
+        await window.queuePrint({
+            type: 'receipt', tableNo: s.tableId || '', guests: s.guests || 0, checkinTime: s.checkin || '--:--',
+            items: receiptItems,
+            paymentMethod: s.paymentMethod || '現金',
+            cashReceived: 0,
+            orderTime: new Date().toLocaleString('ja-JP'),
+            reissue: true,          // 再発行フラグ（サーバー側テンプレートで「再発行」印字に使用可。未対応でも無害）
+            originalSaleId: s.id    // 元売上のドキュメントID（追跡用）
+        });
+        alert('レシートを再発行しました');
+        document.getElementById('overlay-receipt-reprint').style.display = 'none';
+    } catch(e) {
+        console.warn('再発行失敗:', e.message);
+        alert('再発行に失敗しました: ' + e.message);
+    } finally {
+        window._reprintProcessing = false;
+    }
+};
+// ▲ レシート再発行
+
 </script>
 
 <div id="overlay-printer-settings" class="overlay" style="display:none;">
@@ -1034,10 +1104,22 @@ window.printStandaloneRyoshu = async function() {
     <div style="text-align:left; margin-bottom:6px; font-size:13px; color:#666;">但し書き</div>
     <input type="text" id="sa-tadashi" placeholder="お食事代として" style="width:100%; padding:10px; border:2px solid #ddd; border-radius:10px; font-size:16px; margin-bottom:15px; box-sizing:border-box;">
     <button class="btn-large" style="background:var(--primary); color:white; margin-bottom:8px;" onclick="window.printStandaloneRyoshu()">印刷する</button>
+    <button class="btn-large" style="background:var(--info); color:white; margin-bottom:8px;" onclick="window.openReceiptReprint()">🧾 レシート再発行</button>
     <button class="btn-large" style="background:var(--gray); color:white;" onclick="document.getElementById('overlay-standalone-ryoshu').style.display='none'">閉じる</button>
   </div>
 </div>
 <!-- ▲ 独立領収書発行モーダル -->
+
+<!-- ▼ レシート再発行モーダル -->
+<div id="overlay-receipt-reprint" class="overlay" style="display:none;">
+  <div class="modal" style="max-height:90dvh; display:flex; flex-direction:column;">
+    <div style="font-weight:bold; font-size:18px; margin-bottom:4px; flex-shrink:0;">🧾 レシート再発行</div>
+    <div style="font-size:12px; color:#888; margin-bottom:12px; flex-shrink:0;">本日の会計から選択（新しい順）</div>
+    <div id="reprint-list" style="flex:1; overflow-y:auto; min-height:120px; text-align:left;"></div>
+    <button class="btn-large" style="background:var(--gray); color:white; margin-top:12px; flex-shrink:0;" onclick="document.getElementById('overlay-receipt-reprint').style.display='none'">閉じる</button>
+  </div>
+</div>
+<!-- ▲ レシート再発行モーダル -->
 
 
 <script>
