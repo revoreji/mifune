@@ -13,7 +13,15 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-18-t4s18-01';
+  var T4_VERSION = '2026-07-22-t4s18-02';
+// S18-02: 税込行合計の共通式。floor(x*(1+rate))は取消（マイナス行）で1円ずれる
+// （floorが負方向に切れる＋浮動小数点誤差）ため、必ずこの関数を使うこと
+function lineTotalInc(i) {
+    var lp = i.price * i.qty;
+    var lt = lp >= 0 ? Math.floor(lp * i.rate) : -Math.floor(-lp * i.rate);
+    return lp + lt;
+}
+window.lineTotalInc = lineTotalInc;
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -1524,7 +1532,7 @@ function renderIndex() {
   const customs = getCustomTableNames();
   const html = getTablesL().map(t => {
     const h = JSON.parse(localStorage.getItem('history_'+t) || '[]');
-    const total = h.reduce((s, i) => s + Math.floor(i.price*i.qty*(1+i.rate)), 0);
+    const total = h.reduce((s, i) => s + window.lineTotalInc(i), 0);   // S18-02
     const isCustom = customs.includes(t);
     const delBtn = isCustom ? `<span onclick="removeCustomTable('${t}',event)" style="font-size:10px;color:#bbb;margin-top:3px;padding:2px 6px;border:1px solid #eee;border-radius:8px;">削除</span>` : '';
     const rem = getCountdownRemaining(t);
@@ -1570,7 +1578,7 @@ function showSaleDetail(s) {
     `${s.tableId}番 ${s.checkin}〜${s.checkout} (${s.paymentMethod || '現金'})`;
   const items = s.items || [];
   const rows = items.map(i => {
-    const subtotal = Math.floor(i.price * i.qty * (1 + i.rate));
+    const subtotal = window.lineTotalInc(i);   // S18-02
     return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0;">
       <span>${i.name} × ${i.qty}</span>
       <span>¥${subtotal.toLocaleString()}</span>
@@ -2540,7 +2548,7 @@ async function runTicketCheck(hist) {
     el.textContent = '伝票との照合ができませんでした（' + e.message + '）※会計はそのまま行えます';
   }
 }
-function updateFooter() { document.getElementById('cart-count').innerText = currentCart.reduce((s, i) => s + i.qty, 0); const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]'); const total = hist.reduce((s, i) => s + Math.floor(i.price*i.qty*(1+i.rate)), 0); document.getElementById('display-current-total').innerText = "税込合計: ¥" + total.toLocaleString(); }
+function updateFooter() { document.getElementById('cart-count').innerText = currentCart.reduce((s, i) => s + i.qty, 0); const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]'); const total = hist.reduce((s, i) => s + lineTotalInc(i), 0);   /* S18-02 */ document.getElementById('display-current-total').innerText = "税込合計: ¥" + total.toLocaleString(); }
 function openReceiptChoice() { payCo(); }
 function renderReceiptSample() {}
 function closeReceiptChoice() {}
@@ -2638,7 +2646,7 @@ function coSetPreset(v) { coReceivedStr = String(v); _coUpdateDisplay(); }
 function _coUpdateDisplay() {
   if (window._coProcessing) return; // 会計処理中はボタンを復活させない
   const hist     = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]');
-  const total    = hist.reduce((s,i) => s + Math.floor(i.price*i.qty*(1+i.rate)), 0);
+  const total    = hist.reduce((s,i) => s + lineTotalInc(i), 0);   // S18-02: 取消行の1円ずれ修正
   const received = parseInt(coReceivedStr || '0');
   const change   = received - total;
   const recvEl   = document.getElementById('co-received-val');
