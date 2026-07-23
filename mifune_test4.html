@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-23-t4s18-04';
+  var T4_VERSION = '2026-07-23-t4s18-05';
 // S18-02: 税込行合計の共通式。floor(x*(1+rate))は取消（マイナス行）で1円ずれる
 // （floorが負方向に切れる＋浮動小数点誤差）ため、必ずこの関数を使うこと
 function lineTotalInc(i) {
@@ -22,6 +22,19 @@ function lineTotalInc(i) {
     return lp + lt;
 }
 window.lineTotalInc = lineTotalInc;
+// S18-05: 「注文が正味ゼロ」判定（客数変更の記録行は除外し、品目ごとの数量合計が全てゼロ）
+function histNetEmpty(hist) {
+    var m = {};
+    for (var k = 0; k < hist.length; k++) {
+        var i = hist[k];
+        if (i.price === 0 && String(i.name).indexOf('客数変更') === 0) continue;
+        var key = i.name + '|' + i.price;
+        m[key] = (m[key] || 0) + i.qty;
+    }
+    for (var key2 in m) { if (m[key2] !== 0) return false; }
+    return true;
+}
+window.histNetEmpty = histNetEmpty;
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -2397,6 +2410,7 @@ async function execCancel(doPrint) {
         }
         await appendOrderToCloud(currentTable, [cancelLine]);
         window.saveOrderLog(currentTable, [cancelLine]);
+        await startCountdownIfNeeded(currentTable, [cancelLine]);   // S18-05: 取消も飲み放題タイマーに通知（延長取消−30分・全数取消の掃除）
         closeCancelBar();
         renderHistoryUI();
     } catch(e) {
@@ -2424,8 +2438,9 @@ function renderHistoryUI() {
             : `<span style="color:#bbb; font-size:12px;">取消済</span>`;
         return `<div class="list-row"><div><b>${i.name}</b> x${i.qty}<br><small>税込¥${(lp+lt).toLocaleString()}</small></div><div>${cancelBtn}</div></div>`;
     }).join('') || 'なし';
-    // S13: 注文が1件もない卓（客数入力だけの放置卓）には正規の退席出口を出す
-    const emptyBtn = (hist.length === 0)
+    // S13: 注文が正味ゼロの卓（客数入力だけ・または全数取消済み）には正規の退席出口を出す
+    // S18-05: 判定を「履歴が空」から「全品目の正味がゼロ」へ拡張
+    const emptyBtn = histNetEmpty(hist)
         ? `<button style="margin-top:8px; padding:10px 16px; border:2px solid #999; border-radius:8px; background:#fff; color:#555; font-weight:bold;" onclick="resetEmptyTable()">空席に戻す（注文なし）</button>`
         : '';
     document.getElementById('history-summary').innerHTML = `<div style="color:#666; font-size:13px;">入店: ${localStorage.getItem('checkin_'+currentTable)} / 客: ${localStorage.getItem('guests_'+currentTable)}名</div><div>税込計: <b style="font-size:24px; color:var(--primary);">¥${(sub + tax).toLocaleString()}</b></div>${emptyBtn}`;
@@ -2441,7 +2456,7 @@ async function resetEmptyTable() {
             new Promise((_, rej) => setTimeout(() => rej(new Error('サーバー確認タイムアウト（電波を確認して再試行）')), 5000))
         ]);
         const serverHist = snap.exists() ? (snap.data().history || []) : [];
-        if (serverHist.length > 0) {
+        if (!histNetEmpty(serverHist)) {   // S18-05: 正味ゼロ（全数取消済み含む）なら空席に戻せる
             // 他端末が注文を入れていた——空席には戻さず、控えを最新化して表示し直す
             localStorage.setItem('history_' + tId, JSON.stringify(serverHist));
             renderHistoryUI();
