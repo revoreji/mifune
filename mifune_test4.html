@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-22-t4s18-02';
+  var T4_VERSION = '2026-07-23-t4s18-03';
 // S18-02: 税込行合計の共通式。floor(x*(1+rate))は取消（マイナス行）で1円ずれる
 // （floorが負方向に切れる＋浮動小数点誤差）ため、必ずこの関数を使うこと
 function lineTotalInc(i) {
@@ -615,7 +615,7 @@ async function updateDailySummary(sale) {
 // 「その端末が見ていた世界」だけで金額が確定する（7/6にiPhone×Macで実再現）。
 // 注文の追記方式と同じ原則を会計にも貫く。読めない/保存できないなら会計を中断し、
 // 卓は消さない（再試行できる）。成功時は {hist, guests, checkin} を返しレシートもこの値で印字する。
-window.saveSaleToCloud = async (tableId, paymentMethod) => {
+window.saveSaleToCloud = async (tableId, paymentMethod, cashReceived) => {
 // 1. サーバーから卓の最新を読む（8秒で見切り→例外→会計中断）
 const snap = await Promise.race([
     window.fetchTableFresh(tableId),
@@ -647,6 +647,7 @@ const saleData = {
     checkout: new Date().getHours().toString().padStart(2, '0') + ":" + new Date().getMinutes().toString().padStart(2, '0'),
     items: hist, subtotal: subtotal, tax: tax, total: subtotal + tax,
     paymentMethod: paymentMethod || '現金',
+    cashReceived: (paymentMethod === '現金' ? (parseInt(cashReceived) || 0) : 0),   // S18-03: 再発行のお釣り印字用
     timestamp: Timestamp.now()
 };
 await addDoc(collection(db, "stores/mifune_test3/sales"), saleData);
@@ -866,12 +867,12 @@ window.reprintReceipt = async function(idx) {
             else receiptItems.push({ name: i.name, qty: i.qty, price: i.price, rate: i.rate });
         });
         receiptItems = receiptItems.filter(r => r.qty !== 0);
-        // cashReceivedはsalesに保存していないため0（キャッシュレス会計と同じく お預り/お釣り行なしで印字）
+        // S18-03: 会計時に保存したお預かり額を渡す（旧データは未保存=0なので従来どおり行なし）
         await window.queuePrint({
             type: 'receipt', tableNo: s.tableId || '', guests: s.guests || 0, checkinTime: s.checkin || '--:--',
             items: receiptItems,
             paymentMethod: s.paymentMethod || '現金',
-            cashReceived: 0,
+            cashReceived: (s.paymentMethod === '現金' ? (s.cashReceived || 0) : 0),
             orderTime: new Date().toLocaleString('ja-JP'),
             reissue: true,          // 再発行フラグ（サーバー側テンプレートで「再発行」印字に使用可。未対応でも無害）
             originalSaleId: s.id    // 元売上のドキュメントID（追跡用）
@@ -2704,7 +2705,7 @@ async function payCo() {
   // 会計の確定（サーバーの履歴を正として保存。失敗したら中断して再試行できるようにする）
   let _saleResult = null;
   try {
-    _saleResult = await window.saveSaleToCloud(currentTable, currentPaymentMethod);
+    _saleResult = await window.saveSaleToCloud(currentTable, currentPaymentMethod, currentPaymentMethod === '現金' ? parseInt(coReceivedStr || '0') : 0);   // S18-03
   } catch(e) {
     console.warn('saveSaleToCloud失敗:', e);
     alert('会計の保存に失敗しました。もう一度お試しください: ' + (e && e.message ? e.message : e));
