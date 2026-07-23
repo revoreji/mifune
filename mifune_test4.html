@@ -13,7 +13,7 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-23-t4s18-03';
+  var T4_VERSION = '2026-07-23-t4s18-04';
 // S18-02: 税込行合計の共通式。floor(x*(1+rate))は取消（マイナス行）で1円ずれる
 // （floorが負方向に切れる＋浮動小数点誤差）ため、必ずこの関数を使うこと
 function lineTotalInc(i) {
@@ -695,7 +695,10 @@ window.cloudSyncNomi = async (tableId, enchoDelta, hasNomiStart) => {
     try {
         enchoDelta = enchoDelta || 0;
         const ref = doc(db, "stores/mifune_test3/tables", tableId);
-        const snap = await getDoc(ref);
+        const snap = await Promise.race([
+            getDoc(ref),
+            new Promise((_, rej) => setTimeout(() => rej(new Error('飲み放題同期タイムアウト（表示は後で追いつきます）')), 4000))
+        ]);
         const cur = snap.exists() ? snap.data() : {};
         const started = cur.nomihodaiStart && typeof cur.nomihodaiStart.toMillis === 'function';
         if (started) {
@@ -1390,7 +1393,16 @@ window.deviceClockOffset = 0; // Date.now() - サーバー時刻（ms）
 // 注文確定時に呼ぶ
 async function startCountdownIfNeeded(tableId, sentItems) {
     const hist = JSON.parse(localStorage.getItem('history_' + tableId) || '[]');
-    if (!hist.some(i => NOMIHODAI_ITEMS.includes(i.name))) return;
+    // S18-04: 飲み放題が正味ゼロ（未注文・または誤送信→全数取消）ならタイマーを片付ける
+    const nomiNet = hist.filter(i => NOMIHODAI_ITEMS.includes(i.name)).reduce((s, i) => s + i.qty, 0);
+    if (nomiNet <= 0) {
+        if (window._nomiData[tableId]) {
+            delete window._nomiData[tableId];
+            if (window.clearAlerted) clearAlerted(tableId);
+            if (window.cloudSyncNomiClear) await window.cloudSyncNomiClear(tableId);
+        }
+        return;
+    }
     // S17-08: 単純方式。延長は「1送信＝＋30分」。数量は課金用で、時間には一切使わない。
     // （履歴からの回数計算を全廃＝旧データの二重クレジットも原理ごと消滅）
     let enchoDelta = 0, hasNomiStart = false;
