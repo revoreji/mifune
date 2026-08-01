@@ -13,7 +13,28 @@
 // ▼▼▼ 自動キャッシュクリア（バージョン管理式・uriage.htmlと同方式）▼▼▼
 // 版を差し替えたら下のT4_VERSIONを必ず更新すること。古い版が端末に居座る事故の防止
 (function(){
-  var T4_VERSION = '2026-07-13-prod-t4s15b';
+  var T4_VERSION = '2026-07-27-prod-t4s18';
+// S18-02: 税込行合計の共通式。floor(x*(1+rate))は取消（マイナス行）で1円ずれる
+// （floorが負方向に切れる＋浮動小数点誤差）ため、必ずこの関数を使うこと
+function lineTotalInc(i) {
+    var lp = i.price * i.qty;
+    var lt = lp >= 0 ? Math.floor(lp * i.rate) : -Math.floor(-lp * i.rate);
+    return lp + lt;
+}
+window.lineTotalInc = lineTotalInc;
+// S18-05: 「注文が正味ゼロ」判定（客数変更の記録行は除外し、品目ごとの数量合計が全てゼロ）
+function histNetEmpty(hist) {
+    var m = {};
+    for (var k = 0; k < hist.length; k++) {
+        var i = hist[k];
+        if (i.price === 0 && String(i.name).indexOf('客数変更') === 0) continue;
+        var key = i.name + '|' + i.price;
+        m[key] = (m[key] || 0) + i.qty;
+    }
+    for (var key2 in m) { if (m[key2] !== 0) return false; }
+    return true;
+}
+window.histNetEmpty = histNetEmpty;
   window.__T4_VERSION = T4_VERSION;
   try {
     var saved = localStorage.getItem('__mifuneT4Version');
@@ -202,7 +223,7 @@ footer { width: 100%; display: flex; flex-direction: column; z-index: 100; box-s
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, initializeFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, collection, addDoc, query, orderBy, getDocs, where, Timestamp, serverTimestamp, arrayUnion, runTransaction, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, initializeFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, collection, addDoc, query, orderBy, getDocs, where, Timestamp, serverTimestamp, arrayUnion, arrayRemove, runTransaction, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -220,7 +241,7 @@ const app = initializeApp(firebaseConfig);
 // ロングポーリング強制で、切れた接続に即気づいて張り直す方式に変える（Firestore公式の緩和策）
 const db = initializeFirestore(app, { experimentalForceLongPolling: true });
 const auth = getAuth(app);
-window.db = db; window._doc = doc; window._setDoc = setDoc; window._arrayUnion = arrayUnion; window._getDocs = getDocs; window._collection = collection;
+window.db = db; window._doc = doc; window._setDoc = setDoc; window._arrayUnion = arrayUnion; window._arrayRemove = arrayRemove; window._getDocs = getDocs; window._collection = collection;
 
 window.currentUser = null;
 window.isEditing = false;
@@ -329,18 +350,25 @@ localStorage.setItem('history_'+tId, JSON.stringify(data.history || []));
 localStorage.setItem('guests_'+tId, data.guests || 0);
 localStorage.setItem('checkin_'+tId, data.checkin || "--:--");
 
-// updatedAtでデバイス時計とサーバー時計のズレを随時補正
-if (data.updatedAt && typeof data.updatedAt.toMillis === 'function') {
-    window.deviceClockOffset = Date.now() - data.updatedAt.toMillis();
-}
+// S17-03: updatedAtによる時計ズレ推定は撤去（文書の古さと時計ズレは原理的に区別できず、
+// カウントダウンが「最後の更新からの経過分」だけ巻き戻る症状を作った）。
+// 現代の端末はNTPで時計同期されるため、端末時計をそのまま信頼する。
 
 // 飲み放題カウントダウン同期（メモリのみ）
 if (!docSnap.metadata.hasPendingWrites) {
-    if (data.nomihodaiStart) {
-        window._nomiData[tId] = {
-            startMs: data.nomihodaiStart.toMillis(),
-            totalMinutes: data.nomiTotalMinutes || NOMIHODAI_MINUTES
-        };
+    // S17-06: 履歴が空の卓は残骸とみなして無視（幽霊バッジ防止）
+    // S17-07: 締切時刻（nomiDeadline）方式。旧形式（start+分数）の文書は導出して互換
+    if (data.nomihodaiStart && Array.isArray(data.history) && data.history.length > 0) {
+        let deadlineMs = null;
+        if (data.nomiDeadline && typeof data.nomiDeadline.toMillis === 'function') {
+            deadlineMs = data.nomiDeadline.toMillis();
+        } else {
+            deadlineMs = data.nomihodaiStart.toMillis() + (data.nomiTotalMinutes || NOMIHODAI_MINUTES) * 60000;
+        }
+        // S17-05: 締切が延びた＝延長を受信 → アラーム再武装（全端末）
+        const prevNomi = window._nomiData[tId];
+        if (prevNomi && deadlineMs > prevNomi.deadlineMs && window.clearAlerted) window.clearAlerted(tId);
+        window._nomiData[tId] = { deadlineMs };
     } else {
         delete window._nomiData[tId];
     }
@@ -482,7 +510,7 @@ async function autoKitchenPrint(tableId, mobileOrders, tag) { tag = tag || 'M';
     }
     // モバイル/ハンディ注文もorder_logに記録
     window.saveOrderLog(tableId, newLines);
-    await startCountdownIfNeeded(tableId);
+    await startCountdownIfNeeded(tableId, newLines);
 }
 // ▲▲▲ モバイルオーダー自動キッチン印刷 ▲▲▲
 
@@ -600,7 +628,7 @@ async function updateDailySummary(sale) {
 // 「その端末が見ていた世界」だけで金額が確定する（7/6にiPhone×Macで実再現）。
 // 注文の追記方式と同じ原則を会計にも貫く。読めない/保存できないなら会計を中断し、
 // 卓は消さない（再試行できる）。成功時は {hist, guests, checkin} を返しレシートもこの値で印字する。
-window.saveSaleToCloud = async (tableId, paymentMethod) => {
+window.saveSaleToCloud = async (tableId, paymentMethod, cashReceived) => {
 // 1. サーバーから卓の最新を読む（8秒で見切り→例外→会計中断）
 const snap = await Promise.race([
     window.fetchTableFresh(tableId),
@@ -632,6 +660,7 @@ const saleData = {
     checkout: new Date().getHours().toString().padStart(2, '0') + ":" + new Date().getMinutes().toString().padStart(2, '0'),
     items: hist, subtotal: subtotal, tax: tax, total: subtotal + tax,
     paymentMethod: paymentMethod || '現金',
+    cashReceived: (paymentMethod === '現金' ? (parseInt(cashReceived) || 0) : 0),   // S18-03: 再発行のお釣り印字用
     timestamp: Timestamp.now()
 };
 await addDoc(collection(db, "stores/mifune/sales"), saleData);
@@ -642,9 +671,8 @@ try { await deleteDoc(doc(db, "stores/mifune/tables", tableId)); } catch(e) { co
 await clearCountdown(tableId, true);
 renderIndex();
 // カスタム席なら会計後に削除
-const customs = getCustomTableNames();
-if (customs.includes(tableId)) {
-  saveCustomTableNames(customs.filter(n => n !== tableId));
+if (getCustomTableNames().includes(tableId)) {
+  removeCustomTableName(tableId);   // S16: 追記方式（1件だけ引く）
 }
 // 全席: localStorageのデータをクリア（再利用時に残らないように）
 ['history_','cart_','guests_','checkin_'].forEach(k => localStorage.removeItem(k + tableId));
@@ -673,33 +701,69 @@ window.getSalesDayByDate = (d) => {
 // deleteDaySales（日別まとめ削除）もPOSから撤去
 window.cloudDelete = async (tableId) => { await deleteDoc(doc(db, "stores/mifune/tables", tableId)); };
 
-// 飲み放題開始をFirestoreに書き込み（serverTimestamp使用・updatedAtと同時書き込み）
-window.cloudSyncNomi = async (tableId) => {
+// 飲み放題の開始/延長をFirestoreに書き込み（S17: 統合・ガード付き）
+// サーバーを先に見て、開始済みなら開始時刻には絶対に触らず合計分数だけ更新する。
+// （メモリが空の端末＝リロード直後・後から参加の端末からの送信でタイマーが巻き戻る事故の防止）
+window.cloudSyncNomi = async (tableId, enchoDelta, hasNomiStart) => {
     try {
-        // 即座にメモリにセット（iOS対策）
-        window._nomiData[tableId] = { startMs: Date.now(), totalMinutes: NOMIHODAI_MINUTES };
+        enchoDelta = enchoDelta || 0;
+        const ref = doc(db, "stores/mifune/tables", tableId);
+        const snap = await Promise.race([
+            getDoc(ref),
+            new Promise((_, rej) => setTimeout(() => rej(new Error('飲み放題同期タイムアウト（表示は後で追いつきます）')), 4000))
+        ]);
+        const cur = snap.exists() ? snap.data() : {};
+        const started = cur.nomihodaiStart && typeof cur.nomihodaiStart.toMillis === 'function';
+        if (started) {
+            // S17-08: 今回の送信に含まれた延長（±）だけ締切を動かす。履歴の総数は見ない
+            let deadlineMs = (cur.nomiDeadline && typeof cur.nomiDeadline.toMillis === 'function')
+                ? cur.nomiDeadline.toMillis()
+                : cur.nomihodaiStart.toMillis() + (cur.nomiTotalMinutes || NOMIHODAI_MINUTES) * 60000;
+            // S17-09: LO後（締切超過）に飲み放題の開始品が来たら「2回転目」＝新しい85分で再スタート。
+            // 時間内の飲み放題追加は合流（時間はこちらで管理しない）＝従来どおり無視
+            if (hasNomiStart && Date.now() > deadlineMs) {
+                deadlineMs = Date.now() + NOMIHODAI_MINUTES * 60000;
+                if (window.clearAlerted) window.clearAlerted(tableId);   // 2回転目→アラーム再武装
+                window._nomiData[tableId] = { deadlineMs };
+                startCountdownTick();
+                await setDoc(ref, {
+                    nomihodaiStart: serverTimestamp(),
+                    nomiDeadline: Timestamp.fromMillis(deadlineMs),
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+                return;
+            }
+            if (enchoDelta > 0) {
+                // 延長: 残り時間があれば締切に、LO後なら今から＋30分（押下起点）
+                deadlineMs = Math.max(deadlineMs, Date.now()) + enchoDelta * NOMIHODAI_ENCHO_MINUTES * 60000;
+                if (window.clearAlerted) window.clearAlerted(tableId);   // 延長→アラーム再武装
+            } else if (enchoDelta < 0) {
+                // 延長の取消
+                deadlineMs = deadlineMs + enchoDelta * NOMIHODAI_ENCHO_MINUTES * 60000;
+            }
+            window._nomiData[tableId] = { deadlineMs };
+            startCountdownTick();
+            if (enchoDelta !== 0) {
+                await setDoc(ref, { nomiDeadline: Timestamp.fromMillis(deadlineMs), updatedAt: serverTimestamp() }, { merge: true });
+            }
+            return;
+        }
+        // 未開始 → 開始（締切=今+85分）
+        const deadlineMs = Date.now() + NOMIHODAI_MINUTES * 60000;
+        window._nomiData[tableId] = { deadlineMs };
         startCountdownTick();
-        await setDoc(doc(db, "stores/mifune/tables", tableId), {
+        await setDoc(ref, {
             nomihodaiStart: serverTimestamp(),
-            nomiTotalMinutes: NOMIHODAI_MINUTES,
+            nomiDeadline: Timestamp.fromMillis(deadlineMs),
             updatedAt: serverTimestamp()
         }, { merge: true });
-    } catch(e) { console.warn('nomihodai開始書き込み失敗:', e.message); }
-};
-
-window.cloudSyncNomiEncho = async (tableId, totalMinutes) => {
-    try {
-        await setDoc(doc(db, "stores/mifune/tables", tableId), {
-            nomiTotalMinutes: totalMinutes,
-            updatedAt: serverTimestamp()
-        }, { merge: true });
-    } catch(e) { console.warn('nomihodai延長書き込み失敗:', e.message); }
+    } catch(e) { console.warn('nomihodai同期書き込み失敗:', e.message); }
 };
 
 // 飲み放題終了をFirestoreに書き込み
 window.cloudSyncNomiClear = async (tableId) => {
     try {
-        await setDoc(doc(db, "stores/mifune/tables", tableId), { nomihodaiStart: null, nomiTotalMinutes: null }, { merge: true });
+        await setDoc(doc(db, "stores/mifune/tables", tableId), { nomihodaiStart: null, nomiTotalMinutes: null, nomiDeadline: null, nomiRounds: null }, { merge: true });
     } catch(e) { console.warn('nomihodaiクリア失敗:', e.message); }
 };
 
@@ -769,6 +833,76 @@ window.printStandaloneRyoshu = async function() {
     }
 };
 // ▲ 独立領収書発行
+
+// ▼ レシート再発行（本日のsalesから選んでqueuePrintに再投入。データは一切書き換えない読み取り専用機能）
+window._reprintSales = [];       // 一覧表示中の売上（タップ時にindexで引く）
+window._reprintProcessing = false; // 二度押し防止
+
+window.openReceiptReprint = async function() {
+    document.getElementById('overlay-standalone-ryoshu').style.display = 'none';
+    const listEl = document.getElementById('reprint-list');
+    listEl.innerHTML = '<div style="text-align:center; color:#999; padding:30px 0;">読み込み中...</div>';
+    document.getElementById('overlay-receipt-reprint').style.display = 'flex';
+    try {
+        // 本日分のみ・新しい順（getSalesDayByDateはtimestamp desc）
+        const sales = await window.getSalesDayByDate(new Date());
+        window._reprintSales = sales;
+        if (sales.length === 0) {
+            listEl.innerHTML = '<div style="text-align:center; color:#999; padding:30px 0;">本日の会計はまだありません</div>';
+            return;
+        }
+        listEl.innerHTML = sales.map((s, idx) => {
+            const time = s.checkout || '--:--';
+            const pm = s.paymentMethod || '現金';
+            return `<div onclick="window.reprintReceipt(${idx})" style="display:flex; justify-content:space-between; align-items:center; padding:12px 10px; border-bottom:1px solid #eee; cursor:pointer;">
+                <div>
+                    <div style="font-size:15px; font-weight:bold;">${time}　${s.tableId || '?'}卓</div>
+                    <div style="font-size:12px; color:#888;">${pm}　${s.guests || 0}名</div>
+                </div>
+                <div style="font-size:17px; font-weight:bold; color:var(--primary);">¥${(s.total || 0).toLocaleString()}</div>
+            </div>`;
+        }).join('');
+    } catch(e) {
+        console.warn('再発行一覧の取得失敗:', e.message);
+        listEl.innerHTML = '<div style="text-align:center; color:var(--danger); padding:30px 0;">読み込みに失敗しました<br><span style="font-size:12px; color:#999;">電波を確認して開き直してください</span></div>';
+    }
+};
+
+window.reprintReceipt = async function(idx) {
+    if (window._reprintProcessing) return; // 二度押し防止（同じ伝票が2枚出る事故の防止）
+    const s = window._reprintSales[idx];
+    if (!s) return;
+    if (!confirm(`${s.checkout || ''} ${s.tableId || ''}卓 ¥${(s.total || 0).toLocaleString()} のレシートを再発行しますか？`)) return;
+    window._reprintProcessing = true;
+    try {
+        // 会計時（payCo）と同じ集計：同名・同価格・同税率を合算し、全数取消で相殺された品（数量0）は印字しない
+        let receiptItems = [];
+        (s.items || []).forEach(i => {
+            const ex = receiptItems.find(r => r.name === i.name && r.price === i.price && r.rate === i.rate);
+            if (ex) ex.qty += i.qty;
+            else receiptItems.push({ name: i.name, qty: i.qty, price: i.price, rate: i.rate });
+        });
+        receiptItems = receiptItems.filter(r => r.qty !== 0);
+        // S18-03: 会計時に保存したお預かり額を渡す（旧データは未保存=0なので従来どおり行なし）
+        await window.queuePrint({
+            type: 'receipt', tableNo: s.tableId || '', guests: s.guests || 0, checkinTime: s.checkin || '--:--',
+            items: receiptItems,
+            paymentMethod: s.paymentMethod || '現金',
+            cashReceived: (s.paymentMethod === '現金' ? (s.cashReceived || 0) : 0),
+            orderTime: new Date().toLocaleString('ja-JP'),
+            reissue: true,          // 再発行フラグ（サーバー側テンプレートで「再発行」印字に使用可。未対応でも無害）
+            originalSaleId: s.id    // 元売上のドキュメントID（追跡用）
+        });
+        alert('レシートを再発行しました');
+        document.getElementById('overlay-receipt-reprint').style.display = 'none';
+    } catch(e) {
+        console.warn('再発行失敗:', e.message);
+        alert('再発行に失敗しました: ' + e.message);
+    } finally {
+        window._reprintProcessing = false;
+    }
+};
+// ▲ レシート再発行
 
 </script>
 
@@ -994,10 +1128,22 @@ window.printStandaloneRyoshu = async function() {
     <div style="text-align:left; margin-bottom:6px; font-size:13px; color:#666;">但し書き</div>
     <input type="text" id="sa-tadashi" placeholder="お食事代として" style="width:100%; padding:10px; border:2px solid #ddd; border-radius:10px; font-size:16px; margin-bottom:15px; box-sizing:border-box;">
     <button class="btn-large" style="background:var(--primary); color:white; margin-bottom:8px;" onclick="window.printStandaloneRyoshu()">印刷する</button>
+    <button class="btn-large" style="background:var(--info); color:white; margin-bottom:8px;" onclick="window.openReceiptReprint()">🧾 レシート再発行</button>
     <button class="btn-large" style="background:var(--gray); color:white;" onclick="document.getElementById('overlay-standalone-ryoshu').style.display='none'">閉じる</button>
   </div>
 </div>
 <!-- ▲ 独立領収書発行モーダル -->
+
+<!-- ▼ レシート再発行モーダル -->
+<div id="overlay-receipt-reprint" class="overlay" style="display:none;">
+  <div class="modal" style="max-height:90dvh; display:flex; flex-direction:column;">
+    <div style="font-weight:bold; font-size:18px; margin-bottom:4px; flex-shrink:0;">🧾 レシート再発行</div>
+    <div style="font-size:12px; color:#888; margin-bottom:12px; flex-shrink:0;">本日の会計から選択（新しい順）</div>
+    <div id="reprint-list" style="flex:1; overflow-y:auto; min-height:120px; text-align:left;"></div>
+    <button class="btn-large" style="background:var(--gray); color:white; margin-top:12px; flex-shrink:0;" onclick="document.getElementById('overlay-receipt-reprint').style.display='none'">閉じる</button>
+  </div>
+</div>
+<!-- ▲ レシート再発行モーダル -->
 
 
 <script>
@@ -1226,10 +1372,17 @@ async function buildPopularCategory() {
 // ▲▲▲ 人気メニュー機能追加 ▲▲▲
 const baseTablesL = ['C-a', 'C-b', 'C-c', '01', '02', '03', '04', '05', '06', '07', 'テイクアウト', '無人', 'イベント'];
 function getCustomTableNames() { return JSON.parse(localStorage.getItem('customTables') || '[]'); }
-function saveCustomTableNames(arr) {
-  localStorage.setItem('customTables', JSON.stringify(arr));
-  // Firestoreに同期
-  window._setDoc(window._doc(db, 'stores/mifune/_system', 'config'), { customTables: arr }, { merge: true }).catch(e => console.warn('customTables同期エラー:', e));
+// S16: カスタム席リストも追記方式（別系統t4s5の移植）。配列丸ごと書き戻しを廃止。
+// arrayUnion/arrayRemoveは「その1件を足す/引く」だけをサーバーに伝えるので、
+// 古いリストを持った端末が書いても他の席ボタンを消せない（historyの追記方式と同じ原則）
+function addCustomTableName(name) {
+  const c = getCustomTableNames();
+  if (!c.includes(name)) { c.push(name); localStorage.setItem('customTables', JSON.stringify(c)); }
+  window._setDoc(window._doc(db, 'stores/mifune/_system', 'config'), { customTables: window._arrayUnion(name) }, { merge: true }).catch(e => console.warn('customTables同期エラー:', e.message));
+}
+function removeCustomTableName(name) {
+  localStorage.setItem('customTables', JSON.stringify(getCustomTableNames().filter(n => n !== name)));
+  window._setDoc(window._doc(db, 'stores/mifune/_system', 'config'), { customTables: window._arrayRemove(name) }, { merge: true }).catch(e => console.warn('customTables同期エラー:', e.message));
 }
 function getTablesL() { return [...baseTablesL, ...getCustomTableNames()]; }
 const tablesL = baseTablesL; // 後方互換
@@ -1250,17 +1403,26 @@ window._nomiData = {}; // 飲み放題データ（メモリ管理）
 window.deviceClockOffset = 0; // Date.now() - サーバー時刻（ms）
 
 // 注文確定時に呼ぶ
-async function startCountdownIfNeeded(tableId) {
+async function startCountdownIfNeeded(tableId, sentItems) {
     const hist = JSON.parse(localStorage.getItem('history_' + tableId) || '[]');
-    if (!hist.some(i => NOMIHODAI_ITEMS.includes(i.name))) return;
-    const enchoCnt = hist.filter(i => i.name === NOMIHODAI_ENCHO).reduce((s, i) => s + i.qty, 0);
-    const totalMinutes = NOMIHODAI_MINUTES + enchoCnt * NOMIHODAI_ENCHO_MINUTES;
-    if (window._nomiData[tableId]) {
-        // 延長注文 → 合計時間をFirestoreに更新
-        if (window.cloudSyncNomiEncho) await window.cloudSyncNomiEncho(tableId, totalMinutes);
+    // S18-04: 飲み放題が正味ゼロ（未注文・または誤送信→全数取消）ならタイマーを片付ける
+    const nomiNet = hist.filter(i => NOMIHODAI_ITEMS.includes(i.name)).reduce((s, i) => s + i.qty, 0);
+    if (nomiNet <= 0) {
+        if (window._nomiData[tableId]) {
+            delete window._nomiData[tableId];
+            if (window.clearAlerted) clearAlerted(tableId);
+            if (window.cloudSyncNomiClear) await window.cloudSyncNomiClear(tableId);
+        }
         return;
     }
-    if (window.cloudSyncNomi) await window.cloudSyncNomi(tableId);
+    // S17-08: 単純方式。延長は「1送信＝＋30分」。数量は課金用で、時間には一切使わない。
+    // （履歴からの回数計算を全廃＝旧データの二重クレジットも原理ごと消滅）
+    let enchoDelta = 0, hasNomiStart = false;
+    (sentItems || []).forEach(i => {
+        if (i.name === NOMIHODAI_ENCHO) enchoDelta += (i.qty > 0 ? 1 : -1);
+        if (NOMIHODAI_ITEMS.includes(i.name) && i.qty > 0) hasNomiStart = true;
+    });
+    if (window.cloudSyncNomi) await window.cloudSyncNomi(tableId, enchoDelta, hasNomiStart);
 }
 
 // 会計時に呼ぶ
@@ -1273,8 +1435,7 @@ async function clearCountdown(tableId, skipCloud = false) {
 function getCountdownRemaining(tableId) {
     const d = window._nomiData[tableId];
     if (!d) return null;
-    const elapsed = Math.floor((Date.now() - d.startMs) / 1000);
-    return d.totalMinutes * 60 - elapsed;
+    return Math.floor((d.deadlineMs - Date.now()) / 1000);
 }
 
 let alarmCtx = null;
@@ -1396,7 +1557,7 @@ function renderIndex() {
   const customs = getCustomTableNames();
   const html = getTablesL().map(t => {
     const h = JSON.parse(localStorage.getItem('history_'+t) || '[]');
-    const total = h.reduce((s, i) => s + Math.floor(i.price*i.qty*(1+i.rate)), 0);
+    const total = h.reduce((s, i) => s + window.lineTotalInc(i), 0);   // S18-02
     const isCustom = customs.includes(t);
     const delBtn = isCustom ? `<span onclick="removeCustomTable('${t}',event)" style="font-size:10px;color:#bbb;margin-top:3px;padding:2px 6px;border:1px solid #eee;border-radius:8px;">削除</span>` : '';
     const rem = getCountdownRemaining(t);
@@ -1422,7 +1583,7 @@ function confirmAddTable() {
   const name = document.getElementById('new-table-name').value.trim();
   if(!name) return alert('名前を入力してください');
   if(getTablesL().includes(name)) return alert(`「${name}」はすでに存在します`);
-  const customs = getCustomTableNames(); customs.push(name); saveCustomTableNames(customs);
+  addCustomTableName(name);   // S16: 追記方式（1件だけ足す）
   closeAddTableModal(); renderIndex();
 }
 function removeCustomTable(tId, e) {
@@ -1433,7 +1594,7 @@ function removeCustomTable(tId, e) {
   } else {
     if (!confirm(`「${tId}」を削除しますか？`)) return;
   }
-  saveCustomTableNames(getCustomTableNames().filter(n => n !== tId));
+  removeCustomTableName(tId);   // S16: 追記方式
   ['history_','cart_','guests_','checkin_'].forEach(k => localStorage.removeItem(k+tId));
   renderIndex();
 }
@@ -1442,7 +1603,7 @@ function showSaleDetail(s) {
     `${s.tableId}番 ${s.checkin}〜${s.checkout} (${s.paymentMethod || '現金'})`;
   const items = s.items || [];
   const rows = items.map(i => {
-    const subtotal = Math.floor(i.price * i.qty * (1 + i.rate));
+    const subtotal = window.lineTotalInc(i);   // S18-02
     return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0;">
       <span>${i.name} × ${i.qty}</span>
       <span>¥${subtotal.toLocaleString()}</span>
@@ -1466,8 +1627,7 @@ async function forceClearTableData() {
   // このデバイスのlocalStorageをクリア
   ['history_','cart_','guests_','checkin_'].forEach(k => localStorage.removeItem(k+tId));
   // カスタム席リストからも削除（Firestore経由で他デバイスも自動クリア）
-  const updated = getCustomTableNames().filter(n => n !== tId);
-  saveCustomTableNames(updated);
+  removeCustomTableName(tId);   // S16: 追記方式
   document.getElementById('force-clear-table-name').value = '';
   alert(`「${tId}」を削除しました。他のデバイスは次回接続時に自動クリアされます。`);
   renderIndex();
@@ -2249,6 +2409,7 @@ async function execCancel(doPrint) {
         }
         await appendOrderToCloud(currentTable, [cancelLine]);
         window.saveOrderLog(currentTable, [cancelLine]);
+        await startCountdownIfNeeded(currentTable, [cancelLine]);   // S18-05: 取消も飲み放題タイマーに通知（延長取消−30分・全数取消の掃除）
         closeCancelBar();
         renderHistoryUI();
     } catch(e) {
@@ -2276,8 +2437,9 @@ function renderHistoryUI() {
             : `<span style="color:#bbb; font-size:12px;">取消済</span>`;
         return `<div class="list-row"><div><b>${i.name}</b> x${i.qty}<br><small>税込¥${(lp+lt).toLocaleString()}</small></div><div>${cancelBtn}</div></div>`;
     }).join('') || 'なし';
-    // S13: 注文が1件もない卓（客数入力だけの放置卓）には正規の退席出口を出す
-    const emptyBtn = (hist.length === 0)
+    // S13: 注文が正味ゼロの卓（客数入力だけ・または全数取消済み）には正規の退席出口を出す
+    // S18-05: 判定を「履歴が空」から「全品目の正味がゼロ」へ拡張
+    const emptyBtn = histNetEmpty(hist)
         ? `<button style="margin-top:8px; padding:10px 16px; border:2px solid #999; border-radius:8px; background:#fff; color:#555; font-weight:bold;" onclick="resetEmptyTable()">空席に戻す（注文なし）</button>`
         : '';
     document.getElementById('history-summary').innerHTML = `<div style="color:#666; font-size:13px;">入店: ${localStorage.getItem('checkin_'+currentTable)} / 客: ${localStorage.getItem('guests_'+currentTable)}名</div><div>税込計: <b style="font-size:24px; color:var(--primary);">¥${(sub + tax).toLocaleString()}</b></div>${emptyBtn}`;
@@ -2293,7 +2455,7 @@ async function resetEmptyTable() {
             new Promise((_, rej) => setTimeout(() => rej(new Error('サーバー確認タイムアウト（電波を確認して再試行）')), 5000))
         ]);
         const serverHist = snap.exists() ? (snap.data().history || []) : [];
-        if (serverHist.length > 0) {
+        if (!histNetEmpty(serverHist)) {   // S18-05: 正味ゼロ（全数取消済み含む）なら空席に戻せる
             // 他端末が注文を入れていた——空席には戻さず、控えを最新化して表示し直す
             localStorage.setItem('history_' + tId, JSON.stringify(serverHist));
             renderHistoryUI();
@@ -2413,7 +2575,7 @@ async function runTicketCheck(hist) {
     el.textContent = '伝票との照合ができませんでした（' + e.message + '）※会計はそのまま行えます';
   }
 }
-function updateFooter() { document.getElementById('cart-count').innerText = currentCart.reduce((s, i) => s + i.qty, 0); const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]'); const total = hist.reduce((s, i) => s + Math.floor(i.price*i.qty*(1+i.rate)), 0); document.getElementById('display-current-total').innerText = "税込合計: ¥" + total.toLocaleString(); }
+function updateFooter() { document.getElementById('cart-count').innerText = currentCart.reduce((s, i) => s + i.qty, 0); const hist = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]'); const total = hist.reduce((s, i) => s + lineTotalInc(i), 0);   /* S18-02 */ document.getElementById('display-current-total').innerText = "税込合計: ¥" + total.toLocaleString(); }
 function openReceiptChoice() { payCo(); }
 function renderReceiptSample() {}
 function closeReceiptChoice() {}
@@ -2426,7 +2588,7 @@ async function testSend() {
     const sentItems = currentCart.slice();
     try { await appendOrderToCloud(currentTable, sentItems); } catch(e) { _sbRestore(); return alert("同期失敗（電波を確認して再送信してください）: " + e.message); }
     _sbRestore();
-    window.saveOrderLog(currentTable, sentItems); localStorage.removeItem('cart_'+currentTable); currentCart = []; await startCountdownIfNeeded(currentTable); hideAll(); document.getElementById('view-success').style.display = 'flex'; updateFooter(); }
+    window.saveOrderLog(currentTable, sentItems); localStorage.removeItem('cart_'+currentTable); currentCart = []; await startCountdownIfNeeded(currentTable, sentItems); hideAll(); document.getElementById('view-success').style.display = 'flex'; updateFooter(); }
 async function testPay() {
     if(window.saveSaleToCloud) await window.saveSaleToCloud(currentTable, currentPaymentMethod);
     showIndex();
@@ -2462,7 +2624,7 @@ try {
     // 2. 履歴に追記（サーバーの今の履歴に新しい品だけを足す・上書きしない）
     await appendOrderToCloud(currentTable, currentCart);
     window.saveOrderLog(currentTable, currentCart);
-    await startCountdownIfNeeded(currentTable);
+    await startCountdownIfNeeded(currentTable, currentCart);
     localStorage.removeItem('cart_'+currentTable); currentCart = [];
     hideAll(); document.getElementById('view-success').style.display = 'flex'; updateFooter();
 } catch(e) {
@@ -2511,7 +2673,7 @@ function coSetPreset(v) { coReceivedStr = String(v); _coUpdateDisplay(); }
 function _coUpdateDisplay() {
   if (window._coProcessing) return; // 会計処理中はボタンを復活させない
   const hist     = JSON.parse(localStorage.getItem('history_'+currentTable) || '[]');
-  const total    = hist.reduce((s,i) => s + Math.floor(i.price*i.qty*(1+i.rate)), 0);
+  const total    = hist.reduce((s,i) => s + lineTotalInc(i), 0);   // S18-02: 取消行の1円ずれ修正
   const received = parseInt(coReceivedStr || '0');
   const change   = received - total;
   const recvEl   = document.getElementById('co-received-val');
@@ -2569,7 +2731,7 @@ async function payCo() {
   // 会計の確定（サーバーの履歴を正として保存。失敗したら中断して再試行できるようにする）
   let _saleResult = null;
   try {
-    _saleResult = await window.saveSaleToCloud(currentTable, currentPaymentMethod);
+    _saleResult = await window.saveSaleToCloud(currentTable, currentPaymentMethod, currentPaymentMethod === '現金' ? parseInt(coReceivedStr || '0') : 0);   // S18-03
   } catch(e) {
     console.warn('saveSaleToCloud失敗:', e);
     alert('会計の保存に失敗しました。もう一度お試しください: ' + (e && e.message ? e.message : e));
