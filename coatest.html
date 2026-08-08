@@ -43,7 +43,7 @@ header{
   border-bottom:1px solid var(--black);
 }
 .hd{max-width:1140px;margin:0 auto;padding:0 28px;height:58px;display:flex;align-items:center;justify-content:space-between}
-.hd-logo{text-decoration:none;font-weight:900;font-size:1.02rem;letter-spacing:.02em;display:flex;align-items:center;gap:10px}
+.hd-logo{text-decoration:none;font-weight:900;font-size:1.02rem;letter-spacing:.02em;display:flex;align-items:center;gap:10px;white-space:nowrap;min-width:0}
 .hd-logo svg{width:30px;height:30px;flex-shrink:0}
 .hd-logo small{font-weight:500;font-size:.66rem;color:var(--mut);margin-left:10px}
 .hd-right{display:flex;align-items:center;gap:22px}
@@ -51,9 +51,10 @@ header{
 .hd-btn{
   text-decoration:none;background:var(--black);color:var(--paper);
   font-weight:700;font-size:.8rem;padding:9px 20px;letter-spacing:.06em;
-  transition:background .15s;
+  transition:background .15s;white-space:nowrap;flex-shrink:0;
 }
 .hd-btn:hover{background:var(--navy)}
+.hd-btn-s{display:none}
 
 /* ============ hero:最大限出す ============ */
 .hero{position:relative;padding:88px 0 0;border-bottom:1px solid var(--black)}
@@ -311,6 +312,13 @@ footer strong{color:var(--paper);display:block;margin-bottom:4px;font-size:.85re
 /* ============ responsive ============ */
 @media(max-width:900px){
   .hd-tel{display:none}
+  .hd{padding:0 16px;height:54px;gap:10px}
+  .hd-logo{font-size:.98rem}
+  .hd-logo small{display:none}
+  .hd-logo svg{width:26px;height:26px}
+  .hd-btn{padding:8px 14px;font-size:.78rem;letter-spacing:.02em}
+  .hd-btn-l{display:none}
+  .hd-btn-s{display:inline}
   .hero{padding-top:60px}
   .hero-note{margin-top:-40px}
   .price-band .inner{gap:14px}
@@ -339,7 +347,7 @@ a:focus-visible,summary:focus-visible{outline:3px solid var(--navy);outline-offs
       穴あけの窓口<small>札幌の壁穴あけ専門｜株式会社ジャストフレンズ</small></a>
     <div class="hd-right">
       <a class="hd-tel bb" href="tel:0115981010">011-598-1010</a>
-      <a class="hd-btn" href="#contact">見積無料・相談</a>
+      <a class="hd-btn" href="#contact"><span class="hd-btn-l">見積無料・相談する</span><span class="hd-btn-s">見積無料</span></a>
     </div>
   </div>
 </header>
