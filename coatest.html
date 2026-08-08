@@ -3,500 +3,500 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>札幌の壁穴あけ・配線サポート専門｜LANケーブル配線・コア抜き・エアコン穴あけ｜株式会社ジャストフレンズ</title>
-<meta name="description" content="札幌の壁穴あけ・配線サポート専門。LANケーブルを隣の部屋に通したい、スピーカー配線を壁に隠したい——その穴ひとつから対応。コア抜き1本15,000円〜、複数本まとめて割引あり。明朗会計・電気工事なしの安全な範囲で対応します。">
+<title>穴あけの窓口｜札幌の壁穴あけ専門・LANケーブル配線・コア抜き・エアコン穴あけ取付</title>
+<meta name="description" content="札幌の壁穴あけ専門「穴あけの窓口」。LANケーブルを隣の部屋に通したい、スピーカー配線を壁に隠したい——その穴ひとつから対応。コア抜き1本15,000円〜、複数本まとめて割引あり。明朗会計・見積もり無料。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=Roboto+Condensed:wght@700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --concrete:#EDEDEA;
-  --concrete-dark:#DCDCD6;
-  --steel:#1C2733;
-  --steel-mid:#33465A;
-  --safety:#F5C518;
-  --safety-deep:#D9A800;
+  --paper:#F1F0EC;
+  --paper-2:#E7E6E1;
+  --black:#121315;
+  --black-2:#1D1F22;
+  --ink:#1A1B1E;
+  --mut:#6C6E72;
+  --faint:#A9ABAE;
+  --navy:#003D7A;
+  --navy-l:#4E8FD0;
   --line-green:#06C755;
-  --line-green-deep:#05A648;
-  --white:#FFFFFF;
-  --ink:#25303B;
-  --ok:#2E7D4F;
-  --ng:#B3402E;
-  --radius:14px;
+  --rule:#D5D4CF;
 }
-*{margin:0;padding:0;box-sizing:border-box}
+*{margin:0;padding:0;box-sizing:border-box;border-radius:0!important}
 html{scroll-behavior:smooth}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 body{
   font-family:'Noto Sans JP',sans-serif;
-  color:var(--ink);
-  background:var(--concrete);
-  line-height:1.8;
-  font-size:16px;
+  color:var(--ink);background:var(--paper);
+  line-height:1.9;font-size:15px;
+  overflow-x:hidden;
 }
-h1,h2,h3{font-family:'Zen Kaku Gothic New',sans-serif;line-height:1.4}
-img{max-width:100%;display:block}
+h1,h2,h3{line-height:1.35;letter-spacing:.01em}
 a{color:inherit}
-.num{font-family:'Roboto Condensed',sans-serif;letter-spacing:.01em}
+.bb{font-family:'Bebas Neue',sans-serif;letter-spacing:.02em;font-weight:400}
+.inner{max-width:1140px;margin:0 auto;padding:0 28px}
 
-/* ===== header ===== */
+/* ============ header:引く ============ */
 header{
-  position:sticky;top:0;z-index:100;
-  background:var(--white);
-  border-bottom:3px solid var(--steel);
+  position:sticky;top:0;z-index:300;
+  background:rgba(241,240,236,.92);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--black);
 }
-.header-inner{
-  max-width:1080px;margin:0 auto;padding:12px 20px;
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
+.hd{max-width:1140px;margin:0 auto;padding:0 28px;height:58px;display:flex;align-items:center;justify-content:space-between}
+.hd-logo{text-decoration:none;font-weight:900;font-size:1.02rem;letter-spacing:.02em;display:flex;align-items:center;gap:10px}
+.hd-logo svg{width:30px;height:30px;flex-shrink:0}
+.hd-logo small{font-weight:500;font-size:.66rem;color:var(--mut);margin-left:10px}
+.hd-right{display:flex;align-items:center;gap:22px}
+.hd-tel{text-decoration:none;font-family:'Bebas Neue',sans-serif;font-size:1.35rem;letter-spacing:.04em;line-height:1}
+.hd-btn{
+  text-decoration:none;background:var(--black);color:var(--paper);
+  font-weight:700;font-size:.8rem;padding:9px 20px;letter-spacing:.06em;
+  transition:background .15s;
 }
-.logo{font-family:'Zen Kaku Gothic New',sans-serif;font-weight:900;font-size:1.05rem;color:var(--steel);text-decoration:none;line-height:1.3}
-.logo small{display:block;font-weight:500;font-size:.68rem;color:var(--steel-mid)}
-.header-tel{text-decoration:none;background:var(--steel);color:var(--white);padding:8px 18px;border-radius:999px;font-weight:700;font-size:.9rem;white-space:nowrap}
-.header-tel:hover{background:var(--steel-mid)}
+.hd-btn:hover{background:var(--navy)}
 
-/* ===== hero ===== */
-.hero{
-  background:
-    radial-gradient(circle 340px at 82% 46%, rgba(245,197,24,.16), transparent 70%),
-    linear-gradient(160deg, var(--steel) 0%, #223245 60%, #2A3D52 100%);
-  color:var(--white);
-  overflow:hidden;
-  position:relative;
-}
-.hero::after{ /* ドリル穴の輪郭モチーフ */
-  content:"";position:absolute;right:-140px;top:50%;transform:translateY(-50%);
-  width:520px;height:520px;border-radius:50%;
-  border:2px dashed rgba(255,255,255,.18);
+/* ============ hero:最大限出す ============ */
+.hero{position:relative;padding:88px 0 0;border-bottom:1px solid var(--black)}
+.hero::before{ /* 巨大な穴の輪郭 */
+  content:"";position:absolute;right:-16vw;top:-10vw;
+  width:52vw;height:52vw;border:1px solid var(--rule);border-radius:50%!important;
   pointer-events:none;
 }
-.hero-inner{
-  max-width:1080px;margin:0 auto;padding:60px 20px 52px;
-  display:grid;grid-template-columns:1.25fr 1fr;gap:40px;align-items:center;
+.hero::after{
+  content:"";position:absolute;right:-13vw;top:-7vw;
+  width:46vw;height:46vw;border:1px solid var(--rule);border-radius:50%!important;
+  pointer-events:none;
+}
+.hero-sub{
+  font-weight:700;font-size:clamp(.95rem,1.9vw,1.15rem);color:var(--mut);
+  margin-bottom:18px;position:relative;z-index:1;
+}
+.hero h1{
+  font-weight:900;
+  font-size:clamp(2.6rem,8vw,5.6rem);
+  line-height:1.18;letter-spacing:.005em;
+  margin-bottom:40px;position:relative;z-index:1;
+}
+.hero h1 .o{color:var(--navy)}
+.hero-cta{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:56px;position:relative;z-index:1}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  text-decoration:none;font-weight:900;font-size:1.02rem;
+  padding:19px 44px;letter-spacing:.05em;transition:background .15s,color .15s;
+}
+.btn-black{background:var(--black);color:var(--paper)}
+.btn-black:hover{background:var(--navy)}
+.btn-line{background:var(--line-green);color:#fff}
+.btn-line:hover{filter:brightness(.94)}
+.hero-note{font-size:.78rem;color:var(--mut);margin-top:-42px;margin-bottom:52px;position:relative;z-index:1}
+
+/* 価格の帯:出す */
+.price-band{
+  background:var(--black);color:var(--paper);
   position:relative;z-index:1;
 }
-.hero-eyebrow{
-  display:inline-block;background:var(--safety);color:var(--steel);
-  font-weight:700;font-size:.82rem;padding:4px 14px;border-radius:4px;margin-bottom:18px;
-  letter-spacing:.08em;
+.price-band .inner{
+  display:flex;align-items:baseline;gap:26px;flex-wrap:wrap;
+  padding-top:26px;padding-bottom:30px;
 }
-.hero-wish{
-  font-family:'Zen Kaku Gothic New',sans-serif;font-weight:700;
-  font-size:clamp(1.02rem,2.4vw,1.3rem);color:rgba(255,255,255,.9);
-  margin-bottom:10px;line-height:1.7;
+.price-band .pb-label{font-weight:900;font-size:1rem;letter-spacing:.04em}
+.price-band .pb-yen{
+  font-family:'Bebas Neue',sans-serif;font-size:clamp(3.4rem,8vw,6rem);
+  line-height:.9;color:var(--paper);
 }
-.hero h1{font-size:clamp(1.7rem,4.2vw,2.6rem);font-weight:900;margin-bottom:16px}
-.hero h1 .accent{color:var(--safety)}
-.hero-lead{font-size:1rem;color:rgba(255,255,255,.85);margin-bottom:28px;max-width:34em}
-.hero-cta-row{display:flex;flex-wrap:wrap;gap:14px}
-.btn-primary{
-  display:inline-flex;align-items:center;gap:10px;
-  background:var(--safety);color:var(--steel);text-decoration:none;
-  font-weight:900;font-family:'Zen Kaku Gothic New',sans-serif;
-  font-size:1.05rem;padding:16px 30px;border-radius:var(--radius);
-  box-shadow:0 4px 0 var(--safety-deep);
-  transition:transform .12s ease;
-}
-.btn-primary:hover{transform:translateY(2px);box-shadow:0 2px 0 var(--safety-deep)}
-.btn-line{
-  display:inline-flex;align-items:center;gap:10px;
-  background:var(--line-green);color:var(--white);text-decoration:none;
-  font-weight:900;font-family:'Zen Kaku Gothic New',sans-serif;
-  font-size:1.05rem;padding:16px 30px;border-radius:var(--radius);
-  box-shadow:0 4px 0 var(--line-green-deep);
-  transition:transform .12s ease;
-}
-.btn-line:hover{transform:translateY(2px);box-shadow:0 2px 0 var(--line-green-deep)}
-.hero-cta-note{margin-top:12px;font-size:.82rem;color:rgba(255,255,255,.65)}
+.price-band .pb-yen .u{color:var(--navy-l)}
+.price-band .pb-meta{font-size:.78rem;color:var(--faint);max-width:22em;line-height:1.7}
+.price-band .pb-meta b{color:var(--paper);font-weight:700}
 
-/* 穴モチーフの料金サークル */
-.price-hole{
-  width:min(320px,80vw);aspect-ratio:1;border-radius:50%;
-  background:var(--concrete);
-  box-shadow:
-    inset 0 10px 24px rgba(0,0,0,.35),
-    inset 0 -4px 10px rgba(255,255,255,.6),
-    0 0 0 10px rgba(255,255,255,.06),
-    0 0 0 22px rgba(255,255,255,.03);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  color:var(--steel);text-align:center;margin:0 auto;
+/* ============ 困りごと:静かに ============ */
+.trouble{padding:84px 0}
+.kicker{
+  font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.28em;
+  color:var(--mut);display:block;margin-bottom:14px;
 }
-.price-hole .label{font-weight:700;font-size:.9rem;color:var(--steel-mid)}
-.price-hole .yen{font-family:'Roboto Condensed',sans-serif;font-weight:700;font-size:3.4rem;line-height:1.1;color:var(--steel)}
-.price-hole .yen small{font-size:1.3rem;font-family:'Zen Kaku Gothic New',sans-serif;font-weight:900}
-.price-hole .note{font-size:.78rem;color:var(--steel-mid);margin-top:6px}
-.price-hole .tag{
-  margin-top:10px;background:var(--safety);font-weight:700;font-size:.78rem;
-  padding:3px 12px;border-radius:999px;
+.trouble h2{font-weight:900;font-size:clamp(1.3rem,2.8vw,1.7rem);margin-bottom:34px}
+.tr-cols{columns:2;column-gap:60px;max-width:920px}
+.tr-item{
+  break-inside:avoid;display:flex;gap:14px;align-items:baseline;
+  padding:13px 0;border-bottom:1px solid var(--rule);
+  font-size:.95rem;font-weight:500;
 }
+.tr-item::before{content:"—";color:var(--faint);flex-shrink:0}
+.tr-answer{
+  margin-top:44px;font-weight:900;
+  font-size:clamp(1.25rem,3.2vw,1.9rem);line-height:1.5;
+}
+.tr-answer .o{border-bottom:4px solid var(--navy)}
 
-/* ===== 共通セクション ===== */
-section{padding:64px 20px}
-.section-inner{max-width:1080px;margin:0 auto}
-.section-head{display:flex;align-items:center;gap:16px;margin-bottom:36px}
-.section-head .dot{ /* 小さな穴 */
-  width:26px;height:26px;border-radius:50%;flex-shrink:0;
-  background:var(--concrete-dark);
-  box-shadow:inset 0 4px 8px rgba(0,0,0,.28), inset 0 -2px 4px rgba(255,255,255,.7);
+/* ============ 得意分野:最大限出す ============ */
+.main-svc{border-top:1px solid var(--black)}
+.ms-head{padding:76px 0 0}
+.ms-head h2{font-weight:900;font-size:clamp(1.6rem,3.6vw,2.4rem)}
+.ms-head p{color:var(--mut);font-size:.9rem;margin-top:8px}
+.ms-block{
+  display:grid;grid-template-columns:minmax(180px,.55fr) 1.45fr;gap:40px;
+  padding:64px 0;border-bottom:1px solid var(--rule);align-items:start;
 }
-.section-head h2{font-size:clamp(1.3rem,3vw,1.8rem);font-weight:900;color:var(--steel)}
-.section-head .en{font-size:.75rem;font-weight:700;color:var(--steel-mid);letter-spacing:.14em;margin-left:auto;white-space:nowrap}
+.ms-block:last-of-type{border-bottom:none;padding-bottom:88px}
+.ms-no{
+  font-family:'Bebas Neue',sans-serif;font-size:clamp(6rem,14vw,11rem);
+  line-height:.8;color:transparent;
+  -webkit-text-stroke:1.5px var(--black);
+}
+.ms-block.acc .ms-no{-webkit-text-stroke:1.5px var(--navy)}
+.ms-body h3{font-weight:900;font-size:clamp(1.4rem,3vw,2rem);margin-bottom:6px}
+.ms-body .ms-tag{
+  display:inline-block;background:var(--black);color:var(--paper);
+  font-weight:700;font-size:.7rem;padding:2px 12px;letter-spacing:.1em;margin-bottom:14px;
+}
+.ms-block.acc .ms-tag{background:var(--navy)}
+.ms-body p{font-size:.95rem;color:var(--ink);max-width:38em;margin-bottom:14px}
+.ms-body ul{list-style:none;font-size:.86rem;color:var(--mut);max-width:38em}
+.ms-body ul li{padding:7px 0 7px 1.5em;position:relative;border-top:1px solid var(--rule)}
+.ms-body ul li::before{content:"＋";position:absolute;left:0;color:var(--navy);font-weight:700}
 
-/* ===== こんなことで困っていませんか ===== */
-.trouble{background:var(--white);padding-top:56px;padding-bottom:56px}
-.trouble-list{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:900px;margin:0 auto}
-.trouble-item{
-  background:var(--concrete);border-radius:var(--radius);
-  padding:16px 20px 16px 56px;position:relative;
-  font-weight:700;font-size:.95rem;color:var(--steel);
+/* ============ その他:索引で引く ============ */
+.idx{background:var(--paper-2);border-top:1px solid var(--black);padding:64px 0 72px}
+.idx h2{font-weight:900;font-size:1.15rem;margin-bottom:26px}
+.idx-list{max-width:920px}
+.idx-row{
+  display:grid;grid-template-columns:44px 15em 1fr;gap:18px;align-items:baseline;
+  padding:11px 0;border-bottom:1px solid var(--rule);font-size:.86rem;
 }
-.trouble-item::before{
-  content:"";position:absolute;left:18px;top:50%;transform:translateY(-50%);
-  width:22px;height:22px;border-radius:50%;
-  background:var(--concrete-dark);
-  box-shadow:inset 0 3px 6px rgba(0,0,0,.28), inset 0 -2px 3px rgba(255,255,255,.7);
-}
-.trouble-item.last{grid-column:1/-1;background:var(--steel);color:var(--white);text-align:center;padding-left:20px}
-.trouble-item.last::before{display:none}
-.trouble-answer{
-  text-align:center;margin-top:26px;font-family:'Zen Kaku Gothic New',sans-serif;
-  font-weight:900;font-size:clamp(1.1rem,2.6vw,1.4rem);color:var(--steel);
-}
-.trouble-answer .accent{background:linear-gradient(transparent 62%, var(--safety) 62%)}
+.idx-row .n{font-family:'Bebas Neue',sans-serif;color:var(--faint);font-size:1rem}
+.idx-row .t{font-weight:700}
+.idx-row .d{color:var(--mut)}
+.idx-note{margin-top:22px;font-size:.82rem;color:var(--mut)}
 
-/* ===== 3つの安心 ===== */
-.trust{background:var(--concrete)}
-.trust-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
-.trust-card{background:var(--white);border-radius:var(--radius);padding:26px 22px;border-top:4px solid var(--safety)}
-.trust-card h3{font-size:1.05rem;font-weight:900;color:var(--steel);margin-bottom:10px}
-.trust-card p{font-size:.9rem;color:var(--steel-mid)}
-
-/* ===== サービス ===== */
-.services{background:var(--white)}
-.services-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
-.svc{
-  background:var(--concrete);border-radius:var(--radius);padding:24px;
-  border:1px solid var(--concrete-dark);
-  display:flex;flex-direction:column;gap:8px;position:relative;
+/* ============ 料金:出す ============ */
+.pricing{background:var(--black);color:var(--paper);padding:84px 0 76px}
+.pricing .kicker{color:var(--faint)}
+.pricing h2{font-weight:900;font-size:clamp(1.5rem,3.4vw,2.1rem);margin-bottom:12px}
+.pricing .p-big{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(4rem,11vw,8.5rem);line-height:.95;margin:18px 0 8px;
 }
-.svc.featured{background:var(--white);border:2px solid var(--safety-deep)}
-.svc .svc-badge{
-  position:absolute;top:-12px;left:20px;background:var(--safety);color:var(--steel);
-  font-weight:900;font-size:.72rem;padding:3px 12px;border-radius:999px;
-  font-family:'Zen Kaku Gothic New',sans-serif;
+.pricing .p-big .u{color:var(--navy-l)}
+.pricing .p-bigsub{font-size:.85rem;color:var(--faint);margin-bottom:40px}
+.p-rows{max-width:880px;border-top:1px solid #3A3C40}
+.p-row{
+  display:grid;grid-template-columns:1.3fr auto;gap:20px;align-items:baseline;
+  padding:15px 0;border-bottom:1px solid #3A3C40;font-size:.9rem;
 }
-.svc .svc-icon{
-  width:46px;height:46px;border-radius:50%;
-  background:var(--steel);color:var(--safety);
-  display:flex;align-items:center;justify-content:center;
-  font-size:1.3rem;margin-bottom:4px;
+.p-row .n{font-weight:700}
+.p-row .n small{display:block;font-weight:400;font-size:.76rem;color:var(--faint)}
+.p-row .v{font-family:'Bebas Neue',sans-serif;font-size:1.25rem;color:var(--paper);text-align:right;white-space:nowrap}
+.p-row .v.jp{font-family:'Noto Sans JP',sans-serif;font-size:.85rem;font-weight:700;color:var(--faint)}
+.set-strip{
+  max-width:880px;margin-top:34px;background:var(--navy);color:var(--paper);
+  padding:20px 28px;display:flex;flex-wrap:wrap;gap:6px 34px;align-items:baseline;
 }
-.svc h3{font-size:1.05rem;font-weight:900;color:var(--steel)}
-.svc p{font-size:.88rem;color:var(--steel-mid)}
-.svc ul{list-style:none;font-size:.85rem;color:var(--ink);margin-top:4px}
-.svc ul li{padding-left:1.2em;position:relative}
-.svc ul li::before{content:"●";position:absolute;left:0;font-size:.55em;top:.75em;color:var(--safety-deep)}
-
-/* ===== 対応範囲 ===== */
-.scope-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
-.scope-card{border-radius:var(--radius);padding:26px;background:var(--white)}
-.scope-card.ok{border:2px solid var(--ok)}
-.scope-card.ng{border:2px solid var(--ng)}
-.scope-card h3{font-size:1.05rem;font-weight:900;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.scope-card.ok h3{color:var(--ok)}
-.scope-card.ng h3{color:var(--ng)}
-.scope-card ul{list-style:none;font-size:.9rem}
-.scope-card li{padding:6px 0 6px 1.5em;position:relative;border-bottom:1px dashed var(--concrete-dark)}
-.scope-card li:last-child{border-bottom:none}
-.scope-card.ok li::before{content:"✓";position:absolute;left:0;color:var(--ok);font-weight:700}
-.scope-card.ng li::before{content:"✕";position:absolute;left:0;color:var(--ng);font-weight:700}
-.scope-note{margin-top:18px;font-size:.85rem;background:var(--white);border-radius:10px;padding:14px 18px;color:var(--steel-mid)}
-
-/* ===== 料金 ===== */
-.pricing{background:var(--steel);color:var(--white)}
-.pricing .section-head h2{color:var(--white)}
-.pricing .section-head .en{color:rgba(255,255,255,.5)}
-.price-table{width:100%;border-collapse:collapse;background:rgba(255,255,255,.04);border-radius:var(--radius);overflow:hidden}
-.price-table th,.price-table td{padding:15px 18px;text-align:left;font-size:.93rem;border-bottom:1px solid rgba(255,255,255,.1)}
-.price-table th{background:rgba(255,255,255,.08);font-weight:700;font-size:.85rem}
-.price-table td.price{font-family:'Roboto Condensed',sans-serif;font-size:1.15rem;font-weight:700;color:var(--safety);white-space:nowrap}
-.price-table tr:last-child td{border-bottom:none}
-.pricing-notes{margin-top:20px;font-size:.85rem;color:rgba(255,255,255,.75)}
-.pricing-notes li{margin-bottom:6px;list-style:none;padding-left:1.2em;position:relative}
-.pricing-notes li::before{content:"※";position:absolute;left:0}
-.discount-banner{
-  margin-top:26px;background:var(--safety);color:var(--steel);
-  border-radius:var(--radius);padding:18px 24px;
-  font-weight:900;font-family:'Zen Kaku Gothic New',sans-serif;
-  display:flex;align-items:center;gap:14px;font-size:1.02rem;
+.set-strip .t{font-weight:900;letter-spacing:.12em;font-size:.85rem}
+.set-strip .i{font-weight:900;font-size:1.1rem}
+.set-strip .i .bb{font-size:1.7em;vertical-align:-3px;margin:0 2px}
+.set-strip .n{width:100%;font-size:.76rem;font-weight:500;color:rgba(241,240,236,.85)}
+.p-notes{max-width:880px;margin-top:22px;font-size:.78rem;color:var(--faint)}
+.p-notes li{list-style:none;padding-left:1.3em;position:relative;margin-bottom:4px}
+.p-notes li::before{content:"※";position:absolute;left:0}
+.biz{
+  max-width:880px;margin-top:40px;border:1px solid #3A3C40;padding:22px 26px;
 }
-.discount-banner .badge{background:var(--steel);color:var(--safety);border-radius:999px;padding:4px 14px;font-size:.8rem;white-space:nowrap}
+.biz b{display:block;font-size:.92rem;margin-bottom:4px}
+.biz b span{color:var(--navy-l);margin-right:12px;font-size:.78rem;letter-spacing:.1em}
+.biz p{font-size:.82rem;color:var(--faint)}
 
-/* ===== 施工事例 ===== */
-.works-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:22px}
-.work-card{background:var(--white);border-radius:var(--radius);overflow:hidden;border:1px solid var(--concrete-dark)}
-.work-photos{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--concrete-dark)}
-.ph{aspect-ratio:4/3;background:linear-gradient(150deg,#C9C9C2,#B5B5AD);display:flex;align-items:center;justify-content:center;color:#7A7A72;font-size:.78rem;font-weight:700;position:relative}
-.ph::after{content:"";position:absolute;width:56px;height:56px;border-radius:50%;background:var(--concrete);box-shadow:inset 0 5px 10px rgba(0,0,0,.3)}
-.ph span{position:absolute;top:8px;left:10px;background:var(--steel);color:var(--white);padding:2px 10px;border-radius:4px;font-size:.7rem;z-index:1}
-.ph.before span{background:#6B6B63}
-.work-body{padding:18px 20px}
-.work-area{display:inline-block;background:var(--concrete);border-radius:4px;padding:2px 10px;font-size:.75rem;font-weight:700;color:var(--steel-mid);margin-bottom:8px}
-.work-body h3{font-size:.98rem;font-weight:900;color:var(--steel);margin-bottom:6px}
-.work-body p{font-size:.85rem;color:var(--steel-mid)}
+/* ============ 対応範囲:静かに明確に ============ */
+.scope{padding:78px 0;border-bottom:1px solid var(--rule)}
+.scope-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px;max-width:920px}
+.scope-col h3{font-weight:900;font-size:1rem;margin-bottom:14px;display:flex;gap:10px;align-items:center}
+.scope-col h3 .m{font-family:'Bebas Neue',sans-serif;font-size:1.1em}
+.scope-col.ok h3 .m{color:#2E7D4F}
+.scope-col.ng h3 .m{color:var(--navy)}
+.scope-col ul{list-style:none;font-size:.88rem}
+.scope-col li{padding:8px 0 8px 1.5em;position:relative;border-bottom:1px solid var(--rule)}
+.scope-col li:last-child{border-bottom:none}
+.scope-col.ok li::before{content:"○";position:absolute;left:0;color:#2E7D4F}
+.scope-col.ng li::before{content:"✕";position:absolute;left:0;color:var(--navy)}
+.scope-note{max-width:920px;margin-top:26px;font-size:.82rem;color:var(--mut)}
 
-/* ===== FAQ ===== */
-.faq{background:var(--white)}
-.faq-item{border:1px solid var(--concrete-dark);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;background:var(--white)}
+/* ============ 流れ:一行で引く ============ */
+.flow{padding:56px 0;border-bottom:1px solid var(--rule)}
+.flow-line{display:flex;flex-wrap:wrap;gap:8px 0;align-items:center;max-width:1000px}
+.flow-s{display:flex;align-items:baseline;gap:10px}
+.flow-s .n{font-family:'Bebas Neue',sans-serif;color:var(--navy);font-size:1.3rem}
+.flow-s .t{font-weight:900;font-size:.95rem}
+.flow-s .d{font-size:.78rem;color:var(--mut)}
+.flow-arrow{margin:0 22px;color:var(--faint)}
+.flow-foot{margin-top:14px;font-size:.8rem;color:var(--mut)}
+.flow-foot b{color:var(--ink)}
+
+/* ============ 施工イメージ ============ */
+.works{padding:76px 0;border-bottom:1px solid var(--rule)}
+.works h2{font-weight:900;font-size:clamp(1.3rem,2.8vw,1.7rem);margin-bottom:32px}
+.works-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule)}
+.w-card{background:var(--paper)}
+.w-photos{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule)}
+.ph{aspect-ratio:4/3;background:var(--paper-2);position:relative;display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:.7rem;font-weight:700}
+.ph span{position:absolute;top:0;left:0;background:var(--black);color:var(--paper);padding:1px 10px;font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.14em}
+.ph.before span{background:var(--faint)}
+.w-body{padding:18px 20px 22px}
+.w-area{font-family:'Bebas Neue',sans-serif;font-size:.78rem;letter-spacing:.16em;color:var(--mut);display:block;margin-bottom:4px}
+.w-body h3{font-weight:900;font-size:.95rem;margin-bottom:6px}
+.w-body p{font-size:.82rem;color:var(--mut)}
+.works-note{margin-top:16px;font-size:.78rem;color:var(--mut)}
+
+/* ============ FAQ:引く ============ */
+.faq{padding:70px 0;border-bottom:1px solid var(--rule)}
+.faq h2{font-weight:900;font-size:1.15rem;margin-bottom:20px}
+.faq-item{border-bottom:1px solid var(--rule);max-width:820px}
 .faq-item summary{
-  cursor:pointer;padding:18px 22px;font-weight:700;font-size:.96rem;color:var(--steel);
-  list-style:none;display:flex;align-items:center;gap:12px;
+  cursor:pointer;padding:15px 0;font-weight:700;font-size:.9rem;
+  list-style:none;display:flex;align-items:baseline;gap:14px;
 }
 .faq-item summary::-webkit-details-marker{display:none}
-.faq-item summary::before{
-  content:"Q";flex-shrink:0;width:30px;height:30px;border-radius:50%;
-  background:var(--steel);color:var(--safety);font-family:'Roboto Condensed',sans-serif;
-  display:flex;align-items:center;justify-content:center;font-size:.9rem;
-}
-.faq-a{padding:0 22px 20px 64px;font-size:.9rem;color:var(--steel-mid)}
+.faq-item summary::before{content:"Q";font-family:'Bebas Neue',sans-serif;color:var(--navy);flex-shrink:0}
+.faq-item summary::after{content:"＋";margin-left:auto;color:var(--faint)}
+.faq-item[open] summary::after{content:"−"}
+.faq-a{padding:0 0 18px 26px;font-size:.85rem;color:var(--mut)}
 
-/* ===== 代表あいさつ ===== */
-.greeting-grid{display:grid;grid-template-columns:220px 1fr;gap:32px;align-items:start}
+/* ============ あいさつ ============ */
+.greet{padding:80px 0}
+.greet-grid{display:grid;grid-template-columns:180px 1fr;gap:44px;align-items:start;max-width:920px}
 .face{
-  width:220px;aspect-ratio:1;border-radius:50%;
-  background:linear-gradient(150deg,#C9C9C2,#AFAFA7);
-  display:flex;align-items:center;justify-content:center;
-  color:#73736B;font-size:.8rem;font-weight:700;
-  border:6px solid var(--white);box-shadow:0 4px 14px rgba(0,0,0,.12);
+  width:180px;aspect-ratio:3/4;background:var(--paper-2);border:1px solid var(--rule);
+  display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:.75rem;font-weight:700;
 }
-.greeting-body h3{font-size:1.15rem;font-weight:900;color:var(--steel);margin-bottom:4px}
-.greeting-body .title{font-size:.82rem;color:var(--steel-mid);margin-bottom:16px}
-.greeting-body p{font-size:.92rem;margin-bottom:12px}
+.greet-body .pull{
+  font-weight:900;font-size:clamp(1.15rem,2.6vw,1.55rem);line-height:1.65;
+  margin-bottom:26px;
+}
+.greet-body .pull .o{color:var(--navy)}
+.greet-body h3{font-weight:900;font-size:1rem}
+.greet-body .title{font-size:.76rem;color:var(--mut);margin-bottom:16px}
+.greet-body p{font-size:.88rem;color:var(--mut);margin-bottom:12px;max-width:44em}
 
-/* ===== CTA ===== */
-.contact{background:linear-gradient(160deg,var(--steel),#2A3D52);color:var(--white);text-align:center}
-.contact h2{font-size:clamp(1.4rem,3.4vw,2rem);font-weight:900;margin-bottom:12px}
-.contact p{color:rgba(255,255,255,.8);margin-bottom:30px}
-.contact-box{
-  background:var(--white);color:var(--steel);border-radius:var(--radius);
-  max-width:640px;margin:0 auto;padding:34px 28px;
+/* ============ CTA:出す ============ */
+.contact{background:var(--black);color:var(--paper);padding:92px 0 88px;text-align:left}
+.contact .kicker{color:var(--faint)}
+.contact h2{font-weight:900;font-size:clamp(1.6rem,4vw,2.5rem);margin-bottom:8px}
+.contact>.inner>p{color:var(--faint);font-size:.9rem;margin-bottom:36px}
+.contact-tel{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(3.4rem,11vw,8rem);line-height:.95;
+  text-decoration:none;color:var(--paper);display:inline-block;
+  border-bottom:6px solid var(--navy-l);margin-bottom:10px;
+  transition:color .15s;
 }
-.contact-tel{font-family:'Roboto Condensed',sans-serif;font-size:2.4rem;font-weight:700;text-decoration:none;color:var(--steel);display:block;line-height:1.2}
-.contact-hours{font-size:.85rem;color:var(--steel-mid);margin-bottom:20px}
-.contact-btn-row{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
-.btn-mail{
-  display:inline-block;background:var(--steel);color:var(--white);text-decoration:none;
-  font-weight:700;padding:14px 32px;border-radius:var(--radius);
-}
-.btn-mail:hover{background:var(--steel-mid)}
-.btn-line-s{
-  display:inline-block;background:var(--line-green);color:var(--white);text-decoration:none;
-  font-weight:700;padding:14px 32px;border-radius:var(--radius);
-}
-.btn-line-s:hover{background:var(--line-green-deep)}
+.contact-tel:hover{color:var(--navy-l)}
+.contact-hours{font-size:.8rem;color:var(--faint);margin-bottom:34px}
+.contact-btns{display:flex;flex-wrap:wrap;gap:14px}
+.btn-paperline{background:var(--paper);color:var(--black)}
+.btn-paperline:hover{background:var(--navy);color:var(--paper)}
 
-/* ===== footer ===== */
-footer{background:#141C25;color:rgba(255,255,255,.65);font-size:.82rem;padding:36px 20px}
-.footer-inner{max-width:1080px;margin:0 auto;display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px}
-footer strong{color:var(--white);font-size:.95rem;display:block;margin-bottom:6px}
+/* ============ footer ============ */
+footer{background:var(--black);color:var(--faint);font-size:.76rem;padding:0 0 120px;border-top:1px solid #3A3C40}
+.footer-inner{max-width:1140px;margin:0 auto;padding:28px 28px 0;display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px}
+footer strong{color:var(--paper);display:block;margin-bottom:4px;font-size:.85rem}
 
-/* ===== モバイル固定CTA ===== */
+/* ============ モバイル固定CTA ============ */
 .mobile-cta{
-  display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;
-  background:var(--white);border-top:2px solid var(--steel);
-  padding:10px 12px;gap:10px;
+  display:none;position:fixed;bottom:0;left:0;right:0;z-index:400;
+  background:var(--black);padding:10px 12px;gap:10px;
+  border-top:2px solid var(--navy-l);
 }
-.mobile-cta a{flex:1;text-align:center;text-decoration:none;font-weight:900;font-family:'Zen Kaku Gothic New',sans-serif;padding:13px 8px;border-radius:10px;font-size:.9rem}
-.mobile-cta .m-tel{background:var(--safety);color:var(--steel)}
-.mobile-cta .m-line{background:var(--line-green);color:var(--white)}
+.mobile-cta a{flex:1;text-align:center;text-decoration:none;font-weight:900;padding:14px 8px;font-size:.9rem}
+.mobile-cta .m-tel{background:var(--navy);color:var(--paper)}
+.mobile-cta .m-line{background:var(--line-green);color:#fff}
 
-/* ===== responsive ===== */
-@media(max-width:860px){
-  .hero-inner{grid-template-columns:1fr;padding:44px 20px}
-  .hero::after{display:none}
-  .trouble-list{grid-template-columns:1fr}
-  .trust-grid{grid-template-columns:1fr}
-  .scope-grid{grid-template-columns:1fr}
-  .greeting-grid{grid-template-columns:1fr;justify-items:center;text-align:left}
+/* ============ responsive ============ */
+@media(max-width:900px){
+  .hd-tel{display:none}
+  .hero{padding-top:60px}
+  .hero-note{margin-top:-40px}
+  .price-band .inner{gap:14px}
+  .tr-cols{columns:1}
+  .ms-block{grid-template-columns:1fr;gap:10px;padding:48px 0}
+  .ms-no{font-size:clamp(4.5rem,18vw,7rem)}
+  .idx-row{grid-template-columns:34px 1fr;gap:8px 14px}
+  .idx-row .d{grid-column:2}
+  .scope-grid{grid-template-columns:1fr;gap:36px}
+  .flow-line{flex-direction:column;align-items:flex-start;gap:12px}
+  .flow-arrow{display:none}
+  .works-grid{grid-template-columns:1fr}
+  .greet-grid{grid-template-columns:1fr;gap:24px}
   .mobile-cta{display:flex}
-  body{padding-bottom:70px}
-  .price-table th:nth-child(3),.price-table td:nth-child(3){display:none}
+  .inner{padding:0 20px}
 }
-a:focus-visible,summary:focus-visible{outline:3px solid var(--safety-deep);outline-offset:2px}
+a:focus-visible,summary:focus-visible{outline:3px solid var(--navy);outline-offset:3px}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="header-inner">
-    <a class="logo" href="#top">札幌 壁穴あけ・配線サポート<small>株式会社ジャストフレンズ</small></a>
-    <a class="header-tel" href="tel:0000000000">📞 お電話で相談</a>
+  <div class="hd">
+    <a class="hd-logo" href="#top">
+      <svg viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="86" fill="none" stroke="#4A4A4A" stroke-width="20" stroke-dasharray="38.2 6.83" stroke-dashoffset="19.1" transform="rotate(-90 100 100)"/><circle cx="100" cy="100" r="59" fill="none" stroke="#003D7A" stroke-width="26"/></svg>
+      穴あけの窓口<small>札幌の壁穴あけ専門｜株式会社ジャストフレンズ</small></a>
+    <div class="hd-right">
+      <a class="hd-tel bb" href="tel:0115981010">011-598-1010</a>
+      <a class="hd-btn" href="#contact">見積無料・相談</a>
+    </div>
   </div>
 </header>
 
-<!-- ===== HERO ===== -->
+<!-- ============ HERO ============ -->
 <div class="hero" id="top">
-  <div class="hero-inner">
-    <div>
-      <span class="hero-eyebrow">札幌の壁穴あけ・配線サポート専門</span>
-      <p class="hero-wish">LANケーブルを隣の部屋に通したい。<br>スピーカー配線を壁の中に隠したい。</p>
-      <h1>その<span class="accent">"穴ひとつ"</span>から<br>対応します。</h1>
-      <p class="hero-lead">壁穴あけ1本 ¥15,000〜（税込）。個人住宅・店舗・オフィス対応、複数本施工で割引あり。建設会社様からのご依頼も歓迎です。</p>
-      <div class="hero-cta-row">
-        <a class="btn-primary" href="tel:0000000000">📞 電話で相談</a>
-        <a class="btn-line" href="#" aria-label="LINEで写真を送って相談">💬 LINEで写真を送る</a>
-      </div>
-      <p class="hero-cta-note">壁の写真を送るだけで概算をお伝えできます。お見積もり無料。</p>
+  <div class="inner">
+    <p class="hero-sub">LANケーブルを隣の部屋に通したい。スピーカー配線を壁の中に隠したい。</p>
+    <h1>その「<span class="o">穴ひとつ</span>」から、<br>対応します。</h1>
+    <div class="hero-cta">
+      <a class="btn btn-black" href="tel:0115981010">電話で相談する</a>
+      <a class="btn btn-line" href="#">LINEで写真を送る</a>
     </div>
-    <div>
-      <div class="price-hole">
-        <span class="label">壁穴あけ（コア抜き）</span>
-        <span class="yen"><small>¥</small>15,000<small>〜</small></span>
-        <span class="note">1本あたり・税込目安</span>
-        <span class="tag">複数本まとめて割引あり</span>
+  </div>
+  <p class="hero-note inner" style="display:block">壁の写真を送るだけで概算をお伝えできます。個人住宅・店舗・オフィス対応。</p>
+  <div class="price-band">
+    <div class="inner">
+      <span class="pb-label">壁穴あけ</span>
+      <span class="pb-yen bb"><span class="u">¥</span>15,000<span style="font-size:.4em">〜/1本</span></span>
+      <span class="pb-meta">税込目安。コンクリート・ALC・ブロック・れんが・木造・石膏ボード対応。<b>複数本まとめて割引あり。</b>作業前に確定金額を提示します。</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 困りごと ============ -->
+<section class="trouble">
+  <div class="inner">
+    <span class="kicker">TROUBLES</span>
+    <h2>こんなことで困っていませんか</h2>
+    <div class="tr-cols">
+      <div class="tr-item">Wi-Fiが弱いので、有線LANを別の部屋に引きたい</div>
+      <div class="tr-item">壁掛けテレビの配線を見えなくしたい</div>
+      <div class="tr-item">スピーカーケーブルを壁の中に隠したい</div>
+      <div class="tr-item">エアコンを増設したいが壁に穴がない</div>
+      <div class="tr-item">店舗のレジ・プリンター・ネットワーク配線を整理したい</div>
+      <div class="tr-item">防犯カメラ用のケーブル穴をあけたい</div>
+    </div>
+    <p class="tr-answer">「穴を開けたいけど、どこに頼めばいいかわからない」<br>——その<span class="o">どこに頼めばいいかわからない仕事</span>が、私たちの専門です。</p>
+  </div>
+</section>
+
+<!-- ============ 得意分野:3本 ============ -->
+<div class="main-svc">
+  <div class="inner ms-head">
+    <span class="kicker">SPECIALTY</span>
+    <h2>特に得意な3つの仕事</h2>
+    <p>オーディオ専門店として25年、配線と向き合ってきた会社の得意分野です。</p>
+  </div>
+  <div class="inner">
+    <div class="ms-block acc">
+      <div class="ms-no bb">01</div>
+      <div class="ms-body">
+        <span class="ms-tag">依頼最多</span>
+        <h3>LANケーブル配線</h3>
+        <p>配線用の穴あけから壁内・壁沿いのケーブル敷設まで一括対応。在宅ワーク・オンラインゲームの通信を安定させます。</p>
+        <ul>
+          <li>各部屋への有線LAN敷設</li>
+          <li>Wi-Fiルーター初期設定</li>
+          <li>ルーターから書斎・子ども部屋への壁通し</li>
+        </ul>
+      </div>
+    </div>
+    <div class="ms-block">
+      <div class="ms-no bb">02</div>
+      <div class="ms-body">
+        <span class="ms-tag">オーディオ専門店の本業</span>
+        <h3>オーディオ・ホームシアター配線</h3>
+        <p>スピーカーケーブルやHDMIの壁内配線は、音と機材を知る当社の独壇場です。音質に配慮した引き回しで施工します。</p>
+        <ul>
+          <li>スピーカーケーブル壁内配線</li>
+          <li>HDMIケーブル壁内配線</li>
+          <li>店舗外(店頭・軒先)のBGMスピーカー配線</li>
+          <li>Bluetooth機器の接続サポート</li>
+        </ul>
+      </div>
+    </div>
+    <div class="ms-block">
+      <div class="ms-no bb">03</div>
+      <div class="ms-body">
+        <span class="ms-tag">穴あけから取付まで</span>
+        <h3>エアコン穴あけ・取り付け</h3>
+        <p>配管用スリーブ穴の新設から本体の取り付けまで一括対応。真空引き・配管接続・据付を丁寧に施工します。</p>
+        <ul>
+          <li>筋交いや配筋を避けた安全な位置決め</li>
+          <li>既存コンセントを使用する標準取付に対応</li>
+          <li>電圧切替・コンセント増設が必要な場合は電気工事店をご案内</li>
+        </ul>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ===== こんなことで困っていませんか ===== -->
-<section class="trouble">
-  <div class="section-inner">
-    <div class="section-head">
-      <span class="dot"></span>
-      <h2>こんなことで困っていませんか?</h2>
-      <span class="en">TROUBLES</span>
+<!-- ============ その他の工事:索引 ============ -->
+<section class="idx">
+  <div class="inner">
+    <h2>そのほかの対応工事</h2>
+    <div class="idx-list">
+      <div class="idx-row"><span class="n">04</span><span class="t">壁穴あけ（コア抜き）</span><span class="d">ダイヤモンドコアドリルで正確に施工。コンクリート・ALC・ブロック・れんが・木造・石膏ボード対応</span></div>
+      <div class="idx-row"><span class="n">05</span><span class="t">アンテナケーブル配線</span><span class="d">テレビアンテナ線の引き込み・分配・部屋間の配線</span></div>
+      <div class="idx-row"><span class="n">06</span><span class="t">店舗・オフィス配線サポート</span><span class="d">レジ・プリンター・ネットワーク機器の配線整理と壁通し</span></div>
+      <div class="idx-row"><span class="n">07</span><span class="t">防犯カメラ配線</span><span class="d">カメラ用ケーブルの屋外引き込み穴あけと配線</span></div>
+      <div class="idx-row"><span class="n">08</span><span class="t">換気扇・ダクト用穴あけ</span><span class="d">換気扇・レンジフード・24時間換気のダクト穴。大径も対応</span></div>
+      <div class="idx-row"><span class="n">09</span><span class="t">FFストーブ用穴あけ</span><span class="d">FF式ストーブの給排気筒用穴あけ。冬前のご依頼はお早めに</span></div>
     </div>
-    <div class="trouble-list">
-      <div class="trouble-item">Wi-Fiが弱いので、有線LANを別の部屋に引きたい</div>
-      <div class="trouble-item">テレビやアンテナ線を反対側の壁に移動したい</div>
-      <div class="trouble-item">スピーカーケーブルを壁の中に隠して部屋をすっきりさせたい</div>
-      <div class="trouble-item">店舗のレジ・プリンター・ネットワーク配線を整理したい</div>
-      <div class="trouble-item last">「穴を開けたいけど、どこに頼めばいいかわからない」</div>
-    </div>
-    <p class="trouble-answer">その<span class="accent">"どこに頼めばいいかわからない仕事"</span>が、私たちの専門です。</p>
+    <p class="idx-note">一覧にない作業もご相談ください。電気工事など対応できない作業は、その場ではっきりお伝えします。</p>
   </div>
 </section>
 
-<!-- ===== 3つの安心 ===== -->
-<section class="trust">
-  <div class="section-inner">
-    <div class="section-head">
-      <span class="dot"></span>
-      <h2>選ばれる3つの理由</h2>
-      <span class="en">WHY US</span>
+<!-- ============ 料金 ============ -->
+<section class="pricing" id="pricing">
+  <div class="inner">
+    <span class="kicker">PRICE</span>
+    <h2>料金</h2>
+    <div class="p-big bb"><span class="u">¥</span>15,000<span style="font-size:.35em">〜/1本（税込）</span></div>
+    <p class="p-bigsub">壁穴あけの基本料金。材質・厚み・作業環境により変動しますが、作業前に必ず確定金額を提示します。</p>
+    <div class="p-rows">
+      <div class="p-row"><span class="n">壁穴あけ<small>コンクリート・ALC・ブロック・れんが・木造・石膏ボード など対応</small></span><span class="v bb">¥15,000〜/1本</span></div>
+      <div class="p-row"><span class="n">エアコン取り付け<small>穴あけ＋標準取付（真空引き含む）。既存コンセント使用の場合</small></span><span class="v jp">お見積もり</span></div>
+      <div class="p-row"><span class="n">LANケーブル配線<small>距離・経路により変動</small></span><span class="v jp">お見積もり</span></div>
+      <div class="p-row"><span class="n">オーディオ・ホームシアター配線<small>内容に応じてご提案</small></span><span class="v jp">お見積もり</span></div>
+      <div class="p-row"><span class="n">配線整理・機器設定サポート<small>作業時間に応じて</small></span><span class="v jp">お見積もり</span></div>
     </div>
-    <div class="trust-grid">
-      <div class="trust-card">
-        <h3>① 明朗会計・追加料金なし</h3>
-        <p>作業前に必ずお見積もりを提示。壁の材質と本数で料金が決まるシンプルな体系です。作業後に金額が変わることはありません。</p>
-      </div>
-      <div class="trust-card">
-        <h3>② 1本から、小さな仕事も歓迎</h3>
-        <p>「穴1つだけ頼みにくい…」という遠慮は不要です。エアコン1台分の穴あけ、LANケーブル1本の壁通しから喜んでお伺いします。</p>
-      </div>
-      <div class="trust-card">
-        <h3>③ 配線までキレイに仕上げる技術</h3>
-        <p>札幌でオーディオ機器の修理・販売を25年以上続けてきた会社です。穴をあけて終わりではなく、配線の通し方・まとめ方まで美しく仕上げます。</p>
-      </div>
+    <div class="set-strip">
+      <span class="t">セット割引</span>
+      <span class="i">2本施工<span class="bb">5%</span>OFF</span>
+      <span class="i">3本以上<span class="bb">10%</span>OFF</span>
+      <span class="n">合計金額からの割引。同一現場で複数箇所施工の場合は別途お見積もりいたします。</span>
     </div>
-  </div>
-</section>
-
-<!-- ===== サービス一覧 ===== -->
-<section class="services" id="services">
-  <div class="section-inner">
-    <div class="section-head">
-      <span class="dot"></span>
-      <h2>サービス一覧</h2>
-      <span class="en">SERVICES</span>
-    </div>
-    <div class="services-grid">
-      <div class="svc featured">
-        <span class="svc-badge">人気No.1</span>
-        <div class="svc-icon">🌐</div>
-        <h3>LANケーブル配線</h3>
-        <p>LANケーブル配線用の穴あけから、壁内・壁沿いのケーブル敷設まで一括対応。在宅ワーク・オンラインゲームの通信を安定させます。</p>
-        <ul>
-          <li>各部屋への有線LAN敷設</li>
-          <li>Wi-Fiルーター初期設定</li>
-        </ul>
-      </div>
-      <div class="svc featured">
-        <span class="svc-badge">当社の得意分野</span>
-        <div class="svc-icon">🔊</div>
-        <h3>オーディオ・ホームシアター配線</h3>
-        <p>オーディオ専門店ならではの得意分野。音質に配慮した引き回しで施工します。</p>
-        <ul>
-          <li>スピーカーケーブル壁内配線</li>
-          <li>HDMIケーブル壁内配線</li>
-          <li>Bluetooth機器の接続サポート</li>
-        </ul>
-      </div>
-      <div class="svc">
-        <div class="svc-icon">📡</div>
-        <h3>アンテナケーブル配線</h3>
-        <p>テレビアンテナ線の引き込み・分配・部屋間の配線。壁の穴あけとセットで対応します。</p>
-      </div>
-      <div class="svc">
-        <div class="svc-icon">🏢</div>
-        <h3>店舗・オフィス配線サポート</h3>
-        <p>レジ・プリンター・ネットワーク機器などの配線整理と壁通し。開店準備・レイアウト変更もお手伝いします。</p>
-      </div>
-      <div class="svc">
-        <div class="svc-icon">📷</div>
-        <h3>防犯カメラ配線</h3>
-        <p>カメラ用ケーブルの屋外引き込み穴あけと配線。ご家庭から店舗まで。</p>
-      </div>
-      <div class="svc">
-        <div class="svc-icon">🕳</div>
-        <h3>壁穴あけ（コア抜き）</h3>
-        <p>各種壁材に対応した穴あけ工事。ダイヤモンドコアドリルで正確に開けます。</p>
-        <ul>
-          <li>コンクリート</li>
-          <li>ALC・ブロック・れんが</li>
-          <li>木造・石膏ボード</li>
-        </ul>
-      </div>
-      <div class="svc">
-        <div class="svc-icon">❄</div>
-        <h3>エアコン用穴あけ</h3>
-        <p>配管用スリーブ穴の新設。筋交いや配筋を避けた安全な位置決めをご提案します。</p>
-      </div>
-      <div class="svc">
-        <div class="svc-icon">🌀</div>
-        <h3>換気扇・ダクト用穴あけ</h3>
-        <p>換気扇・レンジフード・24時間換気のダクト穴。径の大きな穴も対応可能です。</p>
-      </div>
-      <div class="svc">
-        <div class="svc-icon">🔥</div>
-        <h3>FFストーブ用穴あけ</h3>
-        <p>北海道の必需品、FF式ストーブの給排気筒用穴あけ。冬前のご依頼はお早めに。</p>
-      </div>
+    <ul class="p-notes">
+      <li>作業前に必ず確定金額をご提示します。ご了承いただいてから作業を開始します。</li>
+      <li>出張費は札幌市内無料。近郊エリアはお問い合わせください。</li>
+    </ul>
+    <div class="biz">
+      <b><span>FOR BUSINESS</span>建設会社・電気工事店・リフォーム会社様からのご依頼も承ります</b>
+      <p>現場単位のコア抜き・配線作業の外注、繁忙期の応援、継続的な協力関係など、お気軽にご相談ください。請求書払いに対応します。</p>
     </div>
   </div>
 </section>
 
-<!-- ===== 対応できる範囲 ===== -->
-<section>
-  <div class="section-inner">
-    <div class="section-head">
-      <span class="dot"></span>
-      <h2>対応できること・できないこと</h2>
-      <span class="en">SCOPE</span>
-    </div>
+<!-- ============ 対応範囲 ============ -->
+<section class="scope">
+  <div class="inner">
+    <span class="kicker">SCOPE</span>
     <div class="scope-grid">
-      <div class="scope-card ok">
-        <h3>⭕ 対応できます</h3>
+      <div class="scope-col ok">
+        <h3><span class="m bb">OK</span>対応できます</h3>
         <ul>
           <li>壁の穴あけ（各種壁材）</li>
           <li>ケーブル類の壁通し・敷設・整理</li>
           <li>LAN・アンテナ・スピーカー・HDMI配線</li>
+          <li>エアコンの標準取付（既存コンセント使用）</li>
           <li>Wi-FiルーターやBluetooth機器の設定サポート</li>
           <li>機器の設置・接続（電気工事を伴わないもの）</li>
         </ul>
       </div>
-      <div class="scope-card ng">
-        <h3>❌ 対応できません</h3>
+      <div class="scope-col ng">
+        <h3><span class="m bb">NG</span>対応できません</h3>
         <ul>
           <li>コンセント・スイッチの増設や移設</li>
           <li>分電盤・屋内電気配線に関わる作業</li>
@@ -504,162 +504,140 @@ a:focus-visible,summary:focus-visible{outline:3px solid var(--safety-deep);outli
         </ul>
       </div>
     </div>
-    <p class="scope-note">安全を最優先に、法令上資格が必要な電気工事は行いません。電気工事が必要な場合は、その旨を事前にはっきりお伝えします。「これは頼めるのかな?」と迷ったら、まずはお気軽にご相談ください。</p>
+    <p class="scope-note">安全を最優先に、法令上資格が必要な電気工事は行いません。電気工事が必要な場合は、その旨を事前にはっきりお伝えします。</p>
   </div>
 </section>
 
-<!-- ===== 料金 ===== -->
-<section class="pricing" id="pricing">
-  <div class="section-inner">
-    <div class="section-head">
-      <span class="dot"></span>
-      <h2>料金の目安</h2>
-      <span class="en">PRICE</span>
+<!-- ============ 流れ ============ -->
+<section class="flow">
+  <div class="inner">
+    <span class="kicker">FLOW</span>
+    <div class="flow-line">
+      <span class="flow-s"><span class="n bb">1</span><span class="t">お問い合わせ</span><span class="d">電話・LINE・メール</span></span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-s"><span class="n bb">2</span><span class="t">現地確認・見積</span><span class="d">無料・キャンセル料なし</span></span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-s"><span class="n bb">3</span><span class="t">施工</span><span class="d">養生・清掃まで</span></span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-s"><span class="n bb">4</span><span class="t">確認・支払い</span><span class="d">追加料金なし</span></span>
     </div>
-    <table class="price-table">
-      <tr><th>作業内容</th><th>料金（税込）</th><th>備考</th></tr>
-      <tr><td>壁穴あけ<br><small style="color:rgba(255,255,255,.6);font-size:.8rem">コンクリート・ALC・ブロック・れんが・木造・石膏ボード など対応</small></td><td class="price">¥15,000〜 / 1本</td><td>壁の材質・厚み・作業環境により変動</td></tr>
-      <tr><td>LANケーブル配線</td><td class="price">お見積もり</td><td>距離・経路により変動</td></tr>
-      <tr><td>オーディオ・ホームシアター配線</td><td class="price">お見積もり</td><td>内容に応じてご提案</td></tr>
-      <tr><td>配線整理・機器設定サポート</td><td class="price">お見積もり</td><td>作業時間に応じて</td></tr>
-    </table>
-    <div class="discount-banner">
-      <span class="badge">セット割引</span>
-      <div>
-        2本施工：合計金額から <span class="num">5%</span>OFF ／ 3本以上：合計金額から <span class="num">10%</span>OFF<br>
-        <small style="font-weight:500;font-family:'Noto Sans JP',sans-serif;font-size:.82rem">※同一現場で複数箇所施工の場合は別途お見積もりいたします。</small>
-      </div>
-    </div>
-    <ul class="pricing-notes">
-      <li>作業前に必ず確定金額をご提示します。ご了承いただいてから作業を開始します。</li>
-      <li>出張費は札幌市内無料。近郊エリアはお問い合わせください。</li>
-    </ul>
+    <p class="flow-foot">壁の写真をLINEで送っていただくと、<b>現地確認前に概算</b>をお伝えできます。</p>
   </div>
 </section>
 
-<!-- ===== 施工事例 ===== -->
-<section id="works">
-  <div class="section-inner">
-    <div class="section-head">
-      <span class="dot"></span>
-      <h2>施工事例</h2>
-      <span class="en">WORKS</span>
-    </div>
+<!-- ============ 施工イメージ ============ -->
+<section class="works">
+  <div class="inner">
+    <span class="kicker">WORKS</span>
+    <h2>施工イメージ</h2>
     <div class="works-grid">
-      <div class="work-card">
-        <div class="work-photos">
+      <div class="w-card">
+        <div class="w-photos">
           <div class="ph before"><span>BEFORE</span></div>
           <div class="ph"><span>AFTER</span></div>
         </div>
-        <div class="work-body">
-          <span class="work-area">札幌市白石区</span>
-          <h3>LANケーブルを隣室へ壁通し（木造住宅）</h3>
-          <p>在宅ワーク用に、リビングのルーターから隣の書斎まで有線LANを敷設。壁に小さな穴を1つあけてケーブルを通し、目立たない位置で美しく仕上げました。</p>
+        <div class="w-body">
+          <span class="w-area bb">EXAMPLE 01 — 木造住宅</span>
+          <h3>LANケーブルを隣室へ壁通し</h3>
+          <p>リビングのルーターから隣の書斎まで有線LANを敷設。壁に小さな穴を1つあけ、目立たない位置で仕上げます。</p>
         </div>
       </div>
-      <div class="work-card">
-        <div class="work-photos">
+      <div class="w-card">
+        <div class="w-photos">
           <div class="ph before"><span>BEFORE</span></div>
           <div class="ph"><span>AFTER</span></div>
         </div>
-        <div class="work-body">
-          <span class="work-area">札幌市中央区</span>
-          <h3>テレビ裏の配線を壁内に隠ぺい（戸建て）</h3>
-          <p>壁掛けテレビ周りのHDMI・アンテナ線・電源タップをすべて壁の中と家具裏へ。ごちゃごちゃだったテレビ裏が、ケーブル1本見えないすっきりした空間になりました。</p>
+        <div class="w-body">
+          <span class="w-area bb">EXAMPLE 02 — 戸建て住宅</span>
+          <h3>テレビ裏の配線を壁内に隠ぺい</h3>
+          <p>壁掛けテレビ周りのHDMI・アンテナ線・電源タップをすべて壁の中と家具裏へ。ケーブル1本見えない空間に。</p>
         </div>
       </div>
-      <div class="work-card">
-        <div class="work-photos">
+      <div class="w-card">
+        <div class="w-photos">
           <div class="ph before"><span>BEFORE</span></div>
           <div class="ph"><span>AFTER</span></div>
         </div>
-        <div class="work-body">
-          <span class="work-area">札幌市豊平区</span>
-          <h3>店舗レジ周りの配線整理（飲食店）</h3>
-          <p>レジ・レシートプリンター・ルーターの配線が絡まっていたカウンター内を整理。ケーブルの経路を作り直し、掃除しやすく、トラブル時に原因を追いやすい配線に改善しました。</p>
+        <div class="w-body">
+          <span class="w-area bb">EXAMPLE 03 — 飲食店</span>
+          <h3>店舗レジ周りの配線整理</h3>
+          <p>レジ・プリンター・ルーターの配線が絡まったカウンター内を整理。掃除しやすく、トラブル時に原因を追いやすく。</p>
         </div>
       </div>
     </div>
+    <p class="works-note">※上記は代表的なご依頼内容のイメージです。実際の施工写真は、サービス開始後に順次掲載していきます。</p>
   </div>
 </section>
 
-<!-- ===== FAQ ===== -->
-<section class="faq" id="faq">
-  <div class="section-inner">
-    <div class="section-head">
-      <span class="dot"></span>
-      <h2>よくある質問</h2>
-      <span class="en">FAQ</span>
-    </div>
+<!-- ============ FAQ ============ -->
+<section class="faq">
+  <div class="inner">
+    <span class="kicker">FAQ</span>
+    <h2>よくある質問</h2>
     <details class="faq-item">
-      <summary>穴1つだけでも頼めますか?</summary>
+      <summary>穴1つだけでも頼めますか</summary>
       <div class="faq-a">もちろんです。1本からのご依頼を歓迎しています。小さな作業ほど頼みにくいものですので、遠慮なくご相談ください。</div>
     </details>
     <details class="faq-item">
-      <summary>賃貸マンションでも工事できますか?</summary>
+      <summary>賃貸マンションでも工事できますか</summary>
       <div class="faq-a">大家さんや管理会社の許可があれば可能です。許可取得に必要な工事内容の説明資料もご用意できますので、お申し付けください。</div>
     </details>
     <details class="faq-item">
-      <summary>壁の中の配線や柱に当たりませんか?</summary>
+      <summary>壁の中の配線や柱に当たりませんか</summary>
       <div class="faq-a">作業前に壁内の下地・配線・配管を探知機で確認し、安全な位置を決めてから穴をあけます。万一リスクがある場合は、位置の変更をご提案します。</div>
     </details>
     <details class="faq-item">
-      <summary>見積もりだけでもお願いできますか?</summary>
+      <summary>見積もりだけでもお願いできますか</summary>
       <div class="faq-a">はい、お見積もりは無料です。現地確認のうえ確定金額をご提示し、ご納得いただいてから作業します。見積もり後のキャンセルも問題ありません。</div>
     </details>
     <details class="faq-item">
-      <summary>コンセントの増設もお願いできますか?</summary>
+      <summary>コンセントの増設もお願いできますか</summary>
       <div class="faq-a">申し訳ありません、コンセント増設などの電気工事は資格が必要なため対応しておりません。穴あけ・配線通しまでを当社が行い、電気工事部分は電気工事店にご依頼いただく分担も可能です。</div>
     </details>
     <details class="faq-item">
-      <summary>対応エリアはどこまでですか?</summary>
+      <summary>対応エリアはどこまでですか</summary>
       <div class="faq-a">札幌市内全域と近郊(江別・北広島・恵庭など)に対応しています。エリア外の場合もまずはご相談ください。</div>
     </details>
   </div>
 </section>
 
-<!-- ===== 代表あいさつ ===== -->
-<section id="greeting">
-  <div class="section-inner">
-    <div class="section-head">
-      <span class="dot"></span>
-      <h2>代表あいさつ</h2>
-      <span class="en">GREETING</span>
-    </div>
-    <div class="greeting-grid">
+<!-- ============ あいさつ ============ -->
+<section class="greet">
+  <div class="inner">
+    <span class="kicker">GREETING</span>
+    <div class="greet-grid">
       <div class="face">顔写真</div>
-      <div class="greeting-body">
+      <div class="greet-body">
+        <p class="pull">穴をあけることが目的ではなく、<br>その先の「<span class="o">快適に使える状態</span>」まで<br>お届けするのが私たちの仕事です。</p>
         <h3>株式会社ジャストフレンズ 代表</h3>
         <p class="title">札幌でオーディオ専門店を25年以上運営</p>
-        <p>はじめまして。当社は札幌でヴィンテージオーディオの修理・販売を25年以上続けてきた会社です。お客様のお宅でスピーカーやアンプを設置するなかで、「ついでに壁に穴をあけてケーブルを通せたら」「配線をきれいにまとめてほしい」というご要望を数多くいただいてきました。</p>
-        <p>そのお声にきちんとお応えするため、壁穴あけ・配線サポートを専門サービスとして始めました。穴をあけることが目的ではなく、その先の「快適に使える状態」までお届けするのが私たちの仕事です。</p>
+        <p>はじめまして。当社は札幌でヴィンテージオーディオの修理・販売を25年以上続けてきた会社です。お客様のお宅でスピーカーやアンプを設置するなかで、「ついでに壁に穴をあけてケーブルを通せたら」「配線をきれいにまとめてほしい」というご要望を数多くいただいてきました。そのお声にきちんとお応えするため、壁穴あけ・配線サポートを専門サービスとして始めました。</p>
         <p>小さな作業ほど、誰に頼めばいいか分からないもの。そんなときに気軽に声をかけてもらえる存在でありたいと思っています。どうぞよろしくお願いいたします。</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ===== CTA ===== -->
-<section class="contact" id="contact">
-  <div class="section-inner">
-    <h2>まずはお気軽にご相談ください</h2>
-    <p>お見積もり無料。壁の写真をLINEで送るだけでも概算をお伝えできます。</p>
-    <div class="contact-box">
-      <a class="contact-tel" href="tel:0000000000">📞 000-000-0000</a>
-      <p class="contact-hours">受付時間 10:00〜18:00（不定休）</p>
-      <div class="contact-btn-row">
-        <a class="btn-line-s" href="#">💬 LINEで写真を送る</a>
-        <a class="btn-mail" href="mailto:info@justfriends.jp">✉ メールで問い合わせる</a>
-      </div>
+<!-- ============ CTA ============ -->
+<div class="contact" id="contact">
+  <div class="inner">
+    <span class="kicker">CONTACT</span>
+    <h2>確かな技術で、きれいな穴を。</h2>
+    <p>ご相談は「穴あけの窓口」へ。お見積もり無料。壁の写真をLINEで送るだけでも概算をお伝えできます。</p>
+    <a class="contact-tel bb" href="tel:0115981010">011-598-1010</a>
+    <p class="contact-hours">受付時間 10:00〜18:00（不定休）</p>
+    <div class="contact-btns">
+      <a class="btn btn-line" href="#">LINEで写真を送る</a>
+      <a class="btn btn-paperline" href="mailto:info@justfriends.jp">メールで問い合わせる</a>
     </div>
   </div>
-</section>
+</div>
 
 <footer>
   <div class="footer-inner">
     <div>
-      <strong>株式会社ジャストフレンズ</strong>
-      札幌市豊平区（住所を記載）<br>
+      <strong>穴あけの窓口（株式会社ジャストフレンズ）</strong>
+      札幌市（新事務所住所を記載）<br>
       壁穴あけ（コア抜き）・配線サポート／ヴィンテージオーディオ修理・買取・販売
     </div>
     <div>
@@ -670,8 +648,8 @@ a:focus-visible,summary:focus-visible{outline:3px solid var(--safety-deep);outli
 </footer>
 
 <div class="mobile-cta">
-  <a class="m-tel" href="tel:0000000000">📞 電話で相談</a>
-  <a class="m-line" href="#">💬 LINEで写真を送る</a>
+  <a class="m-tel" href="tel:0115981010">電話で相談</a>
+  <a class="m-line" href="#">LINEで写真を送る</a>
 </div>
 
 </body>
